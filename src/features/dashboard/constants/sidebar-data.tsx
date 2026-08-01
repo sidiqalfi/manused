@@ -19,6 +19,12 @@ export const sidebarData = {
       url: "/dashboard",
       icon: <LayoutDashboardIcon />,
       isActive: true,
+      items: [
+        {
+          title: "Members",
+          url: "/dashboard/members",
+        },
+      ],
     },
   ],
   navSecondary: [
