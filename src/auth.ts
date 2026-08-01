@@ -33,10 +33,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null
         }
 
-        return user
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name ?? null,
+        }
       },
     })
   ],
+  session: {
+    strategy: "jwt",
+    maxAge: 24 * 60 * 60, // 24 jam dalam detik (86400)
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -50,7 +58,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user = {
         id: token.id as string,
         email: token.email as string,
-        name: token.name as string,
+        name: (token.name as string) ?? null,
       }
       return session
     },
