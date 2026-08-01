@@ -1,5 +1,6 @@
 import { getMembers } from "@features/members/actions/get-members"
 import { MembersTable } from "@features/members/components/members-table"
+import { CreateMemberDialog } from "@features/members/components/create-member-dialog"
 
 export default async function Page() {
   const members = await getMembers()
@@ -13,6 +14,7 @@ export default async function Page() {
             Daftar pemuda pemudi yang terdaftar.
           </p>
         </div>
+        <CreateMemberDialog />
       </div>
       <MembersTable data={members} />
     </div>
