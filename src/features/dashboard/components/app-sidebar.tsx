@@ -4,7 +4,6 @@ import * as React from "react"
 import type { User } from "next-auth"
 
 import { NavMain } from "@/features/dashboard/components/nav-main"
-import { NavProjects } from "@/features/dashboard/components/nav-projects"
 import { NavSecondary } from "@/features/dashboard/components/nav-secondary"
 import { NavUser } from "@/features/dashboard/components/nav-user"
 import { sidebarData } from "@features/dashboard/constants/sidebar-data"
@@ -52,7 +51,6 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={sidebarData.navMain} />
-        <NavProjects projects={sidebarData.projects} />
         <NavSecondary items={sidebarData.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
