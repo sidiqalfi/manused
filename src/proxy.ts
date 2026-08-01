@@ -1,1 +1,1 @@
-export { auth as proxy } from "@/auth"
+export { auth as proxy } from "@/features/auth/lib/auth"
