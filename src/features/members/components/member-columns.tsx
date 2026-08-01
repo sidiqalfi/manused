@@ -4,6 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import type { Member } from "@/generated/prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { DeleteMemberDialog } from "@features/members/components/delete-member-dialog"
+import { EditMemberDialog } from "@features/members/components/edit-member-dialog"
 
 export const memberColumns: ColumnDef<Member>[] = [
   {
@@ -80,7 +81,8 @@ export const memberColumns: ColumnDef<Member>[] = [
     cell: ({ row }) => {
       const member = row.original
       return (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-1">
+          <EditMemberDialog member={member} />
           <DeleteMemberDialog id={member.id} name={member.name} />
         </div>
       )
