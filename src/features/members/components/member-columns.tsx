@@ -3,6 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Member } from "@/generated/prisma/client"
 import { Badge } from "@/components/ui/badge"
+import { DeleteMemberDialog } from "@features/members/components/delete-member-dialog"
 
 export const memberColumns: ColumnDef<Member>[] = [
   {
@@ -71,6 +72,18 @@ export const memberColumns: ColumnDef<Member>[] = [
         month: "short",
         year: "numeric",
       })
+    },
+  },
+  {
+    id: "actions",
+    header: () => <span className="sr-only">Aksi</span>,
+    cell: ({ row }) => {
+      const member = row.original
+      return (
+        <div className="flex justify-end">
+          <DeleteMemberDialog id={member.id} name={member.name} />
+        </div>
+      )
     },
   },
 ]
