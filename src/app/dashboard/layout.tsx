@@ -13,7 +13,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <AppSidebar user={session.user} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2">
