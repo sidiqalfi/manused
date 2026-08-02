@@ -48,3 +48,4 @@ src/generated/prisma
 .claude
 .windsurf
 .vscode
+.worktrees
