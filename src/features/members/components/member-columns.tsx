@@ -41,7 +41,15 @@ export const memberColumns: ColumnDef<Member>[] = [
   },
   {
     accessorKey: "address",
-    header: "Alamat",
+    header: "Dusun",
+  },
+  {
+    accessorKey: "rt",
+    header: "RT",
+  },
+  {
+    accessorKey: "rw",
+    header: "RW",
   },
   {
     accessorKey: "phone",

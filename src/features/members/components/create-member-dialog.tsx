@@ -107,16 +107,42 @@ export function CreateMemberDialog() {
             </Field>
           </div>
 
-          <Field>
-            <FieldLabel>
-              <Label>Alamat</Label>
-            </FieldLabel>
-            <Input
-              name="address"
-              placeholder="Contoh: Dusun Krajan RT 01/RW 02"
-              required
-            />
-          </Field>
+          <div className="grid grid-cols-3 gap-4">
+            <Field>
+              <FieldLabel>
+                <Label>Dusun</Label>
+              </FieldLabel>
+              <Input name="address" placeholder="Contoh: Krajan" required />
+            </Field>
+
+            <Field>
+              <FieldLabel>
+                <Label>RT</Label>
+              </FieldLabel>
+              <Input
+                name="rt"
+                inputMode="numeric"
+                pattern="\d{3}"
+                maxLength={3}
+                placeholder="013"
+                required
+              />
+            </Field>
+
+            <Field>
+              <FieldLabel>
+                <Label>RW</Label>
+              </FieldLabel>
+              <Input
+                name="rw"
+                inputMode="numeric"
+                pattern="\d{3}"
+                maxLength={3}
+                placeholder="006"
+                required
+              />
+            </Field>
+          </div>
 
           <Field>
             <FieldLabel>

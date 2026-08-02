@@ -42,8 +42,10 @@ model Member {
   fullName  String // Nama lengkap
   gender    Gender
   birthDate DateTime @db.Date // Tanggal lahir (hanya tanggal, tanpa waktu)
-  address   String
-  phone     String? // Opsional, tidak semua pemuda punya HP
+  address String // Dusun
+  rt      String // Tiga digit, misalnya "013"
+  rw      String // Tiga digit, misalnya "006"
+  phone   String? // Opsional, tidak semua pemuda punya HP
 
   status      MemberStatus @default(ACTIVE)
   createdById String       @db.Uuid

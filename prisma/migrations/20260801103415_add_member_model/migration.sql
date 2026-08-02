@@ -12,6 +12,8 @@ CREATE TABLE "Member" (
     "gender" "Gender" NOT NULL,
     "birthDate" DATE NOT NULL,
     "address" TEXT NOT NULL,
+    "rt" TEXT NOT NULL,
+    "rw" TEXT NOT NULL,
     "phone" TEXT,
     "status" "MemberStatus" NOT NULL DEFAULT 'ACTIVE',
     "joinDate" DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
