@@ -2,6 +2,11 @@
 
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
+import {
+  getMemberFormValues,
+  memberIdSchema,
+  updateMemberSchema,
+} from "@/features/members/member-schemas"
 import { revalidatePath } from "next/cache"
 
 export async function updateMember(id: string, formData: FormData) {
@@ -11,34 +16,24 @@ export async function updateMember(id: string, formData: FormData) {
     return { error: "Unauthorized" }
   }
 
-  if (!id) {
+  const parsedId = memberIdSchema.safeParse(id)
+
+  if (!parsedId.success) {
     return { error: "ID anggota tidak valid" }
   }
 
-  const name = formData.get("name") as string
-  const fullName = formData.get("fullName") as string
-  const gender = formData.get("gender") as "MALE" | "FEMALE"
-  const birthDate = formData.get("birthDate") as string
-  const address = formData.get("address") as string
-  const phone = (formData.get("phone") as string) || null
-  const status = formData.get("status") as "ACTIVE" | "INACTIVE"
+  const parsedMember = updateMemberSchema.safeParse(
+    getMemberFormValues(formData),
+  )
 
-  if (!name || !fullName || !gender || !birthDate || !address || !status) {
-    return { error: "Semua field wajib diisi (kecuali No. HP)" }
+  if (!parsedMember.success) {
+    return { error: "Data anggota tidak valid" }
   }
 
   try {
     await prisma.member.update({
-      where: { id },
-      data: {
-        name,
-        fullName,
-        gender,
-        birthDate: new Date(birthDate),
-        address,
-        phone,
-        status,
-      },
+      where: { id: parsedId.data },
+      data: parsedMember.data,
     })
 
     revalidatePath("/dashboard/members")

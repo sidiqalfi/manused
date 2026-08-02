@@ -2,6 +2,10 @@
 
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
+import {
+  createMemberSchema,
+  getMemberFormValues,
+} from "@/features/members/member-schemas"
 import { revalidatePath } from "next/cache"
 
 export async function createMember(formData: FormData) {
@@ -11,26 +15,18 @@ export async function createMember(formData: FormData) {
     return { error: "Unauthorized" }
   }
 
-  const name = formData.get("name") as string
-  const fullName = formData.get("fullName") as string
-  const gender = formData.get("gender") as "MALE" | "FEMALE"
-  const birthDate = formData.get("birthDate") as string
-  const address = formData.get("address") as string
-  const phone = (formData.get("phone") as string) || null
+  const parsedMember = createMemberSchema.safeParse(
+    getMemberFormValues(formData),
+  )
 
-  if (!name || !fullName || !gender || !birthDate || !address) {
-    return { error: "Semua field wajib diisi" }
+  if (!parsedMember.success) {
+    return { error: "Data anggota tidak valid" }
   }
 
   try {
     await prisma.member.create({
       data: {
-        name,
-        fullName,
-        gender,
-        birthDate: new Date(birthDate),
-        address,
-        phone,
+        ...parsedMember.data,
         createdById: session.user.id,
       },
     })
