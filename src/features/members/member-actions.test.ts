@@ -37,7 +37,9 @@ function validMemberFormData() {
   formData.set("fullName", "Andi Prasetyo")
   formData.set("gender", "MALE")
   formData.set("birthDate", "2000-02-29")
-  formData.set("address", "Dusun Krajan RT 01/RW 02")
+  formData.set("address", "Krajan")
+  formData.set("rt", "013")
+  formData.set("rw", "006")
   formData.set("phone", "")
   formData.set("status", "ACTIVE")
 
@@ -71,4 +73,15 @@ test("deleteMember rejects an invalid ID before deleting a member", async () => 
 
   assert.deepEqual(result, { error: "ID anggota tidak valid" })
   assert.equal(memberDelete.mock.callCount(), 0)
+})
+
+test("createMember rejects an invalid RT before creating a member", async () => {
+  const { createMember } = await import("./actions/create-member")
+  const formData = validMemberFormData()
+  formData.set("rt", "13")
+
+  const result = await createMember(formData)
+
+  assert.deepEqual(result, { error: "Data anggota tidak valid" })
+  assert.equal(memberCreate.mock.callCount(), 0)
 })

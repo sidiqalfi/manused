@@ -1,6 +1,7 @@
 import { z } from "zod"
 
 const requiredText = z.string().trim().min(1)
+const administrativeCode = z.string().regex(/^\d{3}$/)
 
 const birthDate = z
   .string()
@@ -25,6 +26,8 @@ export const createMemberSchema = z.object({
   gender: z.enum(["MALE", "FEMALE"]),
   birthDate,
   address: requiredText,
+  rt: administrativeCode,
+  rw: administrativeCode,
   phone,
 })
 
@@ -41,6 +44,8 @@ export function getMemberFormValues(formData: FormData) {
     gender: formData.get("gender"),
     birthDate: formData.get("birthDate"),
     address: formData.get("address"),
+    rt: formData.get("rt"),
+    rw: formData.get("rw"),
     phone: formData.get("phone"),
     status: formData.get("status"),
   }

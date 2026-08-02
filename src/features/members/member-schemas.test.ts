@@ -11,7 +11,9 @@ const validMember = {
   fullName: "Andi Prasetyo",
   gender: "MALE",
   birthDate: "2000-02-29",
-  address: "Dusun Krajan RT 01/RW 02",
+  address: "Krajan",
+  rt: "013",
+  rw: "006",
   phone: "",
 }
 
@@ -58,4 +60,20 @@ test("accepts update status and rejects an unsupported status", () => {
 
 test("rejects an invalid member ID", () => {
   assert.equal(memberIdSchema.safeParse("not-a-uuid").success, false)
+})
+
+test("requires RT and RW to be exactly three digits", () => {
+  const validResult = createMemberSchema.safeParse(validMember)
+  const shortRtResult = createMemberSchema.safeParse({
+    ...validMember,
+    rt: "13",
+  })
+  const nonNumericRwResult = createMemberSchema.safeParse({
+    ...validMember,
+    rw: "0A6",
+  })
+
+  assert.equal(validResult.success, true)
+  assert.equal(shortRtResult.success, false)
+  assert.equal(nonNumericRwResult.success, false)
 })
