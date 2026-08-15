@@ -12,16 +12,18 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
 import { createCashExpense } from "../../actions/create-cash-expense"
+import { cashKeys } from "../../queries"
 
 type Props = {
   periodId: string
-  onCreated?: () => void
 }
 
-export function AddExpenseDialog({ periodId, onCreated }: Props) {
+export function AddExpenseDialog({ periodId }: Props) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   const today = new Date().toISOString().split("T")[0]
 
@@ -32,7 +34,8 @@ export function AddExpenseDialog({ periodId, onCreated }: Props) {
       setError(result.error)
     } else {
       setOpen(false)
-      onCreated?.()
+      await queryClient.invalidateQueries({ queryKey: cashKeys.period(periodId) })
+      await queryClient.invalidateQueries({ queryKey: cashKeys.summary(periodId) })
     }
   }
 

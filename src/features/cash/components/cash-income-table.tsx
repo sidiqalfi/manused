@@ -14,9 +14,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Trash2 } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
 import { RecordPaymentDialog } from "./dialogs/record-payment-dialog"
 import { deleteCashIncome } from "../actions/delete-cash-income"
-import { getCashPeriod } from "../actions/get-cash-periods"
+import { cashKeys } from "../queries"
 
 type Income = {
   id: string
@@ -58,13 +59,10 @@ function formatDate(date: Date) {
 
 export function CashIncomeTable({ periodId, period, summary, members }: Props) {
   const [error, setError] = useState<string | null>(null)
-  const [incomes, setIncomes] = useState<Income[]>(period?.data?.incomes ?? [])
   const [deletingIncome, setDeletingIncome] = useState<Income | null>(null)
+  const queryClient = useQueryClient()
 
-  const refreshData = async () => {
-    const updatedPeriod = await getCashPeriod(periodId)
-    setIncomes(updatedPeriod?.data?.incomes ?? [])
-  }
+  const incomes = period?.success ? period.data?.incomes ?? [] : []
 
   async function handleDelete(incomeId: string) {
     const result = await deleteCashIncome(incomeId)
@@ -72,7 +70,8 @@ export function CashIncomeTable({ periodId, period, summary, members }: Props) {
       setError(result.error)
     } else {
       setError(null)
-      await refreshData()
+      await queryClient.invalidateQueries({ queryKey: cashKeys.period(periodId) })
+      await queryClient.invalidateQueries({ queryKey: cashKeys.summary(periodId) })
     }
   }
 
@@ -93,7 +92,6 @@ export function CashIncomeTable({ periodId, period, summary, members }: Props) {
           unpaidMembers={unpaidMembers}
           duesAmount={duesAmount}
           minAmount={minAmount}
-          onCreated={refreshData}
         />
       </div>
 

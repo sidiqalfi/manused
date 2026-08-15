@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { cashKeys, cashPeriodsQuery } from "../queries"
+import { useQuery } from "@tanstack/react-query"
+import { cashPeriodsQuery } from "../queries"
 import { CreatePeriodDialog } from "./dialogs/create-period-dialog"
 
 const MONTHS = [
@@ -22,7 +22,6 @@ type Props = {
 
 export function CashPeriodSelector({ onPeriodChange }: Props) {
   const [selectedId, setSelectedId] = useState<string>("")
-  const queryClient = useQueryClient()
 
   const { data: result } = useQuery(cashPeriodsQuery)
   const periods: Period[] = result?.success ? result.data ?? [] : []
@@ -31,10 +30,6 @@ export function CashPeriodSelector({ onPeriodChange }: Props) {
     const id = e.target.value
     setSelectedId(id)
     onPeriodChange(id)
-  }
-
-  const refreshPeriods = () => {
-    queryClient.invalidateQueries({ queryKey: cashKeys.periods() })
   }
 
   return (
@@ -51,7 +46,7 @@ export function CashPeriodSelector({ onPeriodChange }: Props) {
           </option>
         ))}
       </select>
-      <CreatePeriodDialog onCreated={refreshPeriods} />
+      <CreatePeriodDialog />
     </div>
   )
 }

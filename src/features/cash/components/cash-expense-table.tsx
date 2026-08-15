@@ -13,9 +13,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Trash2 } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
 import { AddExpenseDialog } from "./dialogs/add-expense-dialog"
 import { deleteCashExpense } from "../actions/delete-cash-expense"
-import { getCashPeriod } from "../actions/get-cash-periods"
+import { cashKeys } from "../queries"
 
 type Expense = {
   id: string
@@ -43,15 +44,10 @@ function formatDate(date: Date) {
 
 export function CashExpenseTable({ periodId, period }: Props) {
   const [error, setError] = useState<string | null>(null)
-  const data = period?.success ? period.data : null
-  const [expenses, setExpenses] = useState<Expense[]>(data?.expenses ?? [])
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null)
+  const queryClient = useQueryClient()
 
-  const refreshData = async () => {
-    const updatedPeriod = await getCashPeriod(periodId)
-    const refreshedData = updatedPeriod?.success ? updatedPeriod.data : null
-    setExpenses(refreshedData?.expenses ?? [])
-  }
+  const expenses = period?.success ? period.data?.expenses ?? [] : []
 
   async function handleDelete(expenseId: string) {
     const result = await deleteCashExpense(expenseId)
@@ -59,7 +55,8 @@ export function CashExpenseTable({ periodId, period }: Props) {
       setError(result.error)
     } else {
       setError(null) // Clear any previous errors on success
-      await refreshData()
+      await queryClient.invalidateQueries({ queryKey: cashKeys.period(periodId) })
+      await queryClient.invalidateQueries({ queryKey: cashKeys.summary(periodId) })
     }
   }
 
@@ -67,7 +64,7 @@ export function CashExpenseTable({ periodId, period }: Props) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Pengeluaran</h3>
-        <AddExpenseDialog periodId={periodId} onCreated={refreshData} />
+        <AddExpenseDialog periodId={periodId} />
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}

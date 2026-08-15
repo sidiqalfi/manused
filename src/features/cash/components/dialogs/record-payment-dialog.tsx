@@ -12,7 +12,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
 import { createCashIncome } from "../../actions/create-cash-income"
+import { cashKeys } from "../../queries"
 
 type Member = {
   id: string
@@ -25,12 +27,12 @@ type Props = {
   unpaidMembers: Member[]
   duesAmount: number
   minAmount: number
-  onCreated?: () => void
 }
 
-export function RecordPaymentDialog({ periodId, unpaidMembers, duesAmount, minAmount, onCreated }: Props) {
+export function RecordPaymentDialog({ periodId, unpaidMembers, duesAmount, minAmount }: Props) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   const today = new Date().toISOString().split("T")[0]
 
@@ -41,7 +43,8 @@ export function RecordPaymentDialog({ periodId, unpaidMembers, duesAmount, minAm
       setError(result.error)
     } else {
       setOpen(false)
-      onCreated?.()
+      await queryClient.invalidateQueries({ queryKey: cashKeys.period(periodId) })
+      await queryClient.invalidateQueries({ queryKey: cashKeys.summary(periodId) })
     }
   }
 

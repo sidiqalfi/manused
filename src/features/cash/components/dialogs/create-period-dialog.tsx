@@ -12,20 +12,19 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
 import { createCashPeriod } from "../../actions/create-cash-period"
+import { cashKeys } from "../../queries"
 
 const MONTHS = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
   "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ]
 
-type Props = {
-  onCreated?: () => void
-}
-
-export function CreatePeriodDialog({ onCreated }: Props) {
+export function CreatePeriodDialog() {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   const now = new Date()
   const defaultMonth = now.getMonth() + 1
@@ -38,7 +37,7 @@ export function CreatePeriodDialog({ onCreated }: Props) {
       setError(result.error)
     } else {
       setOpen(false)
-      onCreated?.()
+      await queryClient.invalidateQueries({ queryKey: cashKeys.periods() })
     }
   }
 
