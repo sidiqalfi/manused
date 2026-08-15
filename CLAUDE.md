@@ -43,6 +43,8 @@ Features: `auth` (NextAuth config in `lib/auth.ts`), `cash` (periods, incomes, e
 
 **UI conventions**: components consume the structured result via optional-data props (`data?: T | null`). shadcn components in `src/components/ui/` wrap Base UI (`@base-ui/react`), where `AlertDialogAction` does **not** auto-close — dialogs are controlled (`open`/`onOpenChange` state) and closed manually in handlers. All user-facing copy is in Indonesian.
 
+**TanStack Query (v5)**: `QueryProvider` is mounted in the root layout. Query options live in `src/features/cash/queries.ts` as factories (`cashKeys` hierarchy `["cash", ...]`, `queryOptions` per query) — server actions are the `queryFn`s and return the structured result as-is. New client-side fetching should use `useQuery` + `queryClient.invalidateQueries` after mutations, not manual `useEffect`. Reference example: `cash-period-selector.tsx`.
+
 **Testing**: `node:test` + `node:assert/strict` via `tsx` with `--experimental-test-module-mocks`; dependencies (Prisma, auth) are mocked with `mock.module()` at the top of the test file before importing the action under test. Tests are colocated with the feature (e.g. `src/features/members/member-actions.test.ts`).
 
 **Prisma**: driver-adapter pattern — the client singleton is `src/lib/prisma.ts` using `PrismaPg`. Generated types import from `@/generated/prisma/client` (namespace `Prisma`, model types like `Prisma.CashPeriodGetPayload<...>`); the schema has a custom `output` dir. Migrations live in `prisma/migrations`.
