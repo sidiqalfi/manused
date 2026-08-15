@@ -20,6 +20,9 @@ model User {
   password String
 
   createdMembers Member[]
+  createdCashPeriods CashPeriod[]
+  createdCashIncomes CashIncome[]
+  createdCashExpenses CashExpense[]
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
@@ -52,6 +55,65 @@ model Member {
   createdUser User         @relation(fields: [createdById], references: [id])
   joinDate    DateTime     @default(now()) @db.Date // Tanggal bergabung
 
+  cashIncomes CashIncome[]
+
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
+}
+
+model CashPeriod {
+  id String @id @default(uuid()) @db.Uuid
+
+  month      Int // 1-12
+  year       Int // 2026
+  duesAmount Int // Nominal iuran bulan ini
+  minAmount  Int // Batas bawah
+
+  incomes  CashIncome[]
+  expenses CashExpense[]
+
+  createdById String @db.Uuid
+  createdUser User   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  @@unique([month, year])
+}
+
+model CashIncome {
+  id String @id @default(uuid()) @db.Uuid
+
+  periodId String     @db.Uuid
+  period   CashPeriod @relation(fields: [periodId], references: [id])
+
+  memberId String @db.Uuid
+  member   Member @relation(fields: [memberId], references: [id])
+
+  amount Int      // Nominal yang dibayar
+  paidAt DateTime @db.Date
+  note   String?  // Catatan opsional
+
+  createdById String @db.Uuid
+  createdUser User   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  @@unique([periodId, memberId])
+}
+
+model CashExpense {
+  id String @id @default(uuid()) @db.Uuid
+
+  periodId    String     @db.Uuid
+  period      CashPeriod @relation(fields: [periodId], references: [id])
+
+  description String // "Beli konsumsi rapat", dll
+  amount      Int
+  spentAt     DateTime @db.Date
+
+  createdById String @db.Uuid
+  createdUser User   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
 }

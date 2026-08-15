@@ -3,7 +3,12 @@ import { MembersTable } from "@features/members/components/members-table"
 import { CreateMemberDialog } from "@features/members/components/create-member-dialog"
 
 export default async function Page() {
-  const members = await getMembers()
+  const result = await getMembers()
+  const members = result.success ? result.data ?? [] : []
+
+  if (!result.success) {
+    console.error(result.error)
+  }
 
   return (
     <div className="space-y-4">
