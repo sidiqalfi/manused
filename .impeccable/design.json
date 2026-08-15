@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-16T00:00:00.000Z",
+  "title": "Design System: Manused",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Ledger Green",
+        "canonical": "oklch(0.508 0.118 165.612)",
+        "tonalRamp": [
+          "oklch(0.152 0.035 165.6)",
+          "oklch(0.252 0.055 165.6)",
+          "oklch(0.332 0.075 165.6)",
+          "oklch(0.432 0.095 165.6)",
+          "oklch(0.508 0.118 165.6)",
+          "oklch(0.596 0.145 163.2)",
+          "oklch(0.7 0.13 164.5)",
+          "oklch(0.85 0.09 164.7)",
+          "oklch(0.979 0.021 166.1)"
+        ]
+      },
+      "secondary": {
+        "role": "neutral",
+        "displayName": "Muted Violet Sheet",
+        "canonical": "oklch(0.967 0.001 286.375)"
+      },
+      "destructive": {
+        "role": "error",
+        "displayName": "Warning Red",
+        "canonical": "oklch(0.577 0.245 27.325)"
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Paper White",
+        "canonical": "oklch(1 0 0)"
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Ink Charcoal",
+        "canonical": "oklch(0.145 0 0)"
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted Sheet",
+        "canonical": "oklch(0.97 0 0)"
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Faded Ink",
+        "canonical": "oklch(0.556 0 0)"
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Ledger Line",
+        "canonical": "oklch(0.922 0 0)"
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "Ledger Line",
+        "canonical": "oklch(0.922 0 0)"
+      },
+      "sidebar": {
+        "role": "neutral",
+        "displayName": "Sidebar Sheet",
+        "canonical": "oklch(0.985 0 0)"
+      }
+    },
+    "typographyMeta": {
+      "body": { "displayName": "Body", "purpose": "Isi tabel, teks dialog, default UI." },
+      "title": { "displayName": "Title", "purpose": "Judul seksi tabel." },
+      "label": { "displayName": "Label", "purpose": "Label form dan teks kecil UI; tanpa uppercase." },
+      "page-heading": { "displayName": "Page Heading", "purpose": "Judul halaman (Kas, Anggota)." },
+      "mono": { "displayName": "Mono", "purpose": "Angka/identitas teknis bila perlu." }
+    },
+    "shadows": [
+      {
+        "name": "floating-surface",
+        "value": "shadow-2xl + ring-1 ring-foreground/5",
+        "purpose": "Hanya untuk permukaan melayang: dropdown menu, select popup, tooltip, dialog."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state-transition",
+        "value": "transition-all 150ms ease",
+        "purpose": "Hover/focus tombol, input, badge — perubahan warna instan-tenang."
+      },
+      {
+        "name": "overlay-in-out",
+        "value": "fade-in/zoom-in-95 100ms; fade-out/zoom-out-95",
+        "purpose": "Dialog, alert-dialog, menu, tooltip open/close."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Aksi utama (Catat Pembayaran, Buat Periode) — Ledger Green.",
+      "html": "<button class=\"ds-btn-primary\">Catat Pembayaran</button>",
+      "css": ".ds-btn-primary { background: var(--primary); color: var(--primary-foreground); height: 2.25rem; padding: 0 0.75rem; border: none; border-radius: 1.17rem; font-size: 0.875rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.375rem; cursor: pointer; transition: background 0.15s ease; } .ds-btn-primary:hover { background: color-mix(in oklab, var(--primary) 80%, transparent); } .ds-btn-primary:focus-visible { outline: 3px solid color-mix(in oklab, var(--ring) 50%, transparent); outline-offset: 1px; }"
+    },
+    {
+      "name": "Ghost Icon Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Aksi baris tabel (hapus) — transparan, hover tone.",
+      "html": "<button class=\"ds-btn-ghost-icon\" aria-label=\"Hapus\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 6h18\"/><path d=\"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6\"/><path d=\"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2\"/></svg></button>",
+      "css": ".ds-btn-ghost-icon { background: transparent; color: var(--foreground); width: 2.25rem; height: 2.25rem; display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 1.17rem; cursor: pointer; transition: background 0.15s ease; } .ds-btn-ghost-icon:hover { background: var(--muted); color: var(--foreground); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Field form — pill, latar input/30, focus halo ring.",
+      "html": "<input class=\"ds-input\" placeholder=\"5000\" type=\"number\" />",
+      "css": ".ds-input { background: color-mix(in oklab, var(--input) 30%, transparent); border: 1px solid var(--input); color: var(--foreground); height: 2.25rem; padding: 0 0.75rem; border-radius: 1.17rem; font-size: 0.875rem; outline: none; width: 100%; transition: border-color 0.15s ease; } .ds-input::placeholder { color: var(--muted-foreground); } .ds-input:focus-visible { border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 50%, transparent); } .ds-input[aria-invalid=\"true\"] { border-color: var(--destructive); box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 20%, transparent); }"
+    },
+    {
+      "name": "Paid Badge",
+      "kind": "chip",
+      "refersTo": "badge-default",
+      "description": "Status 'Sudah Bayar' — satu-satunya hijau solid di tabel.",
+      "html": "<span class=\"ds-badge-paid\">Sudah Bayar</span>",
+      "css": ".ds-badge-paid { background: var(--primary); color: var(--primary-foreground); height: 1.25rem; padding: 0 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; white-space: nowrap; }"
+    },
+    {
+      "name": "Unpaid Badge",
+      "kind": "chip",
+      "refersTo": "badge-outline",
+      "description": "Rekap anggota belum bayar — outline tipis.",
+      "html": "<span class=\"ds-badge-unpaid\">Sari</span>",
+      "css": ".ds-badge-unpaid { background: transparent; color: var(--foreground); border: 1px solid var(--border); height: 1.25rem; padding: 0 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; white-space: nowrap; }"
+    },
+    {
+      "name": "Summary Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Kartu ringkasan kas — flat, ring tipis, angka besar.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-title\">Total Pemasukan</div><div class=\"ds-card-value\">Rp 1.250.000</div><div class=\"ds-card-sub\">10 pembayaran</div></div>",
+      "css": ".ds-card { background: var(--card); color: var(--card-foreground); border-radius: 0.81rem; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent); padding: 1.5rem; display: flex; flex-direction: column; gap: 0.375rem; max-width: 20rem; } .ds-card-title { font-size: 0.875rem; font-weight: 500; color: var(--foreground); } .ds-card-value { font-size: 1.5rem; font-weight: 700; } .ds-card-sub { font-size: 0.75rem; color: var(--muted-foreground); }"
+    },
+    {
+      "name": "Ledger Table",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "Tabel kas signature — HTML table dalam container ber-border, header muted.",
+      "html": "<div class=\"ds-table-wrap\"><table class=\"ds-table\"><thead><tr><th>Nama</th><th>Status</th><th>Nominal</th><th>Tanggal</th></tr></thead><tbody><tr><td>Andi</td><td><span class=\"ds-badge-paid\">Sudah Bayar</span></td><td>Rp 5.000</td><td>5 Agu</td></tr><tr><td>Budi</td><td><span class=\"ds-badge-paid\">Sudah Bayar</span></td><td>Rp 5.000</td><td>7 Agu</td></tr></tbody></table></div>",
+      "css": ".ds-table-wrap { border: 1px solid var(--border); border-radius: 0.63rem; overflow: hidden; width: 100%; max-width: 40rem; } .ds-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; } .ds-table th { text-align: left; font-weight: 500; padding: 0.75rem; background: color-mix(in oklab, var(--muted) 50%, transparent); border-bottom: 1px solid var(--border); } .ds-table td { padding: 0.75rem; border-bottom: 1px solid var(--border); color: var(--foreground); } .ds-table tr:last-child td { border-bottom: none; } .ds-badge-paid { background: var(--primary); color: var(--primary-foreground); height: 1.25rem; padding: 0 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; white-space: nowrap; }"
+    },
+    {
+      "name": "Sidebar Nav Item",
+      "kind": "nav",
+      "refersTo": "button-secondary",
+      "description": "Item navigasi sidebar — aktif = sidebar-accent; ikon Lucide 16px.",
+      "html": "<div class=\"ds-nav\"><a class=\"ds-nav-item ds-nav-item-active\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"/><path d=\"M3 9h18\"/><path d=\"M9 21V9\"/></svg><span>Kas</span></a><a class=\"ds-nav-item\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"/><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"/></svg><span>Anggota</span></a></div>",
+      "css": ".ds-nav { display: flex; flex-direction: column; gap: 0.25rem; width: 14rem; background: var(--sidebar); padding: 0.5rem; border-radius: 0.81rem; } .ds-nav-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; color: var(--sidebar-foreground, var(--foreground)); text-decoration: none; cursor: pointer; } .ds-nav-item:hover { background: var(--sidebar-accent); } .ds-nav-item-active { background: var(--sidebar-accent); font-weight: 500; color: var(--foreground); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Buku Kas Desa Modern",
+    "overview": "Manused tampak seperti buku kas desa yang dijaga rapi: lembar putih bersih, angka dan nama tersusun dalam tabel yang lega, dan satu warna hijau tegas yang menjadi tanda tangan — persis tinta hijau bendahara di buku kas asli. Sistem ini tenang dan terpercaya; tidak ada ornamen yang bersaing dengan angka, karena angka adalah isinya produk ini. Kepadatan mengikuti konteks pakai: dashboard operasional untuk pengurus yang butuh memindai cepat, dengan ruang napas cukup agar tetap enak dibaca di HP saat rapat. Permukaan hampir seluruhnya rata; hierarki dibangun dari tipografi, tone, dan garis tipis — bukan bayangan.",
+    "keyCharacteristics": [
+      "Putih kertas + hijau tinta bendahara sebagai satu-satunya aksen bermakna",
+      "Sudut membulat lembut (radius dasar 0.45rem, tombol/kartu hingga ~1.17rem pill)",
+      "Flat + tonal: kedalaman lewat tone (muted, input/30) dan ring-foreground/5, bukan shadow",
+      "Roboto di semua peran (body/title/label) — familiar, netral, sangat terbaca di layar kecil",
+      "Angka uang selalu berformat Rp + toLocaleString(id-ID), never raw numbers"
+    ],
+    "rules": [
+      { "name": "The One Ink Rule", "body": "Ledger Green hanya untuk identitas dan aksi (tombol utama, status bayar, brand). Tidak untuk dekorasi, tidak dua-tiga elemen hijau berdesakan di satu area.", "section": "colors" },
+      { "name": "The Calm Money Rule", "body": "Merah destructive hanya untuk konfirmasi penghapusan data dan teks error — pengeluaran TIDAK diwarnai merah; ia tetap netral karena transaksi sah.", "section": "colors" },
+      { "name": "The Ledger Line Rule", "body": "Baris tabel = satu fakta keuangan. Font size seragam dalam tabel; hierarki dibangun kolom, bukan ukuran campuran.", "section": "typography" },
+      { "name": "The Floating-Only Rule", "body": "Shadow adalah penanda permukaan melayang di atas konten — menu, popup, dialog. Kartu dan tombol yang menempel di halaman tidak pernah ber-shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do format semua uang sebagai Rp ${amount.toLocaleString(\"id-ID\")} — tidak pernah angka polos.",
+      "Do tulis seluruh copy UI dalam bahasa Indonesia.",
+      "Do pakai Ledger Green hemat: satu titik hijau fokus per area layar.",
+      "Do buat target sentuh ≥ 2.25rem (h-9) — dipakai sambil berdiri di lapangan.",
+      "Do gunakan ring-foreground/5 untuk memisahkan permukaan sebelum memikirkan shadow.",
+      "Do sediakan state kosong ber-teks Indonesia, bukan ruang kosong."
+    ],
+    "donts": [
+      "Don't beri shadow pada kartu/tombol di halaman — shadow hanya untuk popover/menu/dialog.",
+      "Don't warnai pengeluaran dengan merah — merah hanya error/hapus.",
+      "Don't tambahkan warna aksen baru di luar palet token; selalu pakai token, bukan warna literal.",
+      "Don't pakai ukuran font campuran dalam satu tabel.",
+      "Don't ganti select native dengan custom picker untuk form lapangan."
+    ]
+  }
+}
