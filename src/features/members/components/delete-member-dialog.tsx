@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Trash2 } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -13,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { deleteMember } from "@features/members/actions/delete-member"
+import { membersKeys } from "@features/members/queries"
 
 interface DeleteMemberDialogProps {
   id: string
@@ -23,6 +25,7 @@ export function DeleteMemberDialog({ id, name }: DeleteMemberDialogProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   async function handleDelete() {
     setLoading(true)
@@ -36,6 +39,7 @@ export function DeleteMemberDialog({ id, name }: DeleteMemberDialogProps) {
       return
     }
 
+    await queryClient.invalidateQueries({ queryKey: membersKeys.all })
     setLoading(false)
     setOpen(false)
   }

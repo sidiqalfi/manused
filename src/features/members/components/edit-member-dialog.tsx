@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Pencil } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -24,6 +25,7 @@ import { Field, FieldLabel } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
 import type { Member } from "@/generated/prisma/client"
 import { updateMember } from "@features/members/actions/update-member"
+import { membersKeys } from "@features/members/queries"
 
 interface EditMemberDialogProps {
   member: Member
@@ -33,6 +35,7 @@ export function EditMemberDialog({ member }: EditMemberDialogProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   const birthDateValue = new Date(member.birthDate)
     .toISOString()
@@ -52,6 +55,7 @@ export function EditMemberDialog({ member }: EditMemberDialogProps) {
       return
     }
 
+    await queryClient.invalidateQueries({ queryKey: membersKeys.all })
     setLoading(false)
     setOpen(false)
   }

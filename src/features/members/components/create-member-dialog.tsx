@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Plus } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -23,11 +24,13 @@ import {
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
 import { createMember } from "@features/members/actions/create-member"
+import { membersKeys } from "@features/members/queries"
 
 export function CreateMemberDialog() {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -43,6 +46,7 @@ export function CreateMemberDialog() {
       return
     }
 
+    await queryClient.invalidateQueries({ queryKey: membersKeys.all })
     setLoading(false)
     setOpen(false)
   }
