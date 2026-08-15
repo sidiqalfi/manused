@@ -26,7 +26,7 @@ export const createCashIncomeSchema = z.object({
   memberId: z.string().uuid(),
   amount: positiveInt,
   paidAt: dateOnly,
-  note: z.string().trim().optional(),
+  note: z.string().trim().optional().nullable(),
 })
 
 export const cashIncomeIdSchema = z.string().uuid()

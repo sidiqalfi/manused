@@ -26,7 +26,7 @@ type Expense = {
 
 type Props = {
   periodId: string
-  period: { success: boolean; data: { expenses: Expense[] }; error?: string } | null
+  period: { success: boolean; data?: { expenses: Expense[] }; error?: string } | null
 }
 
 function formatCurrency(amount: number) {

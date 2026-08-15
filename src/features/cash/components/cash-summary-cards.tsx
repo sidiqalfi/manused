@@ -14,7 +14,7 @@ type SummaryData = {
 }
 
 type Props = {
-  summary: { success: boolean; data: SummaryData | null; error?: string } | null
+  summary: { success: boolean; data?: SummaryData | null; error?: string } | null
 }
 
 function formatCurrency(amount: number) {
@@ -22,7 +22,7 @@ function formatCurrency(amount: number) {
 }
 
 export function CashSummaryCards({ summary }: Props) {
-  const data = summary?.success ? summary.data : null
+  const data = summary?.success ? summary.data ?? null : null
 
   if (!summary || !data) {
     return (

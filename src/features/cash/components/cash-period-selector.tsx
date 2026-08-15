@@ -23,8 +23,14 @@ export function CashPeriodSelector({ onPeriodChange }: Props) {
   const [periods, setPeriods] = useState<Period[]>([])
   const [selectedId, setSelectedId] = useState<string>("")
 
+  const loadPeriods = () => {
+    getCashPeriods().then((result) => {
+      setPeriods(result.success ? result.data ?? [] : [])
+    })
+  }
+
   useEffect(() => {
-    getCashPeriods().then(setPeriods)
+    loadPeriods()
   }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -34,7 +40,7 @@ export function CashPeriodSelector({ onPeriodChange }: Props) {
   }
 
   const refreshPeriods = () => {
-    getCashPeriods().then(setPeriods)
+    loadPeriods()
   }
 
   return (

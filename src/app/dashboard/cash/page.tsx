@@ -5,15 +5,15 @@ import { CashPeriodSelector } from "@/features/cash/components/cash-period-selec
 import { CashSummaryCards } from "@/features/cash/components/cash-summary-cards";
 import { CashIncomeTable } from "@/features/cash/components/cash-income-table";
 import { CashExpenseTable } from "@/features/cash/components/cash-expense-table";
-import { getCashPeriod } from "@/features/cash/actions/get-cash-periods";
-import { getCashSummary } from "@/features/cash/actions/get-cash-summary";
+import { getCashPeriod, GetCashPeriodResult } from "@/features/cash/actions/get-cash-periods";
+import { getCashSummary, GetCashSummaryResult } from "@/features/cash/actions/get-cash-summary";
 import { getMembers, GetMembersResult } from "@features/members/actions/get-members";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function CashPage() {
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null);
-  const [periodResult, setPeriodResult] = useState<any>(null);
-  const [summaryResult, setSummaryResult] = useState<any>(null);
+  const [periodResult, setPeriodResult] = useState<GetCashPeriodResult | null>(null);
+  const [summaryResult, setSummaryResult] = useState<GetCashSummaryResult | null>(null);
   const [membersResult, setMembersResult] = useState<GetMembersResult | null>(null);
   const [loading, setLoading] = useState(false);
 

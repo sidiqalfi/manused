@@ -1,11 +1,35 @@
 "use server"
 
 import prisma from "@/lib/prisma"
+import { cashPeriodIdSchema } from "../cash-schemas"
 
-export async function getCashSummary(periodId: string) {
+export interface CashSummaryData {
+  totalIncome: number
+  totalExpense: number
+  balance: number
+  incomeCount: number
+  expenseCount: number
+  duesAmount: number
+  minAmount: number
+}
+
+export interface GetCashSummaryResult {
+  success: boolean
+  data?: CashSummaryData
+  error?: string
+}
+
+export async function getCashSummary(
+  periodId: string
+): Promise<GetCashSummaryResult> {
+  const validation = cashPeriodIdSchema.safeParse(periodId)
+  if (!validation.success) {
+    return { success: false, error: "ID periode tidak valid" }
+  }
+
   try {
     const period = await prisma.cashPeriod.findUnique({
-      where: { id: periodId },
+      where: { id: validation.data },
     })
 
     if (!period) {

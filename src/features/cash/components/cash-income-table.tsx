@@ -39,8 +39,8 @@ interface MembersData {
 
 type Props = {
   periodId: string
-  period: { success: boolean; data: { incomes: Income[] }; error?: string } | null
-  summary: { success: boolean; data: { duesAmount: number; minAmount: number }; error?: string } | null
+  period: { success: boolean; data?: { incomes: Income[] }; error?: string } | null
+  summary: { success: boolean; data?: { duesAmount: number; minAmount: number }; error?: string } | null
   members: { success: boolean; data?: MembersData[]; error?: string } | null
 }
 
@@ -81,8 +81,8 @@ export function CashIncomeTable({ periodId, period, summary, members }: Props) {
   const activeMembers = membersData.filter((m) => m.status === "ACTIVE")
   const unpaidMembers = activeMembers.filter((m) => !paidMemberIds.has(m.id))
 
-  const duesAmount = summary?.success ? summary.data.duesAmount : 0
-  const minAmount = summary?.success ? summary.data.minAmount : 0
+  const duesAmount = summary?.success ? summary.data?.duesAmount ?? 0 : 0
+  const minAmount = summary?.success ? summary.data?.minAmount ?? 0 : 0
 
   return (
     <div className="space-y-4">
