@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 import { cashPeriodsQuery } from "../queries"
 import { CreatePeriodDialog } from "./dialogs/create-period-dialog"
 
-const MONTHS = [
+export const MONTHS = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
   "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ]

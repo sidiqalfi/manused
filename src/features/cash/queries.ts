@@ -1,12 +1,16 @@
 import { queryOptions } from "@tanstack/react-query"
 import { getCashPeriod, getCashPeriods } from "./actions/get-cash-periods"
 import { getCashSummary } from "./actions/get-cash-summary"
+import { getCashYearSummary } from "./actions/get-cash-year-summary"
+import { getCashYearChart } from "./actions/get-cash-year-chart"
 
 export const cashKeys = {
   all: ["cash"] as const,
   periods: () => [...cashKeys.all, "periods"] as const,
   period: (id: string) => [...cashKeys.all, "periods", id] as const,
   summary: (id: string) => [...cashKeys.all, "periods", id, "summary"] as const,
+  yearSummary: (year: number) => [...cashKeys.all, "year", year, "summary"] as const,
+  yearChart: (year: number) => [...cashKeys.all, "year", year, "chart"] as const,
 }
 
 export const cashPeriodsQuery = queryOptions({
@@ -27,5 +31,21 @@ export function cashSummaryQuery(periodId: string) {
     queryKey: cashKeys.summary(periodId),
     queryFn: () => getCashSummary(periodId),
     enabled: Boolean(periodId),
+  })
+}
+
+export function cashYearSummaryQuery(year: number | null) {
+  return queryOptions({
+    queryKey: cashKeys.yearSummary(year ?? 0),
+    queryFn: () => getCashYearSummary(year as number),
+    enabled: year !== null,
+  })
+}
+
+export function cashYearChartQuery(year: number | null) {
+  return queryOptions({
+    queryKey: cashKeys.yearChart(year ?? 0),
+    queryFn: () => getCashYearChart(year as number),
+    enabled: year !== null,
   })
 }

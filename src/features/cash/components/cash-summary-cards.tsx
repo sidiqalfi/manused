@@ -9,19 +9,20 @@ type SummaryData = {
   balance: number
   incomeCount: number
   expenseCount: number
-  duesAmount: number
-  minAmount: number
+  duesAmount?: number
+  minAmount?: number
 }
 
 type Props = {
   summary: { success: boolean; data?: SummaryData | null; error?: string } | null
+  balanceCaption?: string
 }
 
 function formatCurrency(amount: number) {
   return `Rp ${amount.toLocaleString("id-ID")}`
 }
 
-export function CashSummaryCards({ summary }: Props) {
+export function CashSummaryCards({ summary, balanceCaption }: Props) {
   const data = summary?.success ? summary.data ?? null : null
 
   if (!summary || !data) {
@@ -92,11 +93,14 @@ export function CashSummaryCards({ summary }: Props) {
           <Wallet className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className={`text-2xl font-bold ${data.balance >= 0 ? "text-green-600" : "text-red-600"}`}>
+          <div className="text-2xl font-bold text-primary tabular-nums">
             {formatCurrency(data.balance)}
           </div>
           <p className="text-xs text-muted-foreground">
-            Iuran: {formatCurrency(data.duesAmount)} (min: {formatCurrency(data.minAmount)})
+            {balanceCaption ??
+              (data.duesAmount != null && data.minAmount != null
+                ? `Iuran: ${formatCurrency(data.duesAmount)} (min: ${formatCurrency(data.minAmount)})`
+                : null)}
           </p>
         </CardContent>
       </Card>

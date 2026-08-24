@@ -34,8 +34,7 @@ export function AddExpenseDialog({ periodId }: Props) {
       setError(result.error)
     } else {
       setOpen(false)
-      await queryClient.invalidateQueries({ queryKey: cashKeys.period(periodId) })
-      await queryClient.invalidateQueries({ queryKey: cashKeys.summary(periodId) })
+      await queryClient.invalidateQueries({ queryKey: cashKeys.all })
     }
   }
 

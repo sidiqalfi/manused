@@ -70,8 +70,7 @@ export function CashIncomeTable({ periodId, period, summary, members }: Props) {
       setError(result.error)
     } else {
       setError(null)
-      await queryClient.invalidateQueries({ queryKey: cashKeys.period(periodId) })
-      await queryClient.invalidateQueries({ queryKey: cashKeys.summary(periodId) })
+      await queryClient.invalidateQueries({ queryKey: cashKeys.all })
     }
   }
 

@@ -55,8 +55,7 @@ export function CashExpenseTable({ periodId, period }: Props) {
       setError(result.error)
     } else {
       setError(null) // Clear any previous errors on success
-      await queryClient.invalidateQueries({ queryKey: cashKeys.period(periodId) })
-      await queryClient.invalidateQueries({ queryKey: cashKeys.summary(periodId) })
+      await queryClient.invalidateQueries({ queryKey: cashKeys.all })
     }
   }
 
