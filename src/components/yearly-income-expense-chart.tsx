@@ -8,8 +8,8 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { MONTHS } from "./cash-period-selector"
-import type { GetCashYearChartResult } from "../actions/get-cash-year-chart"
+import { MONTHS } from "@/lib/months"
+import { formatCurrency } from "@/lib/format"
 
 const chartConfig = {
   totalIncome: {
@@ -22,19 +22,20 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
+export type YearlyFlowPoint = {
+  month: number
+  totalIncome: number
+  totalExpense: number
+}
+
 type Props = {
   year: number
-  data: GetCashYearChartResult | null
+  data: YearlyFlowPoint[]
+  title?: string
 }
 
-function formatCurrency(amount: number) {
-  return `Rp ${amount.toLocaleString("id-ID")}`
-}
-
-export function CashYearChart({ year, data }: Props) {
-  const points = data?.success ? data.data ?? [] : []
-
-  if (!data?.success || points.length === 0) {
+export function YearlyIncomeExpenseChart({ year, data, title }: Props) {
+  if (data.length === 0) {
     return null
   }
 
@@ -42,12 +43,12 @@ export function CashYearChart({ year, data }: Props) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">
-          Arus kas tahun {year}
+          {title ?? `Arus kas tahun ${year}`}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-64 w-full">
-          <BarChart data={points} margin={{ left: 4, right: 4 }}>
+          <BarChart data={data} margin={{ left: 4, right: 4 }}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="month"

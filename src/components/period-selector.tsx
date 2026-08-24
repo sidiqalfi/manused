@@ -1,30 +1,26 @@
 "use client"
 
 import { useState } from "react"
-import { useQuery } from "@tanstack/react-query"
-import { cashPeriodsQuery } from "../queries"
-import { CreatePeriodDialog } from "./dialogs/create-period-dialog"
+import { MONTHS } from "@/lib/months"
 
-export const MONTHS = [
-  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-]
-
-type Period = {
+export type PeriodOption = {
   id: string
   month: number
   year: number
 }
 
 type Props = {
+  periods: PeriodOption[]
   onPeriodChange: (periodId: string) => void
+  createPeriodTrigger?: React.ReactNode
 }
 
-export function CashPeriodSelector({ onPeriodChange }: Props) {
+export function PeriodSelector({
+  periods,
+  onPeriodChange,
+  createPeriodTrigger,
+}: Props) {
   const [selectedId, setSelectedId] = useState<string>("")
-
-  const { data: result } = useQuery(cashPeriodsQuery)
-  const periods: Period[] = result?.success ? result.data ?? [] : []
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = e.target.value
@@ -46,7 +42,7 @@ export function CashPeriodSelector({ onPeriodChange }: Props) {
           </option>
         ))}
       </select>
-      <CreatePeriodDialog />
+      {createPeriodTrigger}
     </div>
   )
 }
