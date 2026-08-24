@@ -121,7 +121,10 @@ async function main() {
     },
   ]
 
-  // Hapus member lama, lalu buat ulang
+  // Hapus data kas lama dulu (FK ke member/period), lalu member
+  await prisma.cashIncome.deleteMany()
+  await prisma.cashExpense.deleteMany()
+  await prisma.cashPeriod.deleteMany()
   await prisma.member.deleteMany()
 
   await prisma.member.createMany({
@@ -133,6 +136,88 @@ async function main() {
 
   const memberCount = await prisma.member.count()
   console.log(`SUCCESS_MEMBERS_SEEDED: ${memberCount} members total`)
+
+  // Seed Cash Periods (12 bulan tahun berjalan)
+  const year = new Date().getFullYear()
+  const dbMembers = await prisma.member.findMany({
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  })
+
+  const DUES = 5000
+  const MIN = 3000
+
+  await prisma.cashPeriod.createMany({
+    data: Array.from({ length: 12 }, (_, i) => ({
+      month: i + 1,
+      year,
+      duesAmount: DUES,
+      minAmount: MIN,
+      createdById: user.id,
+    })),
+  })
+
+  const dbPeriods = await prisma.cashPeriod.findMany({
+    where: { year },
+    orderBy: { month: "asc" },
+  })
+
+  const expenseTemplates = [
+    { description: "Konsumsi rapat rutin", amount: 10000 },
+    { description: "Pembelian ATK", amount: 8000 },
+    { description: "Iuran kebersihan", amount: 5000 },
+    { description: "Dekorasi & konsumsi acara", amount: 15000 },
+    { description: "Dana sosial", amount: 7000 },
+  ]
+
+  const incomes: {
+    periodId: string
+    memberId: string
+    amount: number
+    paidAt: Date
+    note: string | null
+    createdById: string
+  }[] = []
+  const expenses: {
+    periodId: string
+    description: string
+    amount: number
+    spentAt: Date
+    createdById: string
+  }[] = []
+
+  for (const period of dbPeriods) {
+    const payingCount = 8 + (period.month % 3) // 8-10 member bayar tiap bulan
+    for (let i = 0; i < payingCount; i++) {
+      const member = dbMembers[i % dbMembers.length]
+      if (!member) continue
+      incomes.push({
+        periodId: period.id,
+        memberId: member.id,
+        amount: DUES,
+        paidAt: new Date(year, period.month - 1, 5),
+        note: null,
+        createdById: user.id,
+      })
+    }
+
+    const expenseCount = 1 + (period.month % 2) // 1-2 pengeluaran tiap bulan
+    for (let j = 0; j < expenseCount; j++) {
+      const template = expenseTemplates[(period.month + j) % expenseTemplates.length]
+      expenses.push({
+        periodId: period.id,
+        description: template.description,
+        amount: template.amount,
+        spentAt: new Date(year, period.month - 1, 15 + j * 5),
+        createdById: user.id,
+      })
+    }
+  }
+
+  await prisma.cashIncome.createMany({ data: incomes })
+  await prisma.cashExpense.createMany({ data: expenses })
+
+  console.log(`SUCCESS_CASH_SEEDED: ${dbPeriods.length} periods (${year}), ${incomes.length} incomes, ${expenses.length} expenses`)
 }
 
 main()
