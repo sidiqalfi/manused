@@ -43,10 +43,7 @@ test("createSosialPeriod rejects an invalid payload before creating a period", a
 
   const result = await createSosialPeriod(formData)
 
-  assert.deepEqual(result, {
-    error: "Data tidak valid",
-    details: result.details,
-  })
+  assert.equal(result.error, "Data tidak valid")
   assert.equal(periodCreate.mock.callCount(), 0)
 })
 

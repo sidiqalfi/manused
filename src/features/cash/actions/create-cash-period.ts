@@ -33,6 +33,12 @@ export async function createCashPeriod(formData: FormData) {
     return { success: true }
   } catch (error) {
     console.error("Failed to create cash period:", error)
+    const prismaError = error as { code?: string }
+
+    if (prismaError.code === "P2002") {
+      return { error: "Periode untuk bulan ini sudah ada" }
+    }
+
     return { error: "Gagal membuat periode kas" }
   }
 }

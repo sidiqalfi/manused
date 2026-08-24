@@ -18,6 +18,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { RecordPaymentDialog } from "./dialogs/record-payment-dialog"
 import { deleteCashIncome } from "../actions/delete-cash-income"
 import { cashKeys } from "../queries"
+import { formatCurrency, formatDate } from "@/lib/format"
 
 type Income = {
   id: string
@@ -43,18 +44,6 @@ type Props = {
   period: { success: boolean; data?: { incomes: Income[] }; error?: string } | null
   summary: { success: boolean; data?: { duesAmount: number; minAmount: number }; error?: string } | null
   members: { success: boolean; data?: MembersData[]; error?: string } | null
-}
-
-function formatCurrency(amount: number) {
-  return `Rp ${amount.toLocaleString("id-ID")}`
-}
-
-function formatDate(date: Date) {
-  return new Date(date).toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  })
 }
 
 export function CashIncomeTable({ periodId, period, summary, members }: Props) {

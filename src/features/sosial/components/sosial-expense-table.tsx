@@ -17,7 +17,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { AddSosialExpenseDialog } from "./dialogs/add-sosial-expense-dialog"
 import { deleteSosialExpense } from "../actions/delete-sosial-expense"
 import { sosialKeys } from "../queries"
-import { formatCurrency } from "@/lib/format"
+import { formatCurrency, formatDate } from "@/lib/format"
 
 type Expense = {
   id: string
@@ -29,14 +29,6 @@ type Expense = {
 type Props = {
   periodId: string
   period: { success: boolean; data?: { expenses: Expense[] }; error?: string } | null
-}
-
-function formatDate(date: Date) {
-  return new Date(date).toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  })
 }
 
 export function SosialExpenseTable({ periodId, period }: Props) {

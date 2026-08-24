@@ -17,6 +17,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { AddExpenseDialog } from "./dialogs/add-expense-dialog"
 import { deleteCashExpense } from "../actions/delete-cash-expense"
 import { cashKeys } from "../queries"
+import { formatCurrency, formatDate } from "@/lib/format"
 
 type Expense = {
   id: string
@@ -28,18 +29,6 @@ type Expense = {
 type Props = {
   periodId: string
   period: { success: boolean; data?: { expenses: Expense[] }; error?: string } | null
-}
-
-function formatCurrency(amount: number) {
-  return `Rp ${amount.toLocaleString("id-ID")}`
-}
-
-function formatDate(date: Date) {
-  return new Date(date).toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  })
 }
 
 export function CashExpenseTable({ periodId, period }: Props) {

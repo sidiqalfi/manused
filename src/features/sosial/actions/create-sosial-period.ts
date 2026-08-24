@@ -32,6 +32,12 @@ export async function createSosialPeriod(formData: FormData) {
     return { success: true }
   } catch (error) {
     console.error("Failed to create sosial period:", error)
+    const prismaError = error as { code?: string }
+
+    if (prismaError.code === "P2002") {
+      return { error: "Periode untuk bulan ini sudah ada" }
+    }
+
     return { error: "Gagal membuat periode sosial" }
   }
 }

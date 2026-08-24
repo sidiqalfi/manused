@@ -18,7 +18,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { RecordSosialContributionDialog } from "./dialogs/record-sosial-contribution-dialog"
 import { deleteSosialIncome } from "../actions/delete-sosial-income"
 import { sosialKeys } from "../queries"
-import { formatCurrency } from "@/lib/format"
+import { formatCurrency, formatDate } from "@/lib/format"
 
 type Income = {
   id: string
@@ -44,14 +44,6 @@ type Props = {
   period: { success: boolean; data?: { incomes: Income[] }; error?: string } | null
   summary: { success: boolean; data?: { minAmount: number }; error?: string } | null
   members: { success: boolean; data?: MembersData[]; error?: string } | null
-}
-
-function formatDate(date: Date) {
-  return new Date(date).toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  })
 }
 
 export function SosialIncomeTable({ periodId, period, summary, members }: Props) {
