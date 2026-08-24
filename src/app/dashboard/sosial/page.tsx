@@ -12,51 +12,64 @@ import {
   type YearlyFlowPoint,
 } from "@/components/yearly-income-expense-chart";
 import { CreateSosialPeriodDialog } from "@/features/sosial/components/dialogs/create-sosial-period-dialog";
+import { SosialIncomeTable } from "@/features/sosial/components/sosial-income-table";
 import {
   sosialPeriodsQuery,
+  sosialPeriodQuery,
   sosialSummaryQuery,
   sosialYearSummaryQuery,
   sosialYearChartQuery,
 } from "@/features/sosial/queries";
+import { membersQuery } from "@features/members/queries";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/format";
 import { TrendingUp, TrendingDown, Wallet } from "lucide-react";
 
-type YearSummaryLike = {
+type SummaryLike = {
   success: boolean;
   data?: {
-    year: number;
     totalIncome: number;
     totalExpense: number;
     balance: number;
     incomeCount: number;
     expenseCount: number;
+    minAmount?: number;
   } | null;
   error?: string;
 } | null;
 
-function buildYearStats(
-  yearSummary: Exclude<YearSummaryLike, null>["data"]
-): SummaryStat[] | null {
-  if (!yearSummary) return null;
+function buildSummaryStats(
+  summary: SummaryLike,
+  balanceCaption?: string
+): SummaryStat[] {
+  const data = summary?.success ? summary.data ?? null : null;
+
+  if (!data) {
+    return [
+      { label: "Total Pemasukan", value: "-", caption: "0 iuran", icon: TrendingUp },
+      { label: "Total Pengeluaran", value: "-", caption: "0 pengeluaran", icon: TrendingDown },
+      { label: "Saldo", value: "-", icon: Wallet },
+    ];
+  }
 
   return [
     {
       label: "Total Pemasukan",
-      value: formatCurrency(yearSummary.totalIncome),
-      caption: `${yearSummary.incomeCount} iuran`,
+      value: formatCurrency(data.totalIncome),
+      caption: `${data.incomeCount} iuran`,
       icon: TrendingUp,
     },
     {
       label: "Total Pengeluaran",
-      value: formatCurrency(yearSummary.totalExpense),
-      caption: `${yearSummary.expenseCount} pengeluaran`,
+      value: formatCurrency(data.totalExpense),
+      caption: `${data.expenseCount} pengeluaran`,
       icon: TrendingDown,
     },
     {
       label: "Saldo",
-      value: formatCurrency(yearSummary.balance),
-      caption: `Gabungan semua periode ${yearSummary.year}`,
+      value: formatCurrency(data.balance),
+      caption: balanceCaption ?? null,
       icon: Wallet,
       valueClassName: "text-primary tabular-nums",
     },
@@ -73,7 +86,9 @@ export default function SosialPage() {
     : [];
   const activeYear = periods[0]?.year ?? null;
 
+  const periodQuery = useQuery(sosialPeriodQuery(selectedPeriodId ?? ""));
   const summaryQuery = useQuery(sosialSummaryQuery(selectedPeriodId ?? ""));
+  const membersQueryState = useQuery(membersQuery);
   const yearSummaryResult = useQuery(
     sosialYearSummaryQuery(activeYear)
   ).data ?? null;
@@ -84,10 +99,15 @@ export default function SosialPage() {
     ? yearChartResult.data ?? []
     : [];
 
+  const periodResult = periodQuery.data ?? null;
+  const summaryResult = summaryQuery.data ?? null;
+  const membersResult = membersQueryState.data ?? null;
   const yearSummary = yearSummaryResult?.success
     ? yearSummaryResult.data ?? null
     : null;
-  const loading = Boolean(selectedPeriodId) && summaryQuery.isPending;
+  const loading =
+    Boolean(selectedPeriodId) &&
+    (periodQuery.isPending || summaryQuery.isPending);
 
   return (
     <div className="space-y-4">
@@ -104,6 +124,36 @@ export default function SosialPage() {
           createPeriodTrigger={<CreateSosialPeriodDialog />}
         />
       </div>
+
+      {selectedPeriodId && !loading && (
+        <>
+          <SummaryStatCards stats={buildSummaryStats(summaryResult)} />
+
+          <Tabs defaultValue="income" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="income">Iuran</TabsTrigger>
+              <TabsTrigger value="expense">Pengeluaran</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="income">
+              <SosialIncomeTable
+                periodId={selectedPeriodId}
+                period={periodResult}
+                summary={summaryResult}
+                members={membersResult}
+              />
+            </TabsContent>
+
+            <TabsContent value="expense">
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">
+                  Pengeluaran sosial segera hadir.
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
 
       {loading && (
         <div className="grid gap-4 md:grid-cols-3">
@@ -123,7 +173,21 @@ export default function SosialPage() {
       {!selectedPeriodId && !loading && (
         activeYear !== null && yearSummary ? (
           <>
-            <SummaryStatCards stats={buildYearStats(yearSummary)} />
+            <SummaryStatCards
+              stats={buildSummaryStats(
+                {
+                  success: true,
+                  data: {
+                    totalIncome: yearSummary.totalIncome,
+                    totalExpense: yearSummary.totalExpense,
+                    balance: yearSummary.balance,
+                    incomeCount: yearSummary.incomeCount,
+                    expenseCount: yearSummary.expenseCount,
+                  },
+                },
+                `Gabungan semua periode ${yearSummary.year}`
+              )}
+            />
             <YearlyIncomeExpenseChart
               year={activeYear}
               data={yearChartPoints}
