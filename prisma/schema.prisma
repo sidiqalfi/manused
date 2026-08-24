@@ -23,6 +23,9 @@ model User {
   createdCashPeriods CashPeriod[]
   createdCashIncomes CashIncome[]
   createdCashExpenses CashExpense[]
+  createdSosialPeriods SosialPeriod[]
+  createdSosialIncomes SosialIncome[]
+  createdSosialExpenses SosialExpense[]
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
@@ -56,6 +59,8 @@ model Member {
   joinDate    DateTime     @default(now()) @db.Date // Tanggal bergabung
 
   cashIncomes CashIncome[]
+
+  sosialIncomes SosialIncome[]
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
@@ -107,6 +112,62 @@ model CashExpense {
 
   periodId    String     @db.Uuid
   period      CashPeriod @relation(fields: [periodId], references: [id])
+
+  description String // "Beli konsumsi rapat", dll
+  amount      Int
+  spentAt     DateTime @db.Date
+
+  createdById String @db.Uuid
+  createdUser User   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+}
+
+model SosialPeriod {
+  id String @id @default(uuid()) @db.Uuid
+
+  month     Int // 1-12
+  year      Int // 2026
+  minAmount Int // Batas bawah iuran seiklasnya
+
+  incomes  SosialIncome[]
+  expenses SosialExpense[]
+
+  createdById String @db.Uuid
+  createdUser User   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  @@unique([month, year])
+}
+
+model SosialIncome {
+  id String @id @default(uuid()) @db.Uuid
+
+  periodId String       @db.Uuid
+  period   SosialPeriod @relation(fields: [periodId], references: [id])
+
+  memberId String @db.Uuid
+  member   Member @relation(fields: [memberId], references: [id])
+
+  amount Int      // Nominal yang disumbangkan
+  paidAt DateTime @db.Date
+  note   String?  // Catatan opsional
+
+  createdById String @db.Uuid
+  createdUser User   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  @@unique([periodId, memberId])
+}
+
+model SosialExpense {
+  id String @id @default(uuid()) @db.Uuid
+
+  periodId    String       @db.Uuid
+  period      SosialPeriod @relation(fields: [periodId], references: [id])
 
   description String // "Beli konsumsi rapat", dll
   amount      Int

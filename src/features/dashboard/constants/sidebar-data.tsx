@@ -7,6 +7,7 @@ import {
   LayoutDashboardIcon,
   Wallet,
   Users,
+  HandCoins,
 } from "lucide-react"
 
 export const sidebarData = {
@@ -26,6 +27,11 @@ export const sidebarData = {
       title: "Kas",
       url: "/dashboard/cash",
       icon: <Wallet />,
+    },
+    {
+      title: "Sosial",
+      url: "/dashboard/sosial",
+      icon: <HandCoins />,
     },
     {
       title: "Members",
