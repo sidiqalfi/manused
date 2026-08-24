@@ -6,6 +6,7 @@ import {
   MapIcon,
   LayoutDashboardIcon,
   Wallet,
+  Users,
 } from "lucide-react"
 
 export const sidebarData = {
@@ -20,17 +21,16 @@ export const sidebarData = {
       url: "/dashboard",
       icon: <LayoutDashboardIcon />,
       isActive: true,
-      items: [
-        {
-          title: "Kas",
-          url: "/dashboard/cash",
-          icon: Wallet,
-        },
-        {
-          title: "Members",
-          url: "/dashboard/members",
-        },
-      ],
+    },
+    {
+      title: "Kas",
+      url: "/dashboard/cash",
+      icon: <Wallet />,
+    },
+    {
+      title: "Members",
+      url: "/dashboard/members",
+      icon: <Users />,
     },
   ],
   navSecondary: [
