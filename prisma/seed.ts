@@ -121,10 +121,13 @@ async function main() {
     },
   ]
 
-  // Hapus data kas lama dulu (FK ke member/period), lalu member
+  // Hapus data kas & sosial lama dulu (FK ke member/period), lalu member
   await prisma.cashIncome.deleteMany()
   await prisma.cashExpense.deleteMany()
   await prisma.cashPeriod.deleteMany()
+  await prisma.sosialIncome.deleteMany()
+  await prisma.sosialExpense.deleteMany()
+  await prisma.sosialPeriod.deleteMany()
   await prisma.member.deleteMany()
 
   await prisma.member.createMany({
@@ -218,6 +221,81 @@ async function main() {
   await prisma.cashExpense.createMany({ data: expenses })
 
   console.log(`SUCCESS_CASH_SEEDED: ${dbPeriods.length} periods (${year}), ${incomes.length} incomes, ${expenses.length} expenses`)
+
+  // Seed Sosial Periods (12 bulan tahun berjalan, iuran seiklasnya min 2000)
+  const SOCIAL_MIN = 2000
+
+  await prisma.sosialPeriod.createMany({
+    data: Array.from({ length: 12 }, (_, i) => ({
+      month: i + 1,
+      year,
+      minAmount: SOCIAL_MIN,
+      createdById: user.id,
+    })),
+  })
+
+  const dbSosialPeriods = await prisma.sosialPeriod.findMany({
+    where: { year },
+    orderBy: { month: "asc" },
+  })
+
+  const sosialExpenseTemplates = [
+    { description: "Bantuan sosial warga", amount: 15000 },
+    { description: "Konsumsi kegiatan", amount: 10000 },
+    { description: "Sumbangan acara desa", amount: 20000 },
+  ]
+
+  const sosialIncomes: {
+    periodId: string
+    memberId: string
+    amount: number
+    paidAt: Date
+    note: string | null
+    createdById: string
+  }[] = []
+  const sosialExpenses: {
+    periodId: string
+    description: string
+    amount: number
+    spentAt: Date
+    createdById: string
+  }[] = []
+
+  for (const period of dbSosialPeriods) {
+    const contributingCount = 7 + (period.month % 4) // 7-10 member iuran
+    for (let i = 0; i < contributingCount; i++) {
+      const member = dbMembers[i % dbMembers.length]
+      if (!member) continue
+      // Iuran seiklasnya: nominal bervariasi di atas batas minimum
+      const amount = SOCIAL_MIN * (1 + (i % 3)) // 2000, 4000, 6000
+      sosialIncomes.push({
+        periodId: period.id,
+        memberId: member.id,
+        amount,
+        paidAt: new Date(year, period.month - 1, 3),
+        note: null,
+        createdById: user.id,
+      })
+    }
+
+    const sosialExpenseCount = 1 // satu pengeluaran kecil per bulan
+    for (let j = 0; j < sosialExpenseCount; j++) {
+      const template =
+        sosialExpenseTemplates[(period.month + j) % sosialExpenseTemplates.length]
+      sosialExpenses.push({
+        periodId: period.id,
+        description: template.description,
+        amount: template.amount,
+        spentAt: new Date(year, period.month - 1, 20 + j * 3),
+        createdById: user.id,
+      })
+    }
+  }
+
+  await prisma.sosialIncome.createMany({ data: sosialIncomes })
+  await prisma.sosialExpense.createMany({ data: sosialExpenses })
+
+  console.log(`SUCCESS_SOSIAL_SEEDED: ${dbSosialPeriods.length} periods (${year}), ${sosialIncomes.length} incomes, ${sosialExpenses.length} expenses`)
 }
 
 main()
