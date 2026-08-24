@@ -24,6 +24,21 @@ npx prisma db seed
 npx tsc --noEmit   # type check (build does not run tsc)
 ```
 
+## Commit convention
+
+Use **Conventional Commits** for all commit messages, written in **English**:
+
+```
+<type>(<scope>): <description>
+```
+
+- `type`: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `perf`, `style`, `build`, `ci`
+- `scope`: the feature touched (e.g. `cash`, `members`, `auth`, `dashboard`)
+- `description`: short imperative-mood sentence, lowercase (e.g. `add yearly cash summary`), no trailing period
+- Breaking changes: use `!` after the type/scope or a `BREAKING CHANGE:` footer
+- End the commit body with:
+  `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`
+
 ## Stack
 
 Next.js 16 App Router, React 19, TypeScript strict, Tailwind v4, shadcn/ui (base-maia style, Base UI primitives — **not Radix**), Prisma 7 with `@prisma/adapter-pg` driver adapter on PostgreSQL, NextAuth v5 (credentials, bcryptjs), zod v4.
