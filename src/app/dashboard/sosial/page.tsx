@@ -13,6 +13,7 @@ import {
 } from "@/components/yearly-income-expense-chart";
 import { CreateSosialPeriodDialog } from "@/features/sosial/components/dialogs/create-sosial-period-dialog";
 import { SosialIncomeTable } from "@/features/sosial/components/sosial-income-table";
+import { SosialExpenseTable } from "@/features/sosial/components/sosial-expense-table";
 import {
   sosialPeriodsQuery,
   sosialPeriodQuery,
@@ -145,11 +146,10 @@ export default function SosialPage() {
             </TabsContent>
 
             <TabsContent value="expense">
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">
-                  Pengeluaran sosial segera hadir.
-                </p>
-              </div>
+              <SosialExpenseTable
+                periodId={selectedPeriodId}
+                period={periodResult}
+              />
             </TabsContent>
           </Tabs>
         </>
