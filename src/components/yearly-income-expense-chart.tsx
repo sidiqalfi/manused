@@ -1,10 +1,12 @@
 "use client"
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
   type ChartConfig,
 } from "@/components/ui/chart"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -32,12 +34,51 @@ type Props = {
   year: number
   data: YearlyFlowPoint[]
   title?: string
+  type?: "bar" | "line"
 }
 
-export function YearlyIncomeExpenseChart({ year, data, title }: Props) {
+export function YearlyIncomeExpenseChart({ year, data, title, type = "bar" }: Props) {
   if (data.length === 0) {
     return null
   }
+
+  const axes = (
+    <>
+      <CartesianGrid vertical={false} />
+      <XAxis
+        dataKey="month"
+        tickLine={false}
+        axisLine={false}
+        tickMargin={8}
+        tickFormatter={(month: number) => MONTHS[month - 1].slice(0, 3)}
+      />
+      <YAxis
+        tickLine={false}
+        axisLine={false}
+        width={44}
+        tickFormatter={(value: number) =>
+          value === 0 ? "0" : `${Math.round(value / 1000)}rb`
+        }
+      />
+      <ChartTooltip
+        content={
+          <ChartTooltipContent
+            labelFormatter={(_, payload) => {
+              const month = payload?.[0]?.payload?.month as
+                | number
+                | undefined
+              return month != null
+                ? `${MONTHS[month - 1]} ${year}`
+                : String(year)
+            }}
+            formatter={(value) =>
+              formatCurrency(typeof value === "number" ? value : 0)
+            }
+          />
+        }
+      />
+    </>
+  )
 
   return (
     <Card>
@@ -48,51 +89,42 @@ export function YearlyIncomeExpenseChart({ year, data, title }: Props) {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-64 w-full">
-          <BarChart data={data} margin={{ left: 4, right: 4 }}>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={(month: number) => MONTHS[month - 1].slice(0, 3)}
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              width={44}
-              tickFormatter={(value: number) =>
-                value === 0 ? "0" : `${Math.round(value / 1000)}rb`
-              }
-            />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  labelFormatter={(_, payload) => {
-                    const month = payload?.[0]?.payload?.month as
-                      | number
-                      | undefined
-                    return month != null
-                      ? `${MONTHS[month - 1]} ${year}`
-                      : String(year)
-                  }}
-                  formatter={(value) =>
-                    formatCurrency(typeof value === "number" ? value : 0)
-                  }
-                />
-              }
-            />
-            <Bar
-              dataKey="totalIncome"
-              fill="var(--color-totalIncome)"
-              radius={[4, 4, 0, 0]}
-            />
-            <Bar
-              dataKey="totalExpense"
-              fill="var(--color-totalExpense)"
-              radius={[4, 4, 0, 0]}
-            />
-          </BarChart>
+          {type === "line" ? (
+            <LineChart data={data} margin={{ left: 4, right: 4 }}>
+              {axes}
+              <Line
+                dataKey="totalIncome"
+                type="monotone"
+                stroke="var(--color-totalIncome)"
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+              <Line
+                dataKey="totalExpense"
+                type="monotone"
+                stroke="var(--color-totalExpense)"
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+              <ChartLegend content={<ChartLegendContent />} />
+            </LineChart>
+          ) : (
+            <BarChart data={data} margin={{ left: 4, right: 4 }}>
+              {axes}
+              <Bar
+                dataKey="totalIncome"
+                fill="var(--color-totalIncome)"
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar
+                dataKey="totalExpense"
+                fill="var(--color-totalExpense)"
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          )}
         </ChartContainer>
       </CardContent>
     </Card>

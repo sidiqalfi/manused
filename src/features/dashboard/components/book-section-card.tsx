@@ -65,6 +65,7 @@ export function BookSectionCard({
             year={chart.year}
             data={chart.data}
             title={chart.title}
+            type="line"
           />
         ) : (
           <div className="flex flex-col items-start gap-3 rounded-2xl bg-muted/50 p-6 ring-1 ring-foreground/5">
