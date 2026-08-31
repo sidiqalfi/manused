@@ -1,9 +1,12 @@
-export default function Page() {
-  return (
-    <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-      <div className="aspect-video rounded-xl bg-muted/50" />
-      <div className="aspect-video rounded-xl bg-muted/50" />
-      <div className="aspect-video rounded-xl bg-muted/50" />
-    </div>
-  )
+import { redirect } from "next/navigation"
+import { auth } from "@/features/auth/lib/auth"
+import { DashboardView } from "@/features/dashboard/components/dashboard-view"
+
+export default async function Page() {
+  const session = await auth()
+  if (!session) {
+    redirect("/signin")
+  }
+
+  return <DashboardView userName={session.user?.name ?? null} />
 }

@@ -21,7 +21,11 @@ const MONTHS = [
   "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ]
 
-export function CreatePeriodDialog() {
+export function CreatePeriodDialog({
+  triggerVariant = "default",
+}: {
+  triggerVariant?: "default" | "outline" | "secondary" | "ghost" | "destructive" | "link"
+}) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const queryClient = useQueryClient()
@@ -43,7 +47,7 @@ export function CreatePeriodDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm" />}>
+      <DialogTrigger render={<Button size="sm" variant={triggerVariant} />}>
         <Plus className="mr-1 h-4 w-4" />
         Periode Baru
       </DialogTrigger>

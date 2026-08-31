@@ -18,9 +18,10 @@ import { sosialKeys } from "../../queries"
 
 type Props = {
   periodId: string
+  triggerVariant?: "default" | "outline" | "secondary" | "ghost" | "destructive" | "link"
 }
 
-export function AddSosialExpenseDialog({ periodId }: Props) {
+export function AddSosialExpenseDialog({ periodId, triggerVariant = "default" }: Props) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const queryClient = useQueryClient()
@@ -42,7 +43,7 @@ export function AddSosialExpenseDialog({ periodId }: Props) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button size="sm">
+          <Button size="sm" variant={triggerVariant}>
             <Plus data-icon="inline-start" />
             Tambah Pengeluaran
           </Button>

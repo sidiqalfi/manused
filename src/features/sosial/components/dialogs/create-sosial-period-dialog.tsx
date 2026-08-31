@@ -17,7 +17,11 @@ import { createSosialPeriod } from "../../actions/create-sosial-period"
 import { sosialKeys } from "../../queries"
 import { MONTHS } from "@/lib/months"
 
-export function CreateSosialPeriodDialog() {
+export function CreateSosialPeriodDialog({
+  triggerVariant = "default",
+}: {
+  triggerVariant?: "default" | "outline" | "secondary" | "ghost" | "destructive" | "link"
+}) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const queryClient = useQueryClient()
@@ -39,7 +43,7 @@ export function CreateSosialPeriodDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm" />}>
+      <DialogTrigger render={<Button size="sm" variant={triggerVariant} />}>
         <Plus className="mr-1 h-4 w-4" />
         Periode Baru
       </DialogTrigger>

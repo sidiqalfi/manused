@@ -26,12 +26,14 @@ type Props = {
   periodId: string
   unpaidMembers: Member[]
   minAmount: number
+  triggerVariant?: "default" | "outline" | "secondary" | "ghost" | "destructive" | "link"
 }
 
 export function RecordSosialContributionDialog({
   periodId,
   unpaidMembers,
   minAmount,
+  triggerVariant = "default",
 }: Props) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -54,7 +56,7 @@ export function RecordSosialContributionDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button size="sm">
+          <Button size="sm" variant={triggerVariant}>
             <Plus data-icon="inline-start" />
             Catat Iuran
           </Button>

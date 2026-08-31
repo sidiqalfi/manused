@@ -27,9 +27,10 @@ type Props = {
   unpaidMembers: Member[]
   duesAmount: number
   minAmount: number
+  triggerVariant?: "default" | "outline" | "secondary" | "ghost" | "destructive" | "link"
 }
 
-export function RecordPaymentDialog({ periodId, unpaidMembers, duesAmount, minAmount }: Props) {
+export function RecordPaymentDialog({ periodId, unpaidMembers, duesAmount, minAmount, triggerVariant = "default" }: Props) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const queryClient = useQueryClient()
@@ -51,7 +52,7 @@ export function RecordPaymentDialog({ periodId, unpaidMembers, duesAmount, minAm
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button size="sm">
+          <Button size="sm" variant={triggerVariant}>
             <Plus data-icon="inline-start" />
             Catat Pembayaran
           </Button>
