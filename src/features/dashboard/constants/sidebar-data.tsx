@@ -8,6 +8,8 @@ import {
   Wallet,
   Users,
   HandCoins,
+  Shuffle,
+  Settings,
 } from "lucide-react"
 
 export const sidebarData = {
@@ -34,12 +36,22 @@ export const sidebarData = {
       icon: <HandCoins />,
     },
     {
+      title: "Arisan",
+      url: "/dashboard/arisan",
+      icon: <Shuffle />,
+    },
+    {
       title: "Members",
       url: "/dashboard/members",
       icon: <Users />,
     },
   ],
   navSecondary: [
+    {
+      title: "Settings",
+      url: "/dashboard/settings",
+      icon: <Settings />,
+    },
     {
       title: "Support",
       url: "#",

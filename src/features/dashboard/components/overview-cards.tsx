@@ -1,6 +1,6 @@
 "use client"
 
-import { Wallet, HandCoins, Users, PiggyBank, type LucideIcon } from "lucide-react"
+import { Wallet, HandCoins, Users, Shuffle, type LucideIcon } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -10,6 +10,8 @@ type Props = {
   cashCaption: string | null
   sosialBalance: number | null
   sosialCaption: string | null
+  arisanSavings: number | null
+  arisanCaption: string | null
   activeMembers: number | null
   totalMembers: number | null
 }
@@ -54,14 +56,11 @@ export function OverviewCards({
   cashCaption,
   sosialBalance,
   sosialCaption,
+  arisanSavings,
+  arisanCaption,
   activeMembers,
   totalMembers,
 }: Props) {
-  const combined =
-    cashBalance != null || sosialBalance != null
-      ? (cashBalance ?? 0) + (sosialBalance ?? 0)
-      : null
-
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       <OverviewItem
@@ -83,10 +82,10 @@ export function OverviewCards({
         icon={Users}
       />
       <OverviewItem
-        label="Kas + Sosial"
-        value={money(combined)}
-        caption="Saldo gabungan kas & sosial"
-        icon={PiggyBank}
+        label="Dana Save Arisan"
+        value={money(arisanSavings)}
+        caption={arisanCaption ?? "Belum ada data arisan"}
+        icon={Shuffle}
         valueClassName="text-primary"
       />
     </div>

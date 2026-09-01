@@ -20,6 +20,7 @@ import {
   sosialYearChartQuery,
 } from "@/features/sosial/queries"
 import { membersQuery } from "@/features/members/queries"
+import { arisanOverviewQuery } from "@/features/arisan/queries"
 import { RecordPaymentDialog } from "@/features/cash/components/dialogs/record-payment-dialog"
 import { AddExpenseDialog } from "@/features/cash/components/dialogs/add-expense-dialog"
 import { CreatePeriodDialog } from "@/features/cash/components/dialogs/create-period-dialog"
@@ -47,6 +48,7 @@ export function DashboardView({ userName }: { userName: string | null }) {
   const sosialPeriodsResult = useQuery(sosialPeriodsQuery).data ?? null
   const membersResult = useQuery(membersQuery).data ?? null
   const membersLoading = useQuery(membersQuery).isPending
+  const arisanOverviewResult = useQuery(arisanOverviewQuery).data ?? null
 
   const cashPeriods: PeriodOption[] = cashPeriodsResult?.success
     ? cashPeriodsResult.data ?? []
@@ -105,6 +107,15 @@ export function DashboardView({ userName }: { userName: string | null }) {
   const cashYearCaption = cashYearSummary ? `Total tahun ${cashYearSummary.year}` : null
   const sosialYearCaption = sosialYearSummary ? `Total tahun ${sosialYearSummary.year}` : null
 
+  const arisanOverview = arisanOverviewResult?.success
+    ? arisanOverviewResult.data ?? null
+    : null
+  const arisanCaption = arisanOverview
+    ? arisanOverview.lastWinnerName
+      ? `Pemenang: ${arisanOverview.lastWinnerName}`
+      : "Belum ada pemenang"
+    : null
+
   const cashUnpaid = unpaidOf(membersResult, cashIncomes)
   const sosialUnpaid = unpaidOf(membersResult, sosialIncomes)
 
@@ -128,6 +139,8 @@ export function DashboardView({ userName }: { userName: string | null }) {
         cashCaption={cashYearCaption}
         sosialBalance={sosialYearSummary?.balance ?? null}
         sosialCaption={sosialYearCaption}
+        arisanSavings={arisanOverview?.savings ?? null}
+        arisanCaption={arisanCaption}
         activeMembers={membersResult?.success ? activeMembers : null}
         totalMembers={membersResult?.success ? members.length : null}
       />
