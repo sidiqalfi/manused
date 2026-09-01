@@ -119,6 +119,306 @@ async function main() {
       rw: "002",
       phone: "081234567899",
     },
+    {
+      name: "Eko",
+      fullName: "Eko Prasetyo",
+      gender: "MALE" as const,
+      birthDate: new Date("2002-01-12"),
+      address: "Krajan",
+      rt: "001",
+      rw: "002",
+      phone: "081234567900",
+    },
+    {
+      name: "Rina",
+      fullName: "Rina Oktaviani",
+      gender: "FEMALE" as const,
+      birthDate: new Date("2003-02-20"),
+      address: "Ngasem",
+      rt: "002",
+      rw: "001",
+      phone: "081234567901",
+    },
+    {
+      name: "Galih",
+      fullName: "Galih Permana",
+      gender: "MALE" as const,
+      birthDate: new Date("2001-03-18"),
+      address: "Sidorejo",
+      rt: "003",
+      rw: "001",
+      phone: "081234567902",
+    },
+    {
+      name: "Sinta",
+      fullName: "Sinta Nurhaliza",
+      gender: "FEMALE" as const,
+      birthDate: new Date("2004-04-25"),
+      address: "Krajan",
+      rt: "001",
+      rw: "001",
+      phone: "081234567903",
+    },
+    {
+      name: "Arif",
+      fullName: "Arif Hidayat",
+      gender: "MALE" as const,
+      birthDate: new Date("2000-05-09"),
+      address: "Ngasem",
+      rt: "002",
+      rw: "002",
+      phone: "081234567904",
+    },
+    {
+      name: "Maya",
+      fullName: "Maya Anggraini",
+      gender: "FEMALE" as const,
+      birthDate: new Date("2003-06-14"),
+      address: "Sidorejo",
+      rt: "003",
+      rw: "002",
+      phone: null,
+    },
+    {
+      name: "Yoga",
+      fullName: "Yoga Pratama",
+      gender: "MALE" as const,
+      birthDate: new Date("2002-07-30"),
+      address: "Krajan",
+      rt: "001",
+      rw: "002",
+      phone: "081234567906",
+    },
+    {
+      name: "Tari",
+      fullName: "Tari Wulandari",
+      gender: "FEMALE" as const,
+      birthDate: new Date("2005-08-11"),
+      address: "Ngasem",
+      rt: "002",
+      rw: "001",
+      phone: "081234567907",
+    },
+    {
+      name: "Bayu",
+      fullName: "Bayu Saputra",
+      gender: "MALE" as const,
+      birthDate: new Date("2001-09-03"),
+      address: "Sidorejo",
+      rt: "003",
+      rw: "001",
+      phone: "081234567908",
+    },
+    {
+      name: "Wulan",
+      fullName: "Wulan Sari",
+      gender: "FEMALE" as const,
+      birthDate: new Date("2004-10-27"),
+      address: "Krajan",
+      rt: "001",
+      rw: "001",
+      phone: null,
+    },
+    {
+      name: "Hendra",
+      fullName: "Hendra Gunawan",
+      gender: "MALE" as const,
+      birthDate: new Date("2000-11-15"),
+      address: "Ngasem",
+      rt: "002",
+      rw: "002",
+      phone: "081234567910",
+    },
+    {
+      name: "Fitri",
+      fullName: "Fitri Handayani",
+      gender: "FEMALE" as const,
+      birthDate: new Date("2003-12-08"),
+      address: "Sidorejo",
+      rt: "003",
+      rw: "002",
+      phone: "081234567911",
+    },
+    {
+      name: "Agus",
+      fullName: "Agus Setiawan",
+      gender: "MALE" as const,
+      birthDate: new Date("2002-02-22"),
+      address: "Krajan",
+      rt: "001",
+      rw: "002",
+      phone: "081234567912",
+    },
+    {
+      name: "Rani",
+      fullName: "Rani Kusuma",
+      gender: "FEMALE" as const,
+      birthDate: new Date("2001-05-17"),
+      address: "Ngasem",
+      rt: "002",
+      rw: "001",
+      phone: "081234567913",
+    },
+    {
+      name: "Doni",
+      fullName: "Doni Firmansyah",
+      gender: "MALE" as const,
+      birthDate: new Date("2004-07-29"),
+      address: "Sidorejo",
+      rt: "003",
+      rw: "001",
+      phone: "081234567914",
+    },
+    {
+      name: "Lia",
+      fullName: "Lia Amelia",
+      gender: "FEMALE" as const,
+      birthDate: new Date("2005-09-19"),
+      address: "Krajan",
+      rt: "001",
+      rw: "001",
+      phone: null,
+    },
+    {
+      name: "Irfan",
+      fullName: "Irfan Maulana",
+      gender: "MALE" as const,
+      birthDate: new Date("2000-10-06"),
+      address: "Ngasem",
+      rt: "002",
+      rw: "002",
+      phone: "081234567916",
+    },
+    {
+      name: "Indah",
+      fullName: "Indah Permata Sari",
+      gender: "FEMALE" as const,
+      birthDate: new Date("2003-01-14"),
+      address: "Krajan",
+      rt: "001",
+      rw: "002",
+      phone: "081234567917",
+    },
+    {
+      name: "Rudi",
+      fullName: "Rudi Hartono",
+      gender: "MALE" as const,
+      birthDate: new Date("2002-02-27"),
+      address: "Ngasem",
+      rt: "002",
+      rw: "001",
+      phone: "081234567918",
+    },
+    {
+      name: "Citra",
+      fullName: "Citra Kirana",
+      gender: "FEMALE" as const,
+      birthDate: new Date("2001-03-11"),
+      address: "Sidorejo",
+      rt: "003",
+      rw: "001",
+      phone: "081234567919",
+    },
+    {
+      name: "Fikri",
+      fullName: "Fikri Ramdani",
+      gender: "MALE" as const,
+      birthDate: new Date("2004-04-08"),
+      address: "Krajan",
+      rt: "001",
+      rw: "001",
+      phone: "081234567920",
+    },
+    {
+      name: "Nadia",
+      fullName: "Nadia Safitri",
+      gender: "FEMALE" as const,
+      birthDate: new Date("2005-05-23"),
+      address: "Ngasem",
+      rt: "002",
+      rw: "002",
+      phone: null,
+    },
+    {
+      name: "Tono",
+      fullName: "Tono Wijaya",
+      gender: "MALE" as const,
+      birthDate: new Date("2000-06-19"),
+      address: "Sidorejo",
+      rt: "003",
+      rw: "002",
+      phone: "081234567922",
+    },
+    {
+      name: "Salsa",
+      fullName: "Salsa Bila",
+      gender: "FEMALE" as const,
+      birthDate: new Date("2003-07-05"),
+      address: "Krajan",
+      rt: "001",
+      rw: "002",
+      phone: "081234567923",
+    },
+    {
+      name: "Bima",
+      fullName: "Bima Sakti",
+      gender: "MALE" as const,
+      birthDate: new Date("2002-08-16"),
+      address: "Ngasem",
+      rt: "002",
+      rw: "001",
+      phone: "081234567924",
+    },
+    {
+      name: "Yuli",
+      fullName: "Yuli Astuti",
+      gender: "FEMALE" as const,
+      birthDate: new Date("2001-09-02"),
+      address: "Sidorejo",
+      rt: "003",
+      rw: "001",
+      phone: "081234567925",
+    },
+    {
+      name: "Joko",
+      fullName: "Joko Susilo",
+      gender: "MALE" as const,
+      birthDate: new Date("2000-10-28"),
+      address: "Krajan",
+      rt: "001",
+      rw: "001",
+      phone: "081234567926",
+    },
+    {
+      name: "Mega",
+      fullName: "Mega Utami",
+      gender: "FEMALE" as const,
+      birthDate: new Date("2004-11-13"),
+      address: "Ngasem",
+      rt: "002",
+      rw: "002",
+      phone: null,
+    },
+    {
+      name: "Aldi",
+      fullName: "Aldi Firmansyah",
+      gender: "MALE" as const,
+      birthDate: new Date("2003-12-21"),
+      address: "Sidorejo",
+      rt: "003",
+      rw: "002",
+      phone: "081234567928",
+    },
+    {
+      name: "Vina",
+      fullName: "Vina Melinda",
+      gender: "FEMALE" as const,
+      birthDate: new Date("2002-04-30"),
+      address: "Krajan",
+      rt: "001",
+      rw: "002",
+      phone: "081234567929",
+    },
   ]
 
   // Hapus data kas & sosial lama dulu (FK ke member/period), lalu member
@@ -128,6 +428,10 @@ async function main() {
   await prisma.sosialIncome.deleteMany()
   await prisma.sosialExpense.deleteMany()
   await prisma.sosialPeriod.deleteMany()
+  await prisma.arisanDraw.deleteMany()
+  await prisma.arisanIncome.deleteMany()
+  await prisma.arisanPeriod.deleteMany()
+  await prisma.appSetting.deleteMany()
   await prisma.member.deleteMany()
 
   await prisma.member.createMany({
@@ -296,6 +600,103 @@ async function main() {
   await prisma.sosialExpense.createMany({ data: sosialExpenses })
 
   console.log(`SUCCESS_SOSIAL_SEEDED: ${dbSosialPeriods.length} periods (${year}), ${sosialIncomes.length} incomes, ${sosialExpenses.length} expenses`)
+
+  // Seed Arisan (iuran flat + kocokan bulanan + dana save berjalan)
+  const ARISAN_CONTRIBUTION = 5000
+  const ARISAN_PAYOUT = 135000
+
+  await prisma.appSetting.upsert({
+    where: { key: "arisan.initialSave" },
+    update: { value: "200000" },
+    create: { key: "arisan.initialSave", value: "200000" },
+  })
+
+  await prisma.arisanPeriod.createMany({
+    data: Array.from({ length: 12 }, (_, i) => ({
+      month: i + 1,
+      year,
+      contributionAmount: ARISAN_CONTRIBUTION,
+      payoutTarget: ARISAN_PAYOUT,
+      createdById: user.id,
+    })),
+  })
+
+  const dbArisanPeriods = await prisma.arisanPeriod.findMany({
+    where: { year },
+    orderBy: { month: "asc" },
+  })
+
+  const arisanIncomes: {
+    periodId: string
+    memberId: string
+    amount: number
+    paidAt: Date
+    note: string | null
+    createdById: string
+  }[] = []
+  const arisanDraws: {
+    periodId: string
+    winnerMemberId: string
+    cycleNumber: number
+    collectedAmount: number
+    payoutAmount: number
+    savingsAfter: number
+    drawnAt: Date
+    createdById: string
+  }[] = []
+
+  // Dana save berjalan: mulai dari saldo awal 200000, surplus menumpuk tiap kocokan
+  // sehingga dana save selalu ada (tidak pernah nol atau minus)
+  let runningSavings = 200000
+
+  for (const period of dbArisanPeriods) {
+    // Tidak flat: 28-40 anggota bayar, dan yang bayar berganti tiap bulan
+    // (28 x 5000 = 140rb > target 135rb, jadi selalu surplus)
+    const payingCount = 28 + ((period.month * 7 + 3) % 13)
+    const start = (period.month * 5) % dbMembers.length
+
+    const payingMembers: typeof dbMembers = []
+    for (let i = 0; i < payingCount; i++) {
+      const member = dbMembers[(start + i) % dbMembers.length]
+      if (member) payingMembers.push(member)
+    }
+
+    for (const member of payingMembers) {
+      arisanIncomes.push({
+        periodId: period.id,
+        memberId: member.id,
+        amount: ARISAN_CONTRIBUTION,
+        paidAt: new Date(year, period.month - 1, 1),
+        note: null,
+        createdById: user.id,
+      })
+    }
+
+    // Kocokan tiap bulan; pemenang diambil dari yang bayar bulan ini
+    const collected = payingMembers.length * ARISAN_CONTRIBUTION
+    const winner = payingMembers[(period.month - 1) % payingMembers.length]
+    if (!winner) continue
+
+    // Payout selalu target penuh; surplus (collected - payout) masuk dana save
+    const payout = ARISAN_PAYOUT
+    runningSavings = runningSavings + collected - payout
+
+    arisanDraws.push({
+      periodId: period.id,
+      winnerMemberId: winner.id,
+      cycleNumber: 1,
+      collectedAmount: collected,
+      payoutAmount: payout,
+      savingsAfter: runningSavings,
+      drawnAt: new Date(year, period.month - 1, 10),
+      createdById: user.id,
+    })
+  }
+
+  await prisma.arisanIncome.createMany({ data: arisanIncomes })
+  await prisma.arisanDraw.createMany({ data: arisanDraws })
+
+  console.log(`SUCCESS_ARISAN_SEEDED: ${dbArisanPeriods.length} periods (${year}), ${arisanIncomes.length} incomes, ${arisanDraws.length} draws`)
 }
 
 main()
