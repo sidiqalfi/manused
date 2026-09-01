@@ -4,6 +4,10 @@ import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { PeriodSelector, type PeriodOption } from "@/components/period-selector"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  YearlyIncomeExpenseChart,
+  type YearlyFlowPoint,
+} from "@/components/yearly-income-expense-chart"
 import { CreateArisanPeriodDialog } from "@/features/arisan/components/create-arisan-period-dialog"
 import { ArisanIncomeTable } from "@/features/arisan/components/arisan-income-table"
 import { ArisanDrawHistory } from "@/features/arisan/components/arisan-draw-history"
@@ -13,11 +17,13 @@ import {
   arisanPeriodQuery,
   arisanSummaryQuery,
   arisanDrawsQuery,
+  arisanYearSummaryQuery,
+  arisanYearChartQuery,
 } from "@/features/arisan/queries"
 import { membersQuery } from "@/features/members/queries"
 import { formatCurrency } from "@/lib/format"
 import { cn } from "@/lib/utils"
-import { Coins, Target, PiggyBank, Trophy, type LucideIcon } from "lucide-react"
+import { Coins, Target, PiggyBank, Trophy, TrendingUp, TrendingDown, type LucideIcon } from "lucide-react"
 
 function StatCard({
   label,
@@ -57,6 +63,7 @@ export default function ArisanPage() {
   const periods: PeriodOption[] = periodsResult?.success
     ? periodsResult.data ?? []
     : []
+  const activeYear = periods[0]?.year ?? null
 
   const periodResult = useQuery(
     arisanPeriodQuery(selectedPeriodId ?? "")
@@ -71,6 +78,19 @@ export default function ArisanPage() {
     arisanDrawsQuery(selectedPeriodId ?? "")
   ).isPending
   const membersResult = useQuery(membersQuery).data ?? null
+
+  const yearSummaryResult = useQuery(
+    arisanYearSummaryQuery(activeYear)
+  ).data ?? null
+  const yearSummary = yearSummaryResult?.success
+    ? yearSummaryResult.data ?? null
+    : null
+  const yearChartResult = useQuery(
+    arisanYearChartQuery(activeYear)
+  ).data ?? null
+  const yearChart: YearlyFlowPoint[] = yearChartResult?.success
+    ? yearChartResult.data ?? []
+    : []
 
   const summary = summaryResult?.success ? summaryResult.data ?? null : null
   const draws = drawsResult?.success ? drawsResult.data ?? [] : null
@@ -99,19 +119,7 @@ export default function ArisanPage() {
         />
       </div>
 
-      {periods.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
-            Belum ada periode arisan. Buat periode untuk memulai.
-          </p>
-        </div>
-      ) : !selectedPeriodId ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
-            Pilih periode untuk melihat data arisan
-          </p>
-        </div>
-      ) : (
+      {selectedPeriodId ? (
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <StatCard
@@ -153,6 +161,49 @@ export default function ArisanPage() {
 
           <ArisanDrawHistory draws={draws} loading={drawsLoading} />
         </>
+      ) : periods.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">
+            Belum ada periode arisan. Buat periode untuk memulai.
+          </p>
+        </div>
+      ) : activeYear !== null && yearSummary ? (
+        <>
+          <div className="grid gap-4 md:grid-cols-3">
+            <StatCard
+              label="Total Iuran"
+              value={formatCurrency(yearSummary.totalIncome)}
+              caption={`${yearSummary.incomeCount} iuran`}
+              icon={TrendingUp}
+            />
+            <StatCard
+              label="Total Dibayarkan"
+              value={formatCurrency(yearSummary.totalPayout)}
+              caption={`${yearSummary.drawCount} kocokan`}
+              icon={TrendingDown}
+            />
+            <StatCard
+              label="Dana Save"
+              value={formatCurrency(
+                yearSummary.totalIncome - yearSummary.totalPayout
+              )}
+              caption={`Gabungan semua periode ${yearSummary.year}`}
+              icon={PiggyBank}
+              valueClassName="text-primary"
+            />
+          </div>
+          <YearlyIncomeExpenseChart
+            year={activeYear}
+            data={yearChart}
+            title={`Arus arisan tahun ${activeYear}`}
+          />
+        </>
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">
+            Pilih periode untuk melihat data arisan
+          </p>
+        </div>
       )}
     </div>
   )
