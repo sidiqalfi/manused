@@ -76,17 +76,17 @@ export function OverviewCards({
         icon={HandCoins}
       />
       <OverviewItem
-        label="Anggota"
-        value={activeMembers == null ? "-" : `${activeMembers} aktif`}
-        caption={totalMembers == null ? null : `dari ${totalMembers} anggota`}
-        icon={Users}
-      />
-      <OverviewItem
         label="Dana Save Arisan"
         value={money(arisanSavings)}
         caption={arisanCaption ?? "Belum ada data arisan"}
         icon={Shuffle}
         valueClassName="text-primary"
+      />
+      <OverviewItem
+        label="Anggota"
+        value={activeMembers == null ? "-" : `${activeMembers} aktif`}
+        caption={totalMembers == null ? null : `dari ${totalMembers} anggota`}
+        icon={Users}
       />
     </div>
   )

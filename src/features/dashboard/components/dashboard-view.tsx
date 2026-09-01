@@ -20,7 +20,15 @@ import {
   sosialYearChartQuery,
 } from "@/features/sosial/queries"
 import { membersQuery } from "@/features/members/queries"
-import { arisanOverviewQuery } from "@/features/arisan/queries"
+import {
+  arisanPeriodsQuery,
+  arisanPeriodQuery,
+  arisanYearChartQuery,
+  arisanOverviewQuery,
+} from "@/features/arisan/queries"
+import { CreateArisanPeriodDialog } from "@/features/arisan/components/create-arisan-period-dialog"
+import { RecordArisanContributionDialog } from "@/features/arisan/components/record-arisan-contribution-dialog"
+import { DrawDialog } from "@/features/arisan/components/draw-dialog"
 import { RecordPaymentDialog } from "@/features/cash/components/dialogs/record-payment-dialog"
 import { AddExpenseDialog } from "@/features/cash/components/dialogs/add-expense-dialog"
 import { CreatePeriodDialog } from "@/features/cash/components/dialogs/create-period-dialog"
@@ -49,6 +57,7 @@ export function DashboardView({ userName }: { userName: string | null }) {
   const membersResult = useQuery(membersQuery).data ?? null
   const membersLoading = useQuery(membersQuery).isPending
   const arisanOverviewResult = useQuery(arisanOverviewQuery).data ?? null
+  const arisanPeriodsResult = useQuery(arisanPeriodsQuery).data ?? null
 
   const cashPeriods: PeriodOption[] = cashPeriodsResult?.success
     ? cashPeriodsResult.data ?? []
@@ -56,9 +65,13 @@ export function DashboardView({ userName }: { userName: string | null }) {
   const sosialPeriods: PeriodOption[] = sosialPeriodsResult?.success
     ? sosialPeriodsResult.data ?? []
     : []
+  const arisanPeriods: PeriodOption[] = arisanPeriodsResult?.success
+    ? arisanPeriodsResult.data ?? []
+    : []
 
   const latestCash = cashPeriods[0] ?? null
   const latestSosial = sosialPeriods[0] ?? null
+  const latestArisan = arisanPeriods[0] ?? null
 
   const cashPeriodResult = useQuery(
     cashPeriodQuery(latestCash?.id ?? "")
@@ -85,6 +98,12 @@ export function DashboardView({ userName }: { userName: string | null }) {
   const sosialYearSummaryResult = useQuery(
     sosialYearSummaryQuery(latestSosial?.year ?? null)
   ).data ?? null
+  const arisanChartResult = useQuery(
+    arisanYearChartQuery(latestArisan?.year ?? null)
+  ).data ?? null
+  const arisanPeriodResult = useQuery(
+    arisanPeriodQuery(latestArisan?.id ?? "")
+  ).data ?? null
 
   const cashSummary = cashSummaryResult?.success ? cashSummaryResult.data ?? null : null
   const sosialSummary = sosialSummaryResult?.success ? sosialSummaryResult.data ?? null : null
@@ -96,12 +115,27 @@ export function DashboardView({ userName }: { userName: string | null }) {
 
   const cashIncomes = cashPeriodResult?.success ? cashPeriodResult.data?.incomes ?? [] : []
   const sosialIncomes = sosialPeriodResult?.success ? sosialPeriodResult.data?.incomes ?? [] : []
+  const arisanIncomes = arisanPeriodResult?.success
+    ? arisanPeriodResult.data?.incomes ?? []
+    : []
+  const arisanContribution = arisanPeriodResult?.success
+    ? arisanPeriodResult.data?.contributionAmount ?? 0
+    : 0
+  const arisanPayoutTarget = arisanPeriodResult?.success
+    ? arisanPeriodResult.data?.payoutTarget ?? 0
+    : 0
+  const arisanHasActiveDraw = arisanPeriodResult?.success
+    ? (arisanPeriodResult.data?.draws ?? []).some((d) => !d.voided)
+    : false
 
   const cashChart: YearlyFlowPoint[] = cashChartResult?.success
     ? cashChartResult.data ?? []
     : []
   const sosialChart: YearlyFlowPoint[] = sosialChartResult?.success
     ? sosialChartResult.data ?? []
+    : []
+  const arisanChart: YearlyFlowPoint[] = arisanChartResult?.success
+    ? arisanChartResult.data ?? []
     : []
 
   const cashYearCaption = cashYearSummary ? `Total tahun ${cashYearSummary.year}` : null
@@ -118,6 +152,7 @@ export function DashboardView({ userName }: { userName: string | null }) {
 
   const cashUnpaid = unpaidOf(membersResult, cashIncomes)
   const sosialUnpaid = unpaidOf(membersResult, sosialIncomes)
+  const arisanUnpaid = unpaidOf(membersResult, arisanIncomes)
 
   const cashMin = cashSummary?.minAmount ?? 0
   const cashDues = cashSummary?.duesAmount ?? cashMin
@@ -145,7 +180,7 @@ export function DashboardView({ userName }: { userName: string | null }) {
         totalMembers={membersResult?.success ? members.length : null}
       />
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-4 xl:grid-cols-3">
         <BookSectionCard
           title="Kas"
           href="/dashboard/cash"
@@ -178,6 +213,24 @@ export function DashboardView({ userName }: { userName: string | null }) {
           emptyText="Belum ada periode sosial. Buat periode untuk memulai."
           createPeriodTrigger={
             <CreateSosialPeriodDialog triggerVariant="outline" />
+          }
+        />
+        <BookSectionCard
+          title="Arisan"
+          href="/dashboard/arisan"
+          periodLabel={latestArisan ? `Tahun ${latestArisan.year}` : null}
+          chart={
+            latestArisan
+              ? {
+                  year: latestArisan.year,
+                  data: arisanChart,
+                  title: `Arus arisan tahun ${latestArisan.year}`,
+                }
+              : null
+          }
+          emptyText="Belum ada periode arisan. Buat periode untuk memulai."
+          createPeriodTrigger={
+            <CreateArisanPeriodDialog triggerVariant="outline" />
           }
         />
       </div>
@@ -227,6 +280,30 @@ export function DashboardView({ userName }: { userName: string | null }) {
                 </>
               ) : null}
               <CreateSosialPeriodDialog triggerVariant="outline" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-muted-foreground">Arisan</p>
+            <div className="flex flex-wrap gap-2">
+              {latestArisan ? (
+                <>
+                  <RecordArisanContributionDialog
+                    periodId={latestArisan.id}
+                    unpaidMembers={arisanUnpaid}
+                    contributionAmount={arisanContribution}
+                    triggerVariant="outline"
+                  />
+                  {!arisanHasActiveDraw ? (
+                    <DrawDialog
+                      periodId={latestArisan.id}
+                      payoutTarget={arisanPayoutTarget}
+                      triggerVariant="outline"
+                    />
+                  ) : null}
+                </>
+              ) : null}
+              <CreateArisanPeriodDialog triggerVariant="outline" />
             </div>
           </div>
 
