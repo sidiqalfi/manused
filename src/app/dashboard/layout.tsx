@@ -17,7 +17,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
       <AppSidebar user={session.user} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2">
-          <div className="flex items-center gap-2 px-4">
+          <div className="flex items-center gap-2 px-8">
             <SidebarTrigger className="-ml-1" />
             <Separator
               orientation="vertical"
@@ -26,7 +26,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
             <DashboardBreadcrumb />
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="flex flex-1 flex-col gap-4 p-8">
           {children}
         </div>
       </SidebarInset>
