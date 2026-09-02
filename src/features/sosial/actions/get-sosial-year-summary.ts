@@ -2,6 +2,7 @@
 
 import { z } from "zod"
 import prisma from "@/lib/prisma"
+import { SOSIAL_INITIAL_BALANCE_KEY } from "../sosial-schemas"
 
 export interface SosialYearSummaryData {
   year: number
@@ -10,6 +11,7 @@ export interface SosialYearSummaryData {
   balance: number
   incomeCount: number
   expenseCount: number
+  initialBalance: number
 }
 
 export interface GetSosialYearSummaryResult {
@@ -29,7 +31,7 @@ export async function getSosialYearSummary(
   }
 
   try {
-    const [income, expense] = await Promise.all([
+    const [income, expense, setting] = await Promise.all([
       prisma.sosialIncome.aggregate({
         where: { period: { year: validation.data } },
         _sum: { amount: true },
@@ -40,10 +42,14 @@ export async function getSosialYearSummary(
         _sum: { amount: true },
         _count: true,
       }),
+      prisma.appSetting.findUnique({
+        where: { key: SOSIAL_INITIAL_BALANCE_KEY },
+      }),
     ])
 
     const totalIncome = income._sum.amount ?? 0
     const totalExpense = expense._sum.amount ?? 0
+    const initialBalance = setting ? Number(setting.value) : 0
 
     return {
       success: true,
@@ -51,9 +57,10 @@ export async function getSosialYearSummary(
         year: validation.data,
         totalIncome,
         totalExpense,
-        balance: totalIncome - totalExpense,
+        balance: initialBalance + totalIncome - totalExpense,
         incomeCount: income._count,
         expenseCount: expense._count,
+        initialBalance,
       },
     }
   } catch (error) {

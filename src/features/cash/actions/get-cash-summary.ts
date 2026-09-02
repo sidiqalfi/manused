@@ -1,7 +1,7 @@
 "use server"
 
 import prisma from "@/lib/prisma"
-import { cashPeriodIdSchema } from "../cash-schemas"
+import { CASH_INITIAL_BALANCE_KEY, cashPeriodIdSchema } from "../cash-schemas"
 
 export interface CashSummaryData {
   totalIncome: number
@@ -11,6 +11,7 @@ export interface CashSummaryData {
   expenseCount: number
   duesAmount: number
   minAmount: number
+  initialBalance: number
 }
 
 export interface GetCashSummaryResult {
@@ -48,9 +49,14 @@ export async function getCashSummary(
       _count: true,
     })
 
+    const setting = await prisma.appSetting.findUnique({
+      where: { key: CASH_INITIAL_BALANCE_KEY },
+    })
+    const initialBalance = setting ? Number(setting.value) : 0
+
     const income = totalIncome._sum.amount ?? 0
     const expense = totalExpense._sum.amount ?? 0
-    const balance = income - expense
+    const balance = initialBalance + income - expense
 
     return {
       success: true,
@@ -62,6 +68,7 @@ export async function getCashSummary(
         expenseCount: totalExpense._count,
         duesAmount: period.duesAmount,
         minAmount: period.minAmount,
+        initialBalance,
       },
     }
   } catch (error) {

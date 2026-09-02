@@ -1,7 +1,7 @@
 "use server"
 
 import prisma from "@/lib/prisma"
-import { sosialPeriodIdSchema } from "../sosial-schemas"
+import { SOSIAL_INITIAL_BALANCE_KEY, sosialPeriodIdSchema } from "../sosial-schemas"
 
 export interface SosialSummaryData {
   totalIncome: number
@@ -10,6 +10,7 @@ export interface SosialSummaryData {
   incomeCount: number
   expenseCount: number
   minAmount: number
+  initialBalance: number
 }
 
 export interface GetSosialSummaryResult {
@@ -47,6 +48,11 @@ export async function getSosialSummary(
       _count: true,
     })
 
+    const setting = await prisma.appSetting.findUnique({
+      where: { key: SOSIAL_INITIAL_BALANCE_KEY },
+    })
+    const initialBalance = setting ? Number(setting.value) : 0
+
     const income = totalIncome._sum.amount ?? 0
     const expense = totalExpense._sum.amount ?? 0
 
@@ -55,10 +61,11 @@ export async function getSosialSummary(
       data: {
         totalIncome: income,
         totalExpense: expense,
-        balance: income - expense,
+        balance: initialBalance + income - expense,
         incomeCount: totalIncome._count,
         expenseCount: totalExpense._count,
         minAmount: period.minAmount,
+        initialBalance,
       },
     }
   } catch (error) {

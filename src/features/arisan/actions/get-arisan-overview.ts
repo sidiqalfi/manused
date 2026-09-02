@@ -7,6 +7,7 @@ import { savings } from "../draw-logic"
 export interface ArisanOverviewData {
   savings: number
   lastWinnerName: string | null
+  initialSave: number
 }
 
 export interface GetArisanOverviewResult {
@@ -44,6 +45,7 @@ export async function getArisanOverview(): Promise<GetArisanOverviewResult> {
       data: {
         savings: savings(initialSave, draws),
         lastWinnerName: lastDraw?.winnerMember.name ?? null,
+        initialSave,
       },
     }
   } catch (error) {
