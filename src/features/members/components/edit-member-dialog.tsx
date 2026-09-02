@@ -23,15 +23,23 @@ import {
 } from "@/components/ui/select"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
-import type { Member } from "@/generated/prisma/client"
+import type { Member, Role } from "@/generated/prisma/client"
 import { updateMember } from "@features/members/actions/update-member"
 import { membersKeys } from "@features/members/queries"
+import { updateMemberRoles } from "@/features/roles/actions/update-member-roles"
+import { rolesKeys } from "@/features/roles/queries"
 
 interface EditMemberDialogProps {
   member: Member
+  allRoles: Role[]
+  currentRoleIds: string[]
 }
 
-export function EditMemberDialog({ member }: EditMemberDialogProps) {
+export function EditMemberDialog({
+  member,
+  allRoles,
+  currentRoleIds,
+}: EditMemberDialogProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -47,6 +55,8 @@ export function EditMemberDialog({ member }: EditMemberDialogProps) {
     setError(null)
 
     const formData = new FormData(e.currentTarget)
+    const roleIds = formData.getAll("roleIds").map((v) => String(v))
+
     const result = await updateMember(member.id, formData)
 
     if (result.error) {
@@ -55,7 +65,17 @@ export function EditMemberDialog({ member }: EditMemberDialogProps) {
       return
     }
 
-    await queryClient.invalidateQueries({ queryKey: membersKeys.all })
+    const rolesResult = await updateMemberRoles(member.id, roleIds)
+    if (rolesResult.error) {
+      setError(rolesResult.error)
+      setLoading(false)
+      return
+    }
+
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: membersKeys.all }),
+      queryClient.invalidateQueries({ queryKey: rolesKeys.all }),
+    ])
     setLoading(false)
     setOpen(false)
   }
@@ -207,6 +227,29 @@ export function EditMemberDialog({ member }: EditMemberDialogProps) {
               </Select>
             </Field>
           </div>
+
+          <Field>
+            <FieldLabel>
+              <Label>Role Kepengurusan</Label>
+            </FieldLabel>
+            <div className="flex flex-wrap gap-3">
+              {allRoles.map((role) => (
+                <label
+                  key={role.id}
+                  className="flex items-center gap-2 text-sm cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    name="roleIds"
+                    value={role.id}
+                    defaultChecked={currentRoleIds.includes(role.id)}
+                    className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                  <span>{role.name}</span>
+                </label>
+              ))}
+            </div>
+          </Field>
 
           {error && (
             <p className="text-sm text-destructive">{error}</p>
