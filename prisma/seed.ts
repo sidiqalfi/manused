@@ -432,7 +432,23 @@ async function main() {
   await prisma.arisanIncome.deleteMany()
   await prisma.arisanPeriod.deleteMany()
   await prisma.appSetting.deleteMany()
+  await prisma.memberRoleAssignment.deleteMany()
+  await prisma.role.deleteMany()
   await prisma.member.deleteMany()
+
+  // Seed Roles (kepengurusan pemuda-pemudi)
+  const roleDefs = [
+    { name: "Ketua", rank: 1 },
+    { name: "Wakil Ketua", rank: 2 },
+    { name: "Bendahara", rank: 3 },
+    { name: "Sekretaris", rank: 4 },
+    { name: "Humas", rank: 5 },
+    { name: "Anggota", rank: 99 },
+  ]
+  await prisma.role.createMany({ data: roleDefs })
+  const dbRoles = await prisma.role.findMany({ orderBy: { rank: "asc" } })
+  const roleByName = new Map(dbRoles.map((r) => [r.name, r]))
+  console.log(`SUCCESS_ROLES_SEEDED: ${dbRoles.length} roles`)
 
   await prisma.member.createMany({
     data: members.map((member) => ({
@@ -443,6 +459,32 @@ async function main() {
 
   const memberCount = await prisma.member.count()
   console.log(`SUCCESS_MEMBERS_SEEDED: ${memberCount} members total`)
+
+  // Assign roles: 4 anggota pertama jadi Ketua/Wakil/Bendahara/Sekretaris,
+  // anggota kelima jadi Humas, sisanya jadi Anggota.
+  const seededMembers = await prisma.member.findMany({
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  })
+  const pengurusNames = [
+    "Ketua",
+    "Wakil Ketua",
+    "Bendahara",
+    "Sekretaris",
+    "Humas",
+  ]
+  const roleAssignments = seededMembers.map((m, idx) => {
+    const roleName = pengurusNames[idx] ?? "Anggota"
+    const role = roleByName.get(roleName)!
+    return {
+      memberId: m.id,
+      roleId: role.id,
+    }
+  })
+  await prisma.memberRoleAssignment.createMany({ data: roleAssignments })
+  console.log(
+    `SUCCESS_ROLE_ASSIGNMENTS_SEEDED: ${roleAssignments.length} assignments`,
+  )
 
   // Seed Cash Periods (12 bulan tahun berjalan)
   const year = new Date().getFullYear()

@@ -68,8 +68,40 @@ model Member {
   arisanIncomes ArisanIncome[]
   arisanDraws  ArisanDraw[]
 
+  roles MemberRoleAssignment[]
+
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
+}
+
+model Role {
+  id   String @id @default(uuid()) @db.Uuid
+  name String @unique
+  rank Int    @unique
+
+  memberships MemberRoleAssignment[]
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
+}
+
+model MemberRoleAssignment {
+  id        String    @id @default(uuid()) @db.Uuid
+
+  memberId  String    @db.Uuid
+  member    Member    @relation(fields: [memberId], references: [id])
+
+  roleId    String    @db.Uuid
+  role      Role      @relation(fields: [roleId], references: [id])
+
+  startDate DateTime  @default(now()) @db.Date
+  endDate   DateTime? @db.Date
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  @@index([memberId, endDate])
+  @@index([roleId, endDate])
 }
 
 model CashPeriod {
