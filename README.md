@@ -1,13 +1,15 @@
 # Manused (Manunggal Sedyo)
 
-Buku kas digital untuk organisasi pemuda-pemudi desa. Mencatat iuran anggota, pengeluaran, dan iuran sosial bulanan dengan cepat — satu sumber data yang akurat, transparan, dan terlacak.
+Buku kas digital untuk organisasi pemuda-pemudi desa. Mencatat iuran anggota, pengeluaran, iuran sosial bulanan, dan arisan (kocokan) dengan cepat — satu sumber data yang akurat, transparan, dan terlacak.
 
 ## Fitur
 
-- **Kas bulanan** — periode kas (iuran + batas bawah per bulan), pencatatan & penghapusan pembayaran iuran anggota, pencatatan & penghapusan pengeluaran, ringkasan kas (total masuk/keluar/saldo), serta rekap tahunan per bulan (grafik).
-- **Sosial** — iuran sukarela per anggota dengan nominal minimal, pengeluaran sosial, ringkasan dan rekap tahunan. Mirip kas, dengan catatan tambahan per anggota.
-- **Anggota** — CRUD anggota pemuda (nama, nama lengkap, gender, tanggal lahir, dusun, RT/RW, telepon, status aktif).
-- **Dashboard pengurus** — sidebar navigasi dengan akses cepat ke Kas, Sosial, dan Members.
+- **Kas bulanan** — periode kas (iuran + batas bawah per bulan), pencatatan & penghapusan pembayaran iuran anggota, pencatatan & penghapusan pengeluaran, ringkasan kas (total masuk/keluar/saldo, termasuk saldo awal), serta rekap tahunan per bulan (grafik).
+- **Sosial** — iuran sukarela per anggota dengan nominal minimal, pengeluaran sosial, ringkasan dan rekap tahunan, plus saldo awal. Mirip kas, dengan catatan tambahan per anggota.
+- **Arisan** — iuran arisan flat per periode, kocokan bulanan dengan preview kandidat (eligible = aktif & belum pernah menang), riwayat kocokan (termasuk void/batal), dana save berjalan dengan saldo awal, dan payout ke pemenang.
+- **Anggota** — CRUD anggota pemuda (nama, nama lengkap, gender, tanggal lahir, dusun, RT/RW, telepon, status aktif) plus role kepengurusan (Ketua, Wakil, Bendahara, Sekretaris, Humas, Anggota) dengan riwayat jabatan.
+- **Pengaturan** — saldo awal dana kas, sosial, dan dana save arisan (tersimpan sebagai AppSetting key-value).
+- **Dashboard pengurus** — ringkasan saldo kas/sosial/arisan + total anggota, grafik arus tahunan per buku (Kas, Sosial, Arisan), caption saldo awal, aksi cepat per buku, sidebar navigasi.
 - Semua copy antarmuka dalam **Bahasa Indonesia**; angka uang selalu berformat `Rp` (locale `id-ID`).
 
 ## Tech Stack
@@ -56,6 +58,8 @@ Prasyarat: Node.js, dan PostgreSQL (bisa via Docker).
    npx prisma db seed
    ```
 
+   Seed berisi: 1 akun pengurus, 40 anggota lengkap dengan role kepengurusan, 6 role default (Ketua, Wakil Ketua, Bendahara, Sekretaris, Humas, Anggota), periode kas/sosial/arisan 12 bulan tahun berjalan beserta iuran, pengeluaran, dan riwayat kocokan arisan.
+
 5. **Jalankan dev server**
 
    ```bash
@@ -87,12 +91,14 @@ Feature-sliced layout — `src/features/<feature>/{actions,components,dialogs}` 
 
 ```
 src/
-  app/                     # route App Router (dashboard/kas, dashboard/sosial, dashboard/members, signin)
+  app/                     # route App Router (dashboard, dashboard/cash|sosial|arisan|members|settings, signin)
   features/
     auth/                  # konfigurasi NextAuth (lib/auth.ts), aksi & form login
-    cash/                  # periode kas, pembayaran iuran, pengeluaran, ringkasan & rekap tahunan
-    sosial/                # iuran sukarela (min. nominal), pengeluaran, ringkasan & rekap tahunan
+    cash/                  # periode kas, pembayaran iuran, pengeluaran, saldo awal, ringkasan & rekap tahunan
+    sosial/                # iuran sukarela (min. nominal), pengeluaran, saldo awal, ringkasan & rekap tahunan
+    arisan/                # iuran arisan, kocokan (draw-logic), dana save, riwayat & rekap tahunan
     members/               # CRUD anggota
+    roles/                 # role kepengurusan + assignment (riwayat jabatan)
     dashboard/             # shell dashboard (sidebar, breadcrumb, QueryProvider)
   components/              # komponen UI global (ui/, period-selector, summary-stat-cards, grafik tahunan)
   generated/prisma/        # Prisma client (hasil generate)
@@ -107,8 +113,12 @@ Model inti di `prisma/schema.prisma`:
 
 - `User` — akun pengurus (NextAuth credentials)
 - `Member` — anggota pemuda (gender, dusun, RT/RW, status aktif)
+- `Role` — role kepengurusan (nama + urutan rank, unik)
+- `MemberRoleAssignment` — jabatan anggota dengan `startDate`/`endDate` (null = masih menjabat) sehingga riwayat kepengurusan tersimpan
 - `CashPeriod` / `CashIncome` / `CashExpense` — kas bulanan (iuran + batas bawah, pembayaran unik per anggota per periode, pengeluaran)
 - `SosialPeriod` / `SosialIncome` / `SosialExpense` — iuran sosial sukarela dengan nominal minimal, kontribusi unik per anggota per periode, pengeluaran
+- `ArisanPeriod` / `ArisanIncome` / `ArisanDraw` — arisan: iuran flat per periode, pembayaran unik per anggota per periode, kocokan dengan pemenang, jumlah terkumpul, payout, saldo save, dan status void
+- `AppSetting` — key-value store untuk saldo awal (`cash.initialBalance`, `sosial.initialBalance`, `arisan.initialSave`)
 
 Setiap catatan menyimpan `createdById` (siapa yang mencatat) untuk jejak audit.
 
