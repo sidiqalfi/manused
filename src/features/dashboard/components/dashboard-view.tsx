@@ -196,6 +196,7 @@ export function DashboardView({ userName }: { userName: string | null }) {
           }
           emptyText="Belum ada periode kas. Buat periode untuk memulai."
           createPeriodTrigger={<CreatePeriodDialog triggerVariant="outline" />}
+          initialBalance={cashYearSummary?.initialBalance ?? null}
         />
         <BookSectionCard
           title="Sosial"
@@ -214,6 +215,7 @@ export function DashboardView({ userName }: { userName: string | null }) {
           createPeriodTrigger={
             <CreateSosialPeriodDialog triggerVariant="outline" />
           }
+          initialBalance={sosialYearSummary?.initialBalance ?? null}
         />
         <BookSectionCard
           title="Arisan"
@@ -232,6 +234,8 @@ export function DashboardView({ userName }: { userName: string | null }) {
           createPeriodTrigger={
             <CreateArisanPeriodDialog triggerVariant="outline" />
           }
+          initialBalance={arisanOverview?.initialSave ?? null}
+          initialBalanceLabel="Saldo awal dana save"
         />
       </div>
 
