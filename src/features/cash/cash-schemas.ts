@@ -2,6 +2,17 @@ import { z } from "zod"
 
 const requiredText = z.string().trim().min(1)
 const positiveInt = z.number().int().positive()
+const nonNegativeInt = z.number().int().min(0)
+
+export const CASH_INITIAL_BALANCE_KEY = "cash.initialBalance"
+
+export const initialBalanceSchema = nonNegativeInt
+
+export function getInitialBalanceFormValues(formData: FormData) {
+  return {
+    initialBalance: Number(formData.get("initialBalance")),
+  }
+}
 
 const dateOnly = z
   .string()

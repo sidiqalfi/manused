@@ -3,6 +3,7 @@ import { getSosialPeriod, getSosialPeriods } from "./actions/get-sosial-periods"
 import { getSosialSummary } from "./actions/get-sosial-summary"
 import { getSosialYearSummary } from "./actions/get-sosial-year-summary"
 import { getSosialYearChart } from "./actions/get-sosial-year-chart"
+import { getSosialInitialBalance } from "./actions/get-initial-balance"
 
 export const sosialKeys = {
   all: ["sosial"] as const,
@@ -11,7 +12,13 @@ export const sosialKeys = {
   summary: (id: string) => [...sosialKeys.all, "periods", id, "summary"] as const,
   yearSummary: (year: number) => [...sosialKeys.all, "year", year, "summary"] as const,
   yearChart: (year: number) => [...sosialKeys.all, "year", year, "chart"] as const,
+  initialBalance: () => [...sosialKeys.all, "initialBalance"] as const,
 }
+
+export const sosialInitialBalanceQuery = queryOptions({
+  queryKey: sosialKeys.initialBalance(),
+  queryFn: getSosialInitialBalance,
+})
 
 export const sosialPeriodsQuery = queryOptions({
   queryKey: sosialKeys.periods(),
