@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs"
 import prisma from "../src/lib/prisma"
+import { seedRoles } from "./seed/roles"
 
 async function main() {
   const hashedPassword = await bcrypt.hash("12345678", 10)
@@ -437,15 +438,7 @@ async function main() {
   await prisma.member.deleteMany()
 
   // Seed Roles (kepengurusan pemuda-pemudi)
-  const roleDefs = [
-    { name: "Ketua", rank: 1 },
-    { name: "Wakil Ketua", rank: 2 },
-    { name: "Bendahara", rank: 3 },
-    { name: "Sekretaris", rank: 4 },
-    { name: "Humas", rank: 5 },
-    { name: "Anggota", rank: 99 },
-  ]
-  await prisma.role.createMany({ data: roleDefs })
+  await seedRoles()
   const dbRoles = await prisma.role.findMany({ orderBy: { rank: "asc" } })
   const roleByName = new Map(dbRoles.map((r) => [r.name, r]))
   console.log(`SUCCESS_ROLES_SEEDED: ${dbRoles.length} roles`)
