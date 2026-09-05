@@ -2,7 +2,6 @@
 
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
-import { formatCurrency } from "@/lib/format"
 import { createArisanIncomeSchema, getArisanIncomeFormValues } from "../arisan-schemas"
 import { revalidatePath } from "next/cache"
 
@@ -31,12 +30,6 @@ export async function createArisanIncome(formData: FormData) {
 
     if (period.draws.length > 0) {
       return { error: "Periode sudah di-kocok, iuran terkunci" }
-    }
-
-    if (validation.data.amount !== period.contributionAmount) {
-      return {
-        error: `Nominal iuran harus ${formatCurrency(period.contributionAmount)}`
-      }
     }
 
     await prisma.$transaction([

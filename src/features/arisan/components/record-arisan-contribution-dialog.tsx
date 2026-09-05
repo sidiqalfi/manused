@@ -69,7 +69,6 @@ export function RecordArisanContributionDialog({
         </DialogHeader>
         <form action={handleSubmit} className="space-y-4">
           <input type="hidden" name="periodId" value={periodId} />
-          <input type="hidden" name="amount" value={contributionAmount} />
 
           <div className="space-y-2">
             <Label htmlFor="memberId">Anggota</Label>
@@ -89,15 +88,19 @@ export function RecordArisanContributionDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Nominal (terkunci)</Label>
+            <Label htmlFor="amount">Nominal</Label>
             <Input
-              type="text"
-              name="amountDisplay"
-              id="amountDisplay"
-              value={formatCurrency(contributionAmount)}
-              readOnly
-              disabled
+              type="number"
+              name="amount"
+              id="amount"
+              defaultValue={contributionAmount}
+              min={1}
+              required
             />
+            <p className="text-xs text-muted-foreground">
+              Default {formatCurrency(contributionAmount)}. Bisa diubah kalau
+              anggota bayar double atau menitip.
+            </p>
           </div>
 
           <div className="space-y-2">

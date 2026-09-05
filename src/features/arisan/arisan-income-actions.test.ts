@@ -73,18 +73,19 @@ test("createArisanIncome rejects an invalid payload before writing", async () =>
   assert.equal(incomeCreate.mock.callCount(), 0)
 })
 
-test("createArisanIncome rejects an amount that differs from the period contribution", async () => {
+test("createArisanIncome accepts an amount that differs from the period contribution", async () => {
   const { createArisanIncome } = await import("./actions/create-arisan-income")
   const formData = validIncomeFormData()
   formData.set("amount", "7000")
 
   const result = await createArisanIncome(formData)
 
-  assert.equal(result.error, "Nominal iuran harus Rp 5.000")
-  assert.equal(incomeCreate.mock.callCount(), 0)
+  assert.deepEqual(result, { success: true })
+  assert.equal(incomeCreate.mock.callCount(), 1)
 })
 
 test("createArisanIncome is rejected when the period has an active draw", async () => {
+  incomeCreate.mock.resetCalls()
   periodFindUnique.mock.mockImplementationOnce(async () => ({
     id: UUID,
     contributionAmount: 5000,
@@ -100,6 +101,7 @@ test("createArisanIncome is rejected when the period has an active draw", async 
 })
 
 test("createArisanIncome records a valid contribution", async () => {
+  incomeCreate.mock.resetCalls()
   const { createArisanIncome } = await import("./actions/create-arisan-income")
 
   const result = await createArisanIncome(validIncomeFormData())
