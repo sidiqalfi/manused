@@ -1,9 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import {
   type ColumnDef,
+  type ColumnFiltersState,
+  type Row,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table"
@@ -12,6 +16,8 @@ import {
   ChevronRightIcon,
   ChevronsLeftIcon,
   ChevronsRightIcon,
+  SearchIcon,
+  XIcon,
 } from "lucide-react"
 
 import {
@@ -23,6 +29,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import {
   Select,
   SelectContent,
@@ -31,26 +39,60 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+export interface DataTableFilterOption {
+  label: string
+  value: string
+}
+
+export interface DataTableFilter {
+  columnId: string
+  label: string
+  options: DataTableFilterOption[]
+}
+
+export interface DataTableSearch<TData> {
+  placeholder?: string
+  filterFn?: (row: Row<TData>, columnId: string, filterValue: unknown) => boolean
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   pageSize?: number
   pageSizeOptions?: number[]
+  search?: DataTableSearch<TData>
+  filters?: DataTableFilter[]
+  emptyMessage?: string
+  filteredEmptyMessage?: string
 }
+
+const ALL_VALUE = "all"
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   pageSize = 10,
   pageSizeOptions = [10, 20, 30, 50, 100],
+  search,
+  filters,
+  emptyMessage = "Tidak ada data.",
+  filteredEmptyMessage = "Tidak ada data yang cocok dengan pencarian atau filter.",
 }: DataTableProps<TData, TValue>) {
   "use no memo"
+
+  const [globalFilter, setGlobalFilter] = useState("")
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    onGlobalFilterChange: setGlobalFilter,
+    onColumnFiltersChange: setColumnFilters,
+    state: { globalFilter, columnFilters },
+    globalFilterFn: search?.filterFn,
     initialState: {
       pagination: { pageSize },
     },
@@ -58,9 +100,106 @@ export function DataTable<TData, TValue>({
 
   const { pageIndex, pageSize: currentPageSize } = table.getState().pagination
   const pageCount = table.getPageCount()
+  const hasActiveFilter =
+    columnFilters.length > 0 || globalFilter.trim() !== ""
+  const hasData = data.length > 0
+
+  function filterValueLabel(filter: DataTableFilter): string | null {
+    const value = table.getColumn(filter.columnId)?.getFilterValue() as
+      | string
+      | undefined
+    if (!value || value === ALL_VALUE) return null
+    return filter.options.find((o) => o.value === value)?.label ?? value
+  }
 
   return (
     <div className="space-y-3">
+      {hasData && (search || filters?.length) ? (
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          {search ? (
+            <div className="relative w-full lg:w-90">
+              <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={globalFilter}
+                onChange={(e) => setGlobalFilter(e.target.value)}
+                placeholder={search.placeholder ?? "Cari…"}
+                aria-label="Cari"
+                className="pl-9"
+              />
+            </div>
+          ) : null}
+
+          {filters?.length ? (
+            <div className="flex flex-wrap items-center gap-2">
+              {filters.map((filter) => {
+                const column = table.getColumn(filter.columnId)
+                if (!column) return null
+                const value =
+                  (column.getFilterValue() as string | undefined) ?? ALL_VALUE
+                return (
+                  <Select
+                    key={filter.columnId}
+                    value={value}
+                    onValueChange={(next) =>
+                      column.setFilterValue(
+                        next === ALL_VALUE ? undefined : next,
+                      )
+                    }
+                  >
+                    <SelectTrigger size="sm" className="gap-2">
+                      <span className="text-muted-foreground">
+                        {filter.label}
+                      </span>
+                      <SelectValue
+                        placeholder={filter.options[0]?.label ?? "Semua"}
+                      />
+                    </SelectTrigger>
+                    <SelectContent side="bottom" align="start">
+                      <SelectItem value={ALL_VALUE}>Semua</SelectItem>
+                      {filter.options.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )
+              })}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {hasActiveFilter ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-muted-foreground">Filter aktif:</span>
+          {globalFilter.trim() ? (
+            <Badge variant="secondary">
+              Cari: {globalFilter.trim()}
+            </Badge>
+          ) : null}
+          {(filters ?? [])
+            .map(filterValueLabel)
+            .filter((label): label is string => label !== null)
+            .map((label) => (
+              <Badge key={label} variant="secondary">
+                {label}
+              </Badge>
+            ))}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              table.resetColumnFilters()
+              setGlobalFilter("")
+            }}
+          >
+            <XIcon data-icon="inline-start" />
+            Reset
+          </Button>
+        </div>
+      ) : null}
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -103,7 +242,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length + 1}
                   className="h-24 text-center"
                 >
-                  Tidak ada data.
+                  {hasData ? filteredEmptyMessage : emptyMessage}
                 </TableCell>
               </TableRow>
             )}

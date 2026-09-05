@@ -1,11 +1,25 @@
 "use client"
 
-import type { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef, Row } from "@tanstack/react-table"
 import type { Member, Role } from "@/generated/prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { DeleteMemberDialog } from "@features/members/components/delete-member-dialog"
 import { EditMemberDialog } from "@features/members/components/edit-member-dialog"
 import type { MemberActiveRolesMap } from "@/features/roles/actions/get-member-active-roles-map"
+
+export function memberGlobalFilterFn(
+  row: Row<Member>,
+  _columnId: string,
+  filterValue: unknown,
+): boolean {
+  const query = String(filterValue ?? "").trim().toLowerCase()
+  if (!query) return true
+
+  const { name, fullName, phone } = row.original
+  return [name, fullName, phone ?? ""].some((field) =>
+    field.toLowerCase().includes(query),
+  )
+}
 
 export function memberColumns(
   rolesMap: MemberActiveRolesMap,
@@ -23,6 +37,7 @@ export function memberColumns(
     {
       accessorKey: "gender",
       header: "Gender",
+      filterFn: "equals",
       cell: ({ row }) => {
         const gender = row.getValue("gender") as string
         return (
@@ -47,6 +62,7 @@ export function memberColumns(
     {
       accessorKey: "address",
       header: "Dusun",
+      filterFn: "equals",
     },
     {
       accessorKey: "rt",
@@ -67,6 +83,7 @@ export function memberColumns(
     {
       accessorKey: "status",
       header: "Status",
+      filterFn: "equals",
       cell: ({ row }) => {
         const status = row.getValue("status") as string
         return (
