@@ -8,12 +8,16 @@ import {
 } from "@/features/members/member-schemas"
 import { revalidatePath } from "next/cache"
 
+const DEFAULT_ROLE_NAME = "Anggota"
+
 export async function createMember(formData: FormData) {
   const session = await auth()
 
   if (!session?.user?.id) {
     return { error: "Unauthorized" }
   }
+
+  const createdById = session.user.id
 
   const parsedMember = createMemberSchema.safeParse(
     getMemberFormValues(formData),
@@ -24,11 +28,31 @@ export async function createMember(formData: FormData) {
   }
 
   try {
-    await prisma.member.create({
-      data: {
-        ...parsedMember.data,
-        createdById: session.user.id,
-      },
+    await prisma.$transaction(async (tx) => {
+      const member = await tx.member.create({
+        data: {
+          ...parsedMember.data,
+          createdById,
+        },
+      })
+
+      const anggotaRole = await tx.role.findUnique({
+        where: { name: DEFAULT_ROLE_NAME },
+      })
+
+      if (!anggotaRole) {
+        console.warn(
+          `Role "${DEFAULT_ROLE_NAME}" tidak ditemukan saat menambah anggota`,
+        )
+        return
+      }
+
+      await tx.memberRoleAssignment.create({
+        data: {
+          memberId: member.id,
+          roleId: anggotaRole.id,
+        },
+      })
     })
 
     revalidatePath("/dashboard/members")

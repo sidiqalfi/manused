@@ -25,6 +25,7 @@ import { Field, FieldLabel } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
 import { createMember } from "@features/members/actions/create-member"
 import { membersKeys } from "@features/members/queries"
+import { rolesKeys } from "@/features/roles/queries"
 
 export function CreateMemberDialog() {
   const [open, setOpen] = useState(false)
@@ -46,7 +47,10 @@ export function CreateMemberDialog() {
       return
     }
 
-    await queryClient.invalidateQueries({ queryKey: membersKeys.all })
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: membersKeys.all }),
+      queryClient.invalidateQueries({ queryKey: rolesKeys.all }),
+    ])
     setLoading(false)
     setOpen(false)
   }

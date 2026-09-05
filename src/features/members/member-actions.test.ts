@@ -1,9 +1,25 @@
 import assert from "node:assert/strict"
 import { mock, test } from "node:test"
 
-const memberCreate = mock.fn(async () => ({}))
+const MEMBER_ID = "9dfac38b-7e4c-4a6c-b296-068995e89cb9"
+const ROLE_ID = "1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e"
+
+const memberCreate = mock.fn(async () => ({ id: MEMBER_ID }))
 const memberUpdate = mock.fn(async () => ({}))
 const memberDelete = mock.fn(async () => ({}))
+const roleFindUnique = mock.fn(async () => ({
+  id: ROLE_ID,
+  name: "Anggota",
+}))
+const memberRoleAssignmentCreate = mock.fn(async () => ({}))
+const transaction = mock.fn(
+  async (cb: (tx: Record<string, unknown>) => Promise<unknown>) =>
+    cb({
+      member: { create: memberCreate },
+      role: { findUnique: roleFindUnique },
+      memberRoleAssignment: { create: memberRoleAssignmentCreate },
+    }),
+)
 const auth = mock.fn(async () => ({
   user: { id: "8a010ca6-4e5a-4d91-8490-6a6a5f4b1357" },
 }))
@@ -19,10 +35,17 @@ function mockModule(
 mockModule("@/lib/prisma", {
   exports: {
     default: {
+      $transaction: transaction,
       member: {
         create: memberCreate,
         update: memberUpdate,
         delete: memberDelete,
+      },
+      role: {
+        findUnique: roleFindUnique,
+      },
+      memberRoleAssignment: {
+        create: memberRoleAssignmentCreate,
       },
     },
   },
@@ -84,4 +107,21 @@ test("createMember rejects an invalid RT before creating a member", async () => 
 
   assert.deepEqual(result, { error: "Data anggota tidak valid" })
   assert.equal(memberCreate.mock.callCount(), 0)
+})
+
+test("createMember assigns the default Anggota role to a new member", async () => {
+  const { createMember } = await import("./actions/create-member")
+
+  const result = await createMember(validMemberFormData())
+
+  assert.deepEqual(result, { success: true })
+  assert.equal(memberRoleAssignmentCreate.mock.callCount(), 1)
+  assert.deepEqual(memberRoleAssignmentCreate.mock.calls[0]?.arguments, [
+    {
+      data: {
+        memberId: MEMBER_ID,
+        roleId: ROLE_ID,
+      },
+    },
+  ])
 })
