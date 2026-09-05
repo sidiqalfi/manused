@@ -19,6 +19,7 @@ import {
   arisanDrawsQuery,
   arisanYearSummaryQuery,
   arisanYearChartQuery,
+  arisanOverviewQuery,
 } from "@/features/arisan/queries"
 import { membersQuery } from "@/features/members/queries"
 import { formatCurrency } from "@/lib/format"
@@ -92,6 +93,11 @@ export default function ArisanPage() {
     ? yearChartResult.data ?? []
     : []
 
+  const arisanOverviewResult = useQuery(arisanOverviewQuery).data ?? null
+  const arisanOverview = arisanOverviewResult?.success
+    ? arisanOverviewResult.data ?? null
+    : null
+
   const summary = summaryResult?.success ? summaryResult.data ?? null : null
   const draws = drawsResult?.success ? drawsResult.data ?? [] : null
 
@@ -134,7 +140,9 @@ export default function ArisanPage() {
             />
             <StatCard
               label="Dana Save"
-              value={summary ? formatCurrency(summary.savings) : "-"}
+              value={
+                summary ? formatCurrency(summary.collected - summary.target) : "-"
+              }
               icon={PiggyBank}
               valueClassName="text-primary"
             />
@@ -184,9 +192,11 @@ export default function ArisanPage() {
             />
             <StatCard
               label="Dana Save"
-              value={formatCurrency(
-                yearSummary.totalIncome - yearSummary.totalPayout
-              )}
+              value={
+                arisanOverview
+                  ? formatCurrency(arisanOverview.savings)
+                  : "-"
+              }
               caption={`Gabungan semua periode ${yearSummary.year}`}
               icon={PiggyBank}
               valueClassName="text-primary"
