@@ -101,7 +101,7 @@ test("createArisanIncome accepts an amount that differs from the period contribu
   assert.equal(incomeCreate.mock.callCount(), 1)
 })
 
-test("createArisanIncome is rejected when the period has an active draw", async () => {
+test("createArisanIncome allows a late contribution after the period is drawn", async () => {
   incomeCreate.mock.resetCalls()
   periodFindUnique.mock.mockImplementationOnce(async () => ({
     id: UUID,
@@ -113,8 +113,8 @@ test("createArisanIncome is rejected when the period has an active draw", async 
 
   const result = await createArisanIncome(validIncomeFormData())
 
-  assert.equal(result.error, "Periode sudah di-kocok, iuran terkunci")
-  assert.equal(incomeCreate.mock.callCount(), 0)
+  assert.deepEqual(result, { success: true })
+  assert.equal(incomeCreate.mock.callCount(), 1)
 })
 
 test("createArisanIncome records a valid contribution", async () => {

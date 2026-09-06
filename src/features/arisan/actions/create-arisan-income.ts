@@ -23,15 +23,10 @@ export async function createArisanIncome(formData: FormData) {
   try {
     const period = await prisma.arisanPeriod.findUnique({
       where: { id: validation.data.periodId },
-      include: { draws: { where: { voided: false } } },
     })
 
     if (!period) {
       return { error: "Periode tidak ditemukan atau sudah dihapus" }
-    }
-
-    if (period.draws.length > 0) {
-      return { error: "Periode sudah di-kocok, iuran terkunci" }
     }
 
     const member = await prisma.member.findUnique({

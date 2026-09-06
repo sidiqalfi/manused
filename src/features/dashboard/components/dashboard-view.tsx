@@ -357,7 +357,6 @@ export function DashboardView({ userName }: { userName: string | null }) {
                     keys={arisanKeys}
                     batchAction={createArisanIncomesBatch}
                     triggerVariant="outline"
-                    showBatch={!arisanHasActiveDraw}
                   />
                   {!arisanHasActiveDraw ? (
                     <DrawDialog

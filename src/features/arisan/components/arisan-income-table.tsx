@@ -81,25 +81,23 @@ export function ArisanIncomeTable({ periodId, period, members }: Props) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Iuran Anggota</h3>
-        {!hasActiveDraw && (
-          <IncomeRecordActions
-            singleTrigger={
-              <RecordArisanContributionDialog
-                periodId={periodId}
-                unpaidMembers={unpaidMembers}
-                contributionAmount={contributionAmount}
-              />
-            }
-            periodId={periodId}
-            unpaidMembers={unpaidMembers}
-            defaultAmount={contributionAmount}
-            minAmount={1}
-            dialogTitle="Catat Batch Iuran Arisan"
-            submitLabel="Catat Iuran Batch"
-            keys={arisanKeys}
-            batchAction={createArisanIncomesBatch}
-          />
-        )}
+        <IncomeRecordActions
+          singleTrigger={
+            <RecordArisanContributionDialog
+              periodId={periodId}
+              unpaidMembers={unpaidMembers}
+              contributionAmount={contributionAmount}
+            />
+          }
+          periodId={periodId}
+          unpaidMembers={unpaidMembers}
+          defaultAmount={contributionAmount}
+          minAmount={1}
+          dialogTitle="Catat Batch Iuran Arisan"
+          submitLabel="Catat Iuran Batch"
+          keys={arisanKeys}
+          batchAction={createArisanIncomesBatch}
+        />
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}

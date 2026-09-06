@@ -65,7 +65,8 @@ function validBatchFormData() {
   return formData
 }
 
-test("createArisanIncomesBatch is rejected when the period has an active draw", async () => {
+test("createArisanIncomesBatch allows a late batch after the period is drawn", async () => {
+  incomeCreate.mock.resetCalls()
   periodFindUnique.mock.mockImplementationOnce(async () => ({
     id: UUID,
     draws: [{ id: "draw-1" }],
@@ -76,11 +77,12 @@ test("createArisanIncomesBatch is rejected when the period has an active draw", 
 
   const result = await createArisanIncomesBatch(validBatchFormData())
 
-  assert.equal(result.error, "Periode sudah di-kocok, iuran terkunci")
-  assert.equal(incomeCreate.mock.callCount(), 0)
+  assert.deepEqual(result, { success: true, count: 2 })
+  assert.equal(incomeCreate.mock.callCount(), 2)
 })
 
 test("createArisanIncomesBatch rejects a member that belongs to another household", async () => {
+  incomeCreate.mock.resetCalls()
   memberFindMany.mock.mockImplementationOnce(async () => [
     { id: UUID, headOfHouseholdId: null },
     { id: UUID2, headOfHouseholdId: "11111111-1111-4111-8111-111111111111" },
