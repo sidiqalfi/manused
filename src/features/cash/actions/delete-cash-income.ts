@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
 import { cashIncomeIdSchema } from "../cash-schemas"
+import { logActivity } from "@/features/log/activity-log"
 import { revalidatePath } from "next/cache"
 
 export async function deleteCashIncome(incomeId: string) {
@@ -20,7 +21,13 @@ export async function deleteCashIncome(incomeId: string) {
     // Verify ownership: only the record creator can delete
     const income = await prisma.cashIncome.findUnique({
       where: { id: validation.data },
-      select: { createdById: true },
+      select: {
+        createdById: true,
+        amount: true,
+        memberId: true,
+        periodId: true,
+        paidAt: true,
+      },
     })
 
     if (!income) {
@@ -33,6 +40,24 @@ export async function deleteCashIncome(incomeId: string) {
 
     await prisma.cashIncome.delete({
       where: { id: validation.data },
+    })
+
+    await logActivity(prisma, {
+      actor: {
+        id: session.user.id,
+        name: session.user.name ?? null,
+        email: session.user.email ?? null,
+      },
+      action: "DELETE",
+      entity: "cashIncome",
+      entityId: validation.data,
+      summary: "Menghapus pembayaran iuran",
+      before: {
+        periodId: income.periodId,
+        memberId: income.memberId,
+        amount: income.amount,
+        paidAt: income.paidAt.toISOString(),
+      },
     })
 
     revalidatePath("/dashboard/cash")

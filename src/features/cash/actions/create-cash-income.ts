@@ -1,8 +1,10 @@
 "use server"
 
+import crypto from "crypto"
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
 import { createCashIncomeSchema, getCashIncomeFormValues } from "../cash-schemas"
+import { activityLogData } from "@/features/log/activity-log"
 import { revalidatePath } from "next/cache"
 
 export async function createCashIncome(formData: FormData) {
@@ -36,9 +38,11 @@ export async function createCashIncome(formData: FormData) {
     }
 
     // Use transaction for atomic operation to prevent race conditions
+    const incomeId = crypto.randomUUID()
     await prisma.$transaction([
       prisma.cashIncome.create({
         data: {
+          id: incomeId,
           periodId: validation.data.periodId,
           memberId: validation.data.memberId,
           amount: validation.data.amount,
@@ -51,6 +55,26 @@ export async function createCashIncome(formData: FormData) {
       prisma.cashPeriod.update({
         where: { id: validation.data.periodId },
         data: { updatedAt: new Date() },
+      }),
+      prisma.activityLog.create({
+        data: activityLogData({
+          actor: {
+            id: session.user.id,
+            name: session.user.name ?? null,
+            email: session.user.email ?? null,
+          },
+          action: "CREATE",
+          entity: "cashIncome",
+          entityId: incomeId,
+          summary: "Mencatat pembayaran iuran",
+          after: {
+            periodId: validation.data.periodId,
+            memberId: validation.data.memberId,
+            amount: validation.data.amount,
+            paidAt: validation.data.paidAt.toISOString(),
+            note: validation.data.note ?? null,
+          },
+        }),
       }),
     ])
 

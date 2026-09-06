@@ -1,8 +1,10 @@
 "use server"
 
+import crypto from "crypto"
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
 import { createCashPeriodSchema, getCashPeriodFormValues } from "../cash-schemas"
+import { logActivity } from "@/features/log/activity-log"
 import { revalidatePath } from "next/cache"
 
 export async function createCashPeriod(formData: FormData) {
@@ -19,13 +21,33 @@ export async function createCashPeriod(formData: FormData) {
   }
 
   try {
+    const id = crypto.randomUUID()
     await prisma.cashPeriod.create({
       data: {
+        id,
         month: validation.data.month,
         year: validation.data.year,
         duesAmount: validation.data.duesAmount,
         minAmount: validation.data.minAmount,
         createdById: session.user.id,
+      },
+    })
+
+    await logActivity(prisma, {
+      actor: {
+        id: session.user.id,
+        name: session.user.name ?? null,
+        email: session.user.email ?? null,
+      },
+      action: "CREATE",
+      entity: "cashPeriod",
+      entityId: id,
+      summary: "Membuat periode kas",
+      after: {
+        month: validation.data.month,
+        year: validation.data.year,
+        duesAmount: validation.data.duesAmount,
+        minAmount: validation.data.minAmount,
       },
     })
 
