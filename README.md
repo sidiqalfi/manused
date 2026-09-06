@@ -6,8 +6,8 @@ Buku kas digital untuk organisasi pemuda-pemudi desa. Mencatat iuran anggota, pe
 
 - **Kas bulanan** — periode kas (iuran + batas bawah per bulan), pencatatan & penghapusan pembayaran iuran anggota, pencatatan & penghapusan pengeluaran, ringkasan kas (total masuk/keluar/saldo, termasuk saldo awal), serta rekap tahunan per bulan (grafik).
 - **Sosial** — iuran sukarela per anggota dengan nominal minimal, pengeluaran sosial, ringkasan dan rekap tahunan, plus saldo awal. Mirip kas, dengan catatan tambahan per anggota.
-- **Arisan** — iuran arisan flat per periode, kocokan bulanan dengan preview kandidat (eligible = aktif & belum pernah menang), riwayat kocokan (termasuk void/batal), dana save berjalan dengan saldo awal, dan payout ke pemenang.
-- **Anggota** — CRUD anggota pemuda (nama, nama lengkap, gender, tanggal lahir, dusun, RT/RW, telepon, status aktif) plus role kepengurusan (Ketua, Wakil, Bendahara, Sekretaris, Humas, Anggota) dengan riwayat jabatan.
+- **Arisan** — iuran arisan flat per periode, kocokan bulanan dengan preview kandidat (eligible = aktif & belum pernah menang), riwayat kocokan (termasuk void/batal), dana save berjalan dengan saldo awal, dan payout ke pemenang. Dihitung **per rumah (1 rumah = 1 slot)**: yang membayar & di-kocok adalah kepala rumah, anggota serumah ikut lewat kepalanya. Tampilan tanpa pilih periode menampilkan rekap tahunan + riwayat kocokan tahun berjalan.
+- **Anggota** — CRUD anggota pemuda (nama, nama lengkap, gender, tanggal lahir, dusun, RT/RW, telepon, status aktif, kepala rumah opsional) plus role kepengurusan (Ketua, Wakil, Bendahara, Sekretaris, Humas, Anggota) dengan riwayat jabatan. Kolom "Rumah" menampilkan kepala rumah tiap anggota.
 - **Pengaturan** — saldo awal dana kas, sosial, dan dana save arisan (tersimpan sebagai AppSetting key-value).
 - **Dashboard pengurus** — ringkasan saldo kas/sosial/arisan + total anggota, grafik arus tahunan per buku (Kas, Sosial, Arisan), caption saldo awal, aksi cepat per buku, sidebar navigasi.
 - Semua copy antarmuka dalam **Bahasa Indonesia**; angka uang selalu berformat `Rp` (locale `id-ID`).
@@ -112,7 +112,7 @@ Path alias: `@/*` → `src/*` dan `@features/*` → `src/features/*`.
 Model inti di `prisma/schema.prisma`:
 
 - `User` — akun pengurus (NextAuth credentials)
-- `Member` — anggota pemuda (gender, dusun, RT/RW, status aktif)
+- `Member` — anggota pemuda (gender, dusun, RT/RW, status aktif) dengan self-relation `headOfHouseholdId` untuk pengelompokan rumah (1 rumah = 1 slot arisan)
 - `Role` — role kepengurusan (nama + urutan rank, unik)
 - `MemberRoleAssignment` — jabatan anggota dengan `startDate`/`endDate` (null = masih menjabat) sehingga riwayat kepengurusan tersimpan
 - `CashPeriod` / `CashIncome` / `CashExpense` — kas bulanan (iuran + batas bawah, pembayaran unik per anggota per periode, pengeluaran)
