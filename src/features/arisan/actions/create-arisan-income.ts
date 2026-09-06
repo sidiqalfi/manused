@@ -1,8 +1,10 @@
 "use server"
 
+import crypto from "crypto"
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
 import { createArisanIncomeSchema, getArisanIncomeFormValues } from "../arisan-schemas"
+import { activityLogData } from "@/features/log/activity-log"
 import { revalidatePath } from "next/cache"
 
 export async function createArisanIncome(formData: FormData) {
@@ -47,9 +49,11 @@ export async function createArisanIncome(formData: FormData) {
       }
     }
 
+    const incomeId = crypto.randomUUID()
     await prisma.$transaction([
       prisma.arisanIncome.create({
         data: {
+          id: incomeId,
           periodId: validation.data.periodId,
           memberId: validation.data.memberId,
           amount: validation.data.amount,
@@ -61,6 +65,26 @@ export async function createArisanIncome(formData: FormData) {
       prisma.arisanPeriod.update({
         where: { id: validation.data.periodId },
         data: { updatedAt: new Date() },
+      }),
+      prisma.activityLog.create({
+        data: activityLogData({
+          actor: {
+            id: session.user.id,
+            name: session.user.name ?? null,
+            email: session.user.email ?? null,
+          },
+          action: "CREATE",
+          entity: "arisanIncome",
+          entityId: incomeId,
+          summary: "Mencatat iuran arisan",
+          after: {
+            periodId: validation.data.periodId,
+            memberId: validation.data.memberId,
+            amount: validation.data.amount,
+            paidAt: validation.data.paidAt.toISOString(),
+            note: validation.data.note ?? null,
+          },
+        }),
       }),
     ])
 

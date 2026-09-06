@@ -1,5 +1,6 @@
 "use server"
 
+import crypto from "crypto"
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
 import {
@@ -14,6 +15,7 @@ import {
   savings,
   winnersInCycle,
 } from "../draw-logic"
+import { logActivity } from "@/features/log/activity-log"
 import { revalidatePath } from "next/cache"
 
 export async function performArisanDraw(formData: FormData) {
@@ -99,8 +101,10 @@ export async function performArisanDraw(formData: FormData) {
     const savingsAfter =
       savings(initialSave, history) + collectedAmount - payoutAmount
 
+    const drawId = crypto.randomUUID()
     await prisma.arisanDraw.create({
       data: {
+        id: drawId,
         periodId: validation.data.periodId,
         winnerMemberId: validation.data.winnerMemberId,
         cycleNumber: cycle,
@@ -109,6 +113,27 @@ export async function performArisanDraw(formData: FormData) {
         savingsAfter,
         drawnAt: validation.data.drawnAt,
         createdById: session.user.id,
+      },
+    })
+
+    await logActivity(prisma, {
+      actor: {
+        id: session.user.id,
+        name: session.user.name ?? null,
+        email: session.user.email ?? null,
+      },
+      action: "CREATE",
+      entity: "arisanDraw",
+      entityId: drawId,
+      summary: "Melakukan kocokan arisan",
+      after: {
+        periodId: validation.data.periodId,
+        winnerMemberId: validation.data.winnerMemberId,
+        cycleNumber: cycle,
+        collectedAmount,
+        payoutAmount,
+        savingsAfter,
+        drawnAt: validation.data.drawnAt.toISOString(),
       },
     })
 

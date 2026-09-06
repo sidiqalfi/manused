@@ -5,6 +5,7 @@ const periodCreate = mock.fn(async () => ({}))
 const periodFindMany = mock.fn(async () => [])
 const settingFindUnique = mock.fn(async () => null)
 const settingUpsert = mock.fn(async () => ({}))
+const activityLogCreate = mock.fn(async () => ({}))
 const auth = mock.fn(async () => ({
   user: { id: "8a010ca6-4e5a-4d91-8490-6a6a5f4b1357" },
 }))
@@ -27,6 +28,9 @@ mockModule("@/lib/prisma", {
       appSetting: {
         findUnique: settingFindUnique,
         upsert: settingUpsert,
+      },
+      activityLog: {
+        create: activityLogCreate,
       },
     },
   },
@@ -80,6 +84,13 @@ test("createArisanPeriod creates a period with a valid payload", async () => {
 
   assert.deepEqual(result, { success: true })
   assert.equal(periodCreate.mock.callCount(), 1)
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const args = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  const log = args[0].data as Record<string, unknown>
+  assert.equal(log.action, "CREATE")
+  assert.equal(log.entity, "arisanPeriod")
 })
 
 test("getArisanPeriods returns the list when successful", async () => {
@@ -113,10 +124,18 @@ test("setInitialSave rejects a negative value before upserting", async () => {
 })
 
 test("setInitialSave persists a valid value", async () => {
+  activityLogCreate.mock.resetCalls()
   const { setInitialSave } = await import("./actions/set-initial-save")
 
   const result = await setInitialSave(validInitialSaveFormData())
 
   assert.deepEqual(result, { success: true })
   assert.equal(settingUpsert.mock.callCount(), 1)
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const args = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  const log = args[0].data as Record<string, unknown>
+  assert.equal(log.action, "UPDATE")
+  assert.equal(log.entity, "appSetting")
 })

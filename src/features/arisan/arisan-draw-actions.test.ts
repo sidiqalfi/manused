@@ -49,6 +49,7 @@ const drawFindUnique = mock.fn(async () => ({
   voided: false,
 }))
 const settingFindUnique = mock.fn(async () => ({ key: "arisan.initialSave", value: "100000" }))
+const activityLogCreate = mock.fn(async () => ({}))
 const auth = mock.fn(async () => ({ user: { id: USER_ID } }))
 const revalidatePath = mock.fn()
 
@@ -76,6 +77,9 @@ mockModule("@/lib/prisma", {
       },
       appSetting: {
         findUnique: settingFindUnique,
+      },
+      activityLog: {
+        create: activityLogCreate,
       },
     },
   },
@@ -193,13 +197,29 @@ test("performArisanDraw saves a draw with a full financial snapshot", async () =
   assert.equal(created.collectedAmount, 10000)
   assert.equal(created.payoutAmount, 135000)
   assert.equal(created.savingsAfter, -25000)
+
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const logArgs = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  const log = logArgs[0].data as Record<string, unknown>
+  assert.equal(log.action, "CREATE")
+  assert.equal(log.entity, "arisanDraw")
 })
 
 test("voidArisanDraw marks the draw voided", async () => {
+  activityLogCreate.mock.resetCalls()
   const { voidArisanDraw } = await import("./actions/void-arisan-draw")
 
   const result = await voidArisanDraw(UUID)
 
   assert.deepEqual(result, { success: true })
   assert.equal(drawUpdate.mock.callCount(), 1)
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const args = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  const log = args[0].data as Record<string, unknown>
+  assert.equal(log.action, "UPDATE")
+  assert.equal(log.entity, "arisanDraw")
 })

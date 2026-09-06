@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
 import { arisanIncomeIdSchema } from "../arisan-schemas"
+import { logActivity } from "@/features/log/activity-log"
 import { revalidatePath } from "next/cache"
 
 export async function deleteArisanIncome(incomeId: string) {
@@ -19,7 +20,7 @@ export async function deleteArisanIncome(incomeId: string) {
   try {
     const income = await prisma.arisanIncome.findUnique({
       where: { id: validation.data },
-      select: { createdById: true, periodId: true },
+      select: { createdById: true, periodId: true, amount: true, memberId: true, paidAt: true },
     })
 
     if (!income) {
@@ -41,6 +42,24 @@ export async function deleteArisanIncome(incomeId: string) {
 
     await prisma.arisanIncome.delete({
       where: { id: validation.data },
+    })
+
+    await logActivity(prisma, {
+      actor: {
+        id: session.user.id,
+        name: session.user.name ?? null,
+        email: session.user.email ?? null,
+      },
+      action: "DELETE",
+      entity: "arisanIncome",
+      entityId: validation.data,
+      summary: "Menghapus iuran arisan",
+      before: {
+        periodId: income.periodId,
+        memberId: income.memberId,
+        amount: income.amount,
+        paidAt: income.paidAt.toISOString(),
+      },
     })
 
     revalidatePath("/dashboard/arisan")

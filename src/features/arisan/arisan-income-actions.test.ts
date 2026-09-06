@@ -21,11 +21,15 @@ const memberFindUnique = mock.fn<() => Promise<{
   headOfHouseholdId: null,
 }))
 const incomeCreate = mock.fn(async () => ({}))
+const activityLogCreate = mock.fn(async () => ({}))
 const periodUpdate = mock.fn(async () => ({}))
 const transaction = mock.fn(async (ops: unknown[]) => ops)
 const incomeFindUnique = mock.fn(async () => ({
   createdById: USER_ID,
   periodId: UUID,
+  amount: 5000,
+  memberId: UUID,
+  paidAt: new Date("2026-08-24T00:00:00.000Z"),
 }))
 const incomeDelete = mock.fn(async () => ({}))
 const auth = mock.fn(async () => ({ user: { id: USER_ID } }))
@@ -49,6 +53,9 @@ mockModule("@/lib/prisma", {
         create: incomeCreate,
         findUnique: incomeFindUnique,
         delete: incomeDelete,
+      },
+      activityLog: {
+        create: activityLogCreate,
       },
       member: {
         findUnique: memberFindUnique,
@@ -112,12 +119,21 @@ test("createArisanIncome is rejected when the period has an active draw", async 
 
 test("createArisanIncome records a valid contribution", async () => {
   incomeCreate.mock.resetCalls()
+  activityLogCreate.mock.resetCalls()
   const { createArisanIncome } = await import("./actions/create-arisan-income")
 
   const result = await createArisanIncome(validIncomeFormData())
 
   assert.deepEqual(result, { success: true })
   assert.equal(incomeCreate.mock.callCount(), 1)
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const args = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  const log = args[0].data as Record<string, unknown>
+  assert.equal(log.action, "CREATE")
+  assert.equal(log.entity, "arisanIncome")
+  assert.equal(log.actorId, USER_ID)
 })
 
 test("createArisanIncome rejects a member that belongs to another household", async () => {
@@ -154,10 +170,18 @@ test("deleteArisanIncome is rejected when the period has an active draw", async 
 })
 
 test("deleteArisanIncome deletes when the period has no active draw", async () => {
+  activityLogCreate.mock.resetCalls()
   const { deleteArisanIncome } = await import("./actions/delete-arisan-income")
 
   const result = await deleteArisanIncome(UUID)
 
   assert.deepEqual(result, { success: true })
   assert.equal(incomeDelete.mock.callCount(), 1)
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const args = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  const log = args[0].data as Record<string, unknown>
+  assert.equal(log.action, "DELETE")
+  assert.equal(log.entity, "arisanIncome")
 })

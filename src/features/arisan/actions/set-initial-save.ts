@@ -7,6 +7,7 @@ import {
   initialSaveSchema,
   getInitialSaveFormValues,
 } from "../arisan-schemas"
+import { logActivity } from "@/features/log/activity-log"
 import { revalidatePath } from "next/cache"
 
 export async function setInitialSave(formData: FormData) {
@@ -27,6 +28,22 @@ export async function setInitialSave(formData: FormData) {
       where: { key: ARISAN_INITIAL_SAVE_KEY },
       create: { key: ARISAN_INITIAL_SAVE_KEY, value: String(validation.data) },
       update: { value: String(validation.data) },
+    })
+
+    await logActivity(prisma, {
+      actor: {
+        id: session.user.id,
+        name: session.user.name ?? null,
+        email: session.user.email ?? null,
+      },
+      action: "UPDATE",
+      entity: "appSetting",
+      entityId: ARISAN_INITIAL_SAVE_KEY,
+      summary: "Mengubah saldo awal dana save",
+      after: {
+        key: ARISAN_INITIAL_SAVE_KEY,
+        value: String(validation.data),
+      },
     })
 
     revalidatePath("/dashboard/settings")
