@@ -49,6 +49,19 @@ export function savings(initialSave: number, history: DrawRecord[]): number {
   )
 }
 
+/**
+ * Dana save sesungguhnya berdasarkan kas riil: saldo awal + total semua iuran
+ * (termasuk iuran telat setelah kocokan) − total yang dibayarkan ke pemenang
+ * (kocokan aktif). Dipakai untuk angka Dana Save di halaman arisan & dashboard.
+ */
+export function netSavings(
+  initialSave: number,
+  totalIncome: number,
+  totalPayout: number
+): number {
+  return initialSave + totalIncome - totalPayout
+}
+
 export function pickWinner(ids: string[]): string {
   const random = new Uint32Array(1)
   crypto.getRandomValues(random)

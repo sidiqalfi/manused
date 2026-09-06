@@ -41,6 +41,7 @@ const memberFindMany = mock.fn(async () => [
   { id: M2, status: "ACTIVE", name: "Rasyid", householdMembers: [] },
 ])
 const drawFindMany = mock.fn<() => Promise<DrawLike[]>>(async () => [])
+const incomeAggregate = mock.fn(async () => ({ _sum: { amount: 10000 } }))
 const drawCreate = mock.fn(async () => ({}))
 const drawUpdate = mock.fn(async () => ({}))
 const drawFindUnique = mock.fn(async () => ({
@@ -74,6 +75,9 @@ mockModule("@/lib/prisma", {
         findUnique: drawFindUnique,
         create: drawCreate,
         update: drawUpdate,
+      },
+      arisanIncome: {
+        aggregate: incomeAggregate,
       },
       appSetting: {
         findUnique: settingFindUnique,

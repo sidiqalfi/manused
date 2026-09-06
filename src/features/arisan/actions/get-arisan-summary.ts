@@ -2,7 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { ARISAN_INITIAL_SAVE_KEY, arisanPeriodIdSchema } from "../arisan-schemas"
-import { savings } from "../draw-logic"
+import { netSavings } from "../draw-logic"
 
 export interface ArisanSummaryData {
   collected: number
@@ -36,7 +36,7 @@ export async function getArisanSummary(
       return { success: false, error: "Periode tidak ditemukan" }
     }
 
-    const [draws, setting] = await Promise.all([
+    const [draws, setting, totalIncomeAgg] = await Promise.all([
       prisma.arisanDraw.findMany({
         select: {
           winnerMemberId: true,
@@ -49,11 +49,15 @@ export async function getArisanSummary(
       prisma.appSetting.findUnique({
         where: { key: ARISAN_INITIAL_SAVE_KEY },
       }),
+      prisma.arisanIncome.aggregate({
+        _sum: { amount: true },
+      }),
     ])
 
     const active = draws.filter((d) => !d.voided)
     const collected = period.incomes.reduce((sum, i) => sum + i.amount, 0)
     const initialSave = setting ? Number(setting.value) : 0
+    const totalPayout = active.reduce((sum, d) => sum + d.payoutAmount, 0)
     const lastWinner = active.at(-1)?.winnerMemberId ?? null
 
     return {
@@ -61,7 +65,11 @@ export async function getArisanSummary(
       data: {
         collected,
         target: period.payoutTarget,
-        savings: savings(initialSave, draws),
+        savings: netSavings(
+          initialSave,
+          totalIncomeAgg._sum.amount ?? 0,
+          totalPayout,
+        ),
         lastWinnerMemberId: lastWinner,
         contributionAmount: period.contributionAmount,
       },

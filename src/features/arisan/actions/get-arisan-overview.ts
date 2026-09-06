@@ -2,7 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { ARISAN_INITIAL_SAVE_KEY } from "../arisan-schemas"
-import { savings } from "../draw-logic"
+import { netSavings } from "../draw-logic"
 
 export interface ArisanOverviewData {
   savings: number
@@ -18,7 +18,7 @@ export interface GetArisanOverviewResult {
 
 export async function getArisanOverview(): Promise<GetArisanOverviewResult> {
   try {
-    const [draws, setting, lastDraw] = await Promise.all([
+    const [draws, setting, lastDraw, incomeAgg] = await Promise.all([
       prisma.arisanDraw.findMany({
         select: {
           winnerMemberId: true,
@@ -36,14 +36,24 @@ export async function getArisanOverview(): Promise<GetArisanOverviewResult> {
         orderBy: { createdAt: "desc" },
         select: { winnerMember: { select: { name: true } } },
       }),
+      prisma.arisanIncome.aggregate({
+        _sum: { amount: true },
+      }),
     ])
 
     const initialSave = setting ? Number(setting.value) : 0
+    const totalPayout = draws
+      .filter((d) => !d.voided)
+      .reduce((sum, d) => sum + d.payoutAmount, 0)
 
     return {
       success: true,
       data: {
-        savings: savings(initialSave, draws),
+        savings: netSavings(
+          initialSave,
+          incomeAgg._sum.amount ?? 0,
+          totalPayout,
+        ),
         lastWinnerName: lastDraw?.winnerMember.name ?? null,
         initialSave,
       },
