@@ -7,17 +7,26 @@ const ROLE_ID = "1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e"
 const memberCreate = mock.fn(async () => ({ id: MEMBER_ID }))
 const memberUpdate = mock.fn(async () => ({}))
 const memberDelete = mock.fn(async () => ({}))
+const memberFindUnique = mock.fn(async () => ({
+  name: "Andi",
+  fullName: "Andi Prasetyo",
+  gender: "MALE",
+  status: "ACTIVE",
+  headOfHouseholdId: null,
+}))
 const roleFindUnique = mock.fn(async () => ({
   id: ROLE_ID,
   name: "Anggota",
 }))
 const memberRoleAssignmentCreate = mock.fn(async () => ({}))
+const activityLogCreate = mock.fn(async () => ({}))
 const transaction = mock.fn(
   async (cb: (tx: Record<string, unknown>) => Promise<unknown>) =>
     cb({
       member: { create: memberCreate },
       role: { findUnique: roleFindUnique },
       memberRoleAssignment: { create: memberRoleAssignmentCreate },
+      activityLog: { create: activityLogCreate },
     }),
 )
 const auth = mock.fn(async () => ({
@@ -40,12 +49,16 @@ mockModule("@/lib/prisma", {
         create: memberCreate,
         update: memberUpdate,
         delete: memberDelete,
+        findUnique: memberFindUnique,
       },
       role: {
         findUnique: roleFindUnique,
       },
       memberRoleAssignment: {
         create: memberRoleAssignmentCreate,
+      },
+      activityLog: {
+        create: activityLogCreate,
       },
     },
   },
@@ -125,6 +138,12 @@ test("createMember assigns the default Anggota role to a new member", async () =
       },
     },
   ])
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const logArgs = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  assert.equal(logArgs[0].data.action, "CREATE")
+  assert.equal(logArgs[0].data.entity, "member")
 })
 
 test("createMember normalizes the head-of-household sentinel to null", async () => {
@@ -138,4 +157,34 @@ test("createMember normalizes the head-of-household sentinel to null", async () 
     { data: Record<string, unknown> },
   ]
   assert.equal(args[0].data.headOfHouseholdId, null)
+})
+
+test("updateMember logs an UPDATE activity", async () => {
+  activityLogCreate.mock.resetCalls()
+  const { updateMember } = await import("./actions/update-member")
+
+  const result = await updateMember(MEMBER_ID, validMemberFormData())
+
+  assert.deepEqual(result, { success: true })
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const logArgs = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  assert.equal(logArgs[0].data.action, "UPDATE")
+  assert.equal(logArgs[0].data.entity, "member")
+})
+
+test("deleteMember logs a DELETE activity", async () => {
+  activityLogCreate.mock.resetCalls()
+  const { deleteMember } = await import("./actions/delete-member")
+
+  const result = await deleteMember(MEMBER_ID)
+
+  assert.deepEqual(result, { success: true })
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const logArgs = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  assert.equal(logArgs[0].data.action, "DELETE")
+  assert.equal(logArgs[0].data.entity, "member")
 })

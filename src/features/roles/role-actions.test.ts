@@ -1,9 +1,10 @@
 import assert from "node:assert/strict"
 import { mock, test } from "node:test"
 
-const findMany = mock.fn(async () => [])
+const findMany = mock.fn(async (): Promise<{ id: string; roleId: string }[]> => [])
 const updateMany = mock.fn(async () => ({}))
 const createMany = mock.fn(async () => ({}))
+const activityLogCreate = mock.fn(async () => ({}))
 const transaction = mock.fn(async (cb: (tx: unknown) => Promise<unknown>) =>
   cb({
     memberRoleAssignment: {
@@ -11,6 +12,7 @@ const transaction = mock.fn(async (cb: (tx: unknown) => Promise<unknown>) =>
       updateMany,
       createMany,
     },
+    activityLog: { create: activityLogCreate },
   }),
 )
 const auth = mock.fn<() => Promise<{ user: { id: string } } | null>>(
@@ -35,6 +37,9 @@ mockModule("@/lib/prisma", {
         findMany,
         updateMany,
         createMany,
+      },
+      activityLog: {
+        create: activityLogCreate,
       },
     },
   },
@@ -71,4 +76,24 @@ test("updateMemberRoles rejects when the session is missing", async () => {
 
   assert.deepEqual(result, { error: "Unauthorized" })
   assert.equal(transaction.mock.callCount(), 0)
+})
+
+test("updateMemberRoles logs an UPDATE activity for role assignment", async () => {
+  const OLD_ROLE_ID = "22222222-2222-2222-2222-222222222222"
+  findMany.mock.mockImplementationOnce(async () => [
+    { id: "11111111-1111-1111-1111-111111111111", roleId: OLD_ROLE_ID },
+  ])
+  const { updateMemberRoles } = await import("./actions/update-member-roles")
+
+  const result = await updateMemberRoles(VALID_MEMBER_ID, [VALID_ROLE_ID])
+
+  assert.deepEqual(result, { success: true })
+  assert.equal(updateMany.mock.callCount(), 1)
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const logArgs = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  assert.equal(logArgs[0].data.action, "UPDATE")
+  assert.equal(logArgs[0].data.entity, "memberRoleAssignment")
+  assert.deepEqual(logArgs[0].data.entityId, VALID_MEMBER_ID)
 })

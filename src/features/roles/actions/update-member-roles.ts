@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
 import { revalidatePath } from "next/cache"
 import { updateMemberRolesSchema } from "@/features/roles/role-schemas"
+import { logActivity } from "@/features/log/activity-log"
 
 export async function updateMemberRoles(
   memberId: string,
@@ -22,6 +23,11 @@ export async function updateMemberRoles(
   }
 
   const { memberId: mid, roleIds: rids } = parsed.data
+  const actor = {
+    id: session.user.id,
+    name: session.user.name ?? null,
+    email: session.user.email ?? null,
+  }
   const desired = new Set(rids)
   const today = new Date()
 
@@ -53,6 +59,16 @@ export async function updateMemberRoles(
           })),
         })
       }
+
+      await logActivity(tx, {
+        actor,
+        action: "UPDATE",
+        entity: "memberRoleAssignment",
+        entityId: mid,
+        summary: "Mengubah role anggota",
+        before: { roleIds: [...currentRoleIds] },
+        after: { roleIds: rids },
+      })
     })
 
     revalidatePath("/dashboard/members")

@@ -8,6 +8,7 @@ import {
   updateMemberSchema,
 } from "@/features/members/member-schemas"
 import { revalidatePath } from "next/cache"
+import { logActivity } from "@/features/log/activity-log"
 
 export async function updateMember(id: string, formData: FormData) {
   const session = await auth()
@@ -31,9 +32,41 @@ export async function updateMember(id: string, formData: FormData) {
   }
 
   try {
+    const existing = await prisma.member.findUnique({
+      where: { id: parsedId.data },
+      select: {
+        name: true,
+        fullName: true,
+        gender: true,
+        status: true,
+        headOfHouseholdId: true,
+      },
+    })
+
     await prisma.member.update({
       where: { id: parsedId.data },
       data: parsedMember.data,
+    })
+
+    await logActivity(prisma, {
+      actor: {
+        id: session.user.id,
+        name: session.user.name ?? null,
+        email: session.user.email ?? null,
+      },
+      action: "UPDATE",
+      entity: "member",
+      entityId: parsedId.data,
+      summary: "Mengubah data anggota",
+      before: existing,
+      after: {
+        name: parsedMember.data.name,
+        fullName: parsedMember.data.fullName,
+        gender: parsedMember.data.gender,
+        status: parsedMember.data.status,
+        headOfHouseholdId: parsedMember.data.headOfHouseholdId,
+        birthDate: parsedMember.data.birthDate.toISOString(),
+      },
     })
 
     revalidatePath("/dashboard/members")

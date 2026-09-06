@@ -7,6 +7,7 @@ import {
   getMemberFormValues,
 } from "@/features/members/member-schemas"
 import { revalidatePath } from "next/cache"
+import { logActivity } from "@/features/log/activity-log"
 
 const DEFAULT_ROLE_NAME = "Anggota"
 
@@ -18,6 +19,11 @@ export async function createMember(formData: FormData) {
   }
 
   const createdById = session.user.id
+  const actor = {
+    id: session.user.id,
+    name: session.user.name ?? null,
+    email: session.user.email ?? null,
+  }
 
   const parsedMember = createMemberSchema.safeParse(
     getMemberFormValues(formData),
@@ -34,6 +40,15 @@ export async function createMember(formData: FormData) {
           ...parsedMember.data,
           createdById,
         },
+      })
+
+      await logActivity(tx, {
+        actor,
+        action: "CREATE",
+        entity: "member",
+        entityId: member.id,
+        summary: "Menambahkan anggota",
+        after: { name: member.name, fullName: member.fullName },
       })
 
       const anggotaRole = await tx.role.findUnique({
