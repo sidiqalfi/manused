@@ -2,7 +2,23 @@ import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
- 
+import { logActivity } from "@/features/log/activity-log"
+
+async function recordAuthLog(input: {
+  actor: { id: string | null; name: string | null; email: string | null }
+  action: "LOGIN" | "LOGIN_FAILED"
+}) {
+  await logActivity(prisma, {
+    actor: input.actor,
+    action: input.action,
+    entity: "auth",
+    summary:
+      input.action === "LOGIN"
+        ? "Masuk ke aplikasi"
+        : "Percobaan masuk gagal",
+  })
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
@@ -19,19 +35,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
       },
       async authorize(credentials) {
+        const email = credentials.email as string
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
+          where: { email },
         })
 
         if (!user) {
+          await recordAuthLog({
+            actor: { id: null, name: null, email },
+            action: "LOGIN_FAILED",
+          })
           return null
         }
 
         const isPasswordValid = await bcrypt.compare(credentials.password as string, user.password)
 
         if (!isPasswordValid) {
+          await recordAuthLog({
+            actor: { id: user.id, name: user.name ?? null, email },
+            action: "LOGIN_FAILED",
+          })
           return null
         }
+
+        await recordAuthLog({
+          actor: { id: user.id, name: user.name ?? null, email },
+          action: "LOGIN",
+        })
 
         return {
           id: user.id,

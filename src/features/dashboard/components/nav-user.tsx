@@ -5,6 +5,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar"
+import { logoutAction } from "@/features/auth/actions/logout"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -98,7 +99,11 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                void logoutAction()
+              }}
+            >
               <LogOutIcon
               />
               Log out
