@@ -12,6 +12,16 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { CheckCheck, Layers } from "lucide-react"
 
 type Member = {
@@ -64,6 +74,7 @@ export function IncomeRecordActions({
   )
   const [batchError, setBatchError] = useState<string | null>(null)
   const [allError, setAllError] = useState<string | null>(null)
+  const [confirmAllOpen, setConfirmAllOpen] = useState(false)
   const queryClient = useQueryClient()
 
   const today = new Date().toISOString().split("T")[0]
@@ -119,6 +130,11 @@ export function IncomeRecordActions({
     } else {
       await queryClient.invalidateQueries({ queryKey: keys.all })
     }
+  }
+
+  function confirmRecordAll() {
+    setConfirmAllOpen(false)
+    void handleRecordAll()
   }
 
   return (
@@ -241,10 +257,39 @@ export function IncomeRecordActions({
             </DialogContent>
           </Dialog>
 
-          <Button size="sm" variant={triggerVariant} onClick={handleRecordAll}>
+          <Button
+            size="sm"
+            variant={triggerVariant}
+            onClick={() => setConfirmAllOpen(true)}
+          >
             <CheckCheck data-icon="inline-start" />
             Catat Semua
           </Button>
+
+          <AlertDialog
+            open={confirmAllOpen}
+            onOpenChange={setConfirmAllOpen}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Catat semua iuran?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {unpaidMembers.length} anggota yang belum bayar akan dicatat
+                  dengan nominal {defaultAmount.toLocaleString("id-ID")} dan
+                  tanggal hari ini. Tindakan ini tidak bisa dibatalkan sekaligus.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  onClick={confirmRecordAll}
+                >
+                  Ya, Catat Semua
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </>
       )}
 
