@@ -9,6 +9,7 @@ import {
   Users,
   HandCoins,
   Shuffle,
+  ScrollText,
   Settings,
 } from "lucide-react"
 
@@ -44,6 +45,11 @@ export const sidebarData = {
       title: "Members",
       url: "/dashboard/members",
       icon: <Users />,
+    },
+    {
+      title: "Log",
+      url: "/dashboard/log",
+      icon: <ScrollText />,
     },
   ],
   navSecondary: [

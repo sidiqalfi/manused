@@ -294,3 +294,21 @@ model AppSetting {
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
 }
+
+model ActivityLog {
+  id String @id @default(uuid()) @db.Uuid
+
+  actorId    String? @db.Uuid
+  actorName  String?
+  actorEmail String?
+
+  action   String // CREATE | UPDATE | DELETE | LOGIN | LOGIN_FAILED | LOGOUT
+  entity   String // cashPeriod | cashIncome | cashExpense | sosialPeriod | ... | user
+  entityId String? // UUID entitas, atau key string untuk appSetting
+  summary  String
+
+  before Json?
+  after  Json?
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+}
