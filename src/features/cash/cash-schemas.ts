@@ -40,6 +40,20 @@ export const createCashIncomeSchema = z.object({
   note: z.string().trim().optional().nullable(),
 })
 
+export const createCashIncomesBatchSchema = z
+  .object({
+    mode: z.enum(["all", "selected"]),
+    periodId: z.string().uuid(),
+    memberIds: z.array(z.string().uuid()),
+    amount: positiveInt,
+    paidAt: dateOnly,
+    note: z.string().trim().optional().nullable(),
+  })
+  .refine((data) => data.mode === "all" || data.memberIds.length > 0, {
+    message: "Pilih minimal satu anggota",
+    path: ["memberIds"],
+  })
+
 export const cashIncomeIdSchema = z.string().uuid()
 
 export const createCashExpenseSchema = z.object({
@@ -64,6 +78,17 @@ export function getCashIncomeFormValues(formData: FormData) {
   return {
     periodId: formData.get("periodId"),
     memberId: formData.get("memberId"),
+    amount: Number(formData.get("amount")),
+    paidAt: formData.get("paidAt"),
+    note: formData.get("note"),
+  }
+}
+
+export function getCashIncomeBatchFormValues(formData: FormData) {
+  return {
+    mode: formData.get("mode"),
+    periodId: formData.get("periodId"),
+    memberIds: formData.getAll("memberIds"),
     amount: Number(formData.get("amount")),
     paidAt: formData.get("paidAt"),
     note: formData.get("note"),

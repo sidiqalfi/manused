@@ -16,7 +16,9 @@ import {
 import { Trash2 } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { RecordSosialContributionDialog } from "./dialogs/record-sosial-contribution-dialog"
+import { IncomeRecordActions } from "@/components/income-record-actions"
 import { deleteSosialIncome } from "../actions/delete-sosial-income"
+import { createSosialIncomesBatch } from "../actions/create-sosial-incomes-batch"
 import { sosialKeys } from "../queries"
 import { formatCurrency, formatDate } from "@/lib/format"
 
@@ -74,10 +76,22 @@ export function SosialIncomeTable({ periodId, period, summary, members }: Props)
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Iuran Anggota</h3>
-        <RecordSosialContributionDialog
+        <IncomeRecordActions
+          singleTrigger={
+            <RecordSosialContributionDialog
+              periodId={periodId}
+              unpaidMembers={unpaidMembers}
+              minAmount={minAmount}
+            />
+          }
           periodId={periodId}
           unpaidMembers={unpaidMembers}
+          defaultAmount={minAmount}
           minAmount={minAmount}
+          dialogTitle="Catat Batch Iuran Sosial"
+          submitLabel="Catat Iuran Batch"
+          keys={sosialKeys}
+          batchAction={createSosialIncomesBatch}
         />
       </div>
 

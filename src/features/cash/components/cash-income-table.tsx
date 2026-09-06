@@ -16,7 +16,9 @@ import {
 import { Trash2 } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { RecordPaymentDialog } from "./dialogs/record-payment-dialog"
+import { IncomeRecordActions } from "@/components/income-record-actions"
 import { deleteCashIncome } from "../actions/delete-cash-income"
+import { createCashIncomesBatch } from "../actions/create-cash-incomes-batch"
 import { cashKeys } from "../queries"
 import { formatCurrency, formatDate } from "@/lib/format"
 
@@ -75,11 +77,23 @@ export function CashIncomeTable({ periodId, period, summary, members }: Props) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Iuran Anggota</h3>
-        <RecordPaymentDialog
+        <IncomeRecordActions
+          singleTrigger={
+            <RecordPaymentDialog
+              periodId={periodId}
+              unpaidMembers={unpaidMembers}
+              duesAmount={duesAmount}
+              minAmount={minAmount}
+            />
+          }
           periodId={periodId}
           unpaidMembers={unpaidMembers}
-          duesAmount={duesAmount}
+          defaultAmount={duesAmount}
           minAmount={minAmount}
+          dialogTitle="Catat Batch Pembayaran Iuran"
+          submitLabel="Catat Pembayaran Batch"
+          keys={cashKeys}
+          batchAction={createCashIncomesBatch}
         />
       </div>
 

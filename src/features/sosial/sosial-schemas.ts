@@ -39,6 +39,20 @@ export const createSosialIncomeSchema = z.object({
   note: z.string().trim().optional().nullable(),
 })
 
+export const createSosialIncomesBatchSchema = z
+  .object({
+    mode: z.enum(["all", "selected"]),
+    periodId: z.string().uuid(),
+    memberIds: z.array(z.string().uuid()),
+    amount: positiveInt,
+    paidAt: dateOnly,
+    note: z.string().trim().optional().nullable(),
+  })
+  .refine((data) => data.mode === "all" || data.memberIds.length > 0, {
+    message: "Pilih minimal satu anggota",
+    path: ["memberIds"],
+  })
+
 export const sosialIncomeIdSchema = z.string().uuid()
 
 export const createSosialExpenseSchema = z.object({
@@ -62,6 +76,17 @@ export function getSosialIncomeFormValues(formData: FormData) {
   return {
     periodId: formData.get("periodId"),
     memberId: formData.get("memberId"),
+    amount: Number(formData.get("amount")),
+    paidAt: formData.get("paidAt"),
+    note: formData.get("note"),
+  }
+}
+
+export function getSosialIncomeBatchFormValues(formData: FormData) {
+  return {
+    mode: formData.get("mode"),
+    periodId: formData.get("periodId"),
+    memberIds: formData.getAll("memberIds"),
     amount: Number(formData.get("amount")),
     paidAt: formData.get("paidAt"),
     note: formData.get("note"),

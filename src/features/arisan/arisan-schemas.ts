@@ -31,6 +31,20 @@ export const createArisanIncomeSchema = z.object({
   note: z.string().trim().optional().nullable(),
 })
 
+export const createArisanIncomesBatchSchema = z
+  .object({
+    mode: z.enum(["all", "selected"]),
+    periodId: z.string().uuid(),
+    memberIds: z.array(z.string().uuid()),
+    amount: positiveInt,
+    paidAt: dateOnly,
+    note: z.string().trim().optional().nullable(),
+  })
+  .refine((data) => data.mode === "all" || data.memberIds.length > 0, {
+    message: "Pilih minimal satu anggota",
+    path: ["memberIds"],
+  })
+
 export const arisanIncomeIdSchema = z.string().uuid()
 
 export const arisanDrawIdSchema = z.string().uuid()
@@ -56,6 +70,17 @@ export function getArisanIncomeFormValues(formData: FormData) {
   return {
     periodId: formData.get("periodId"),
     memberId: formData.get("memberId"),
+    amount: Number(formData.get("amount")),
+    paidAt: formData.get("paidAt"),
+    note: formData.get("note"),
+  }
+}
+
+export function getArisanIncomeBatchFormValues(formData: FormData) {
+  return {
+    mode: formData.get("mode"),
+    periodId: formData.get("periodId"),
+    memberIds: formData.getAll("memberIds"),
     amount: Number(formData.get("amount")),
     paidAt: formData.get("paidAt"),
     note: formData.get("note"),

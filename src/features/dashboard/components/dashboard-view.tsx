@@ -36,6 +36,13 @@ import { RecordSosialContributionDialog } from "@/features/sosial/components/dia
 import { AddSosialExpenseDialog } from "@/features/sosial/components/dialogs/add-sosial-expense-dialog"
 import { CreateSosialPeriodDialog } from "@/features/sosial/components/dialogs/create-sosial-period-dialog"
 import { CreateMemberDialog } from "@/features/members/components/create-member-dialog"
+import { IncomeRecordActions } from "@/components/income-record-actions"
+import { createCashIncomesBatch } from "@/features/cash/actions/create-cash-incomes-batch"
+import { createSosialIncomesBatch } from "@/features/sosial/actions/create-sosial-incomes-batch"
+import { createArisanIncomesBatch } from "@/features/arisan/actions/create-arisan-incomes-batch"
+import { cashKeys } from "@/features/cash/queries"
+import { sosialKeys } from "@/features/sosial/queries"
+import { arisanKeys } from "@/features/arisan/queries"
 import type { YearlyFlowPoint } from "@/components/yearly-income-expense-chart"
 
 type PeriodOption = { id: string; month: number; year: number }
@@ -261,11 +268,24 @@ export function DashboardView({ userName }: { userName: string | null }) {
             <div className="flex flex-wrap gap-2">
               {latestCash ? (
                 <>
-                  <RecordPaymentDialog
+                  <IncomeRecordActions
+                    singleTrigger={
+                      <RecordPaymentDialog
+                        periodId={latestCash.id}
+                        unpaidMembers={cashUnpaid}
+                        duesAmount={cashDues}
+                        minAmount={cashMin}
+                        triggerVariant="outline"
+                      />
+                    }
                     periodId={latestCash.id}
                     unpaidMembers={cashUnpaid}
-                    duesAmount={cashDues}
+                    defaultAmount={cashDues}
                     minAmount={cashMin}
+                    dialogTitle="Catat Batch Pembayaran Iuran"
+                    submitLabel="Catat Pembayaran Batch"
+                    keys={cashKeys}
+                    batchAction={createCashIncomesBatch}
                     triggerVariant="outline"
                   />
                   <AddExpenseDialog
@@ -283,10 +303,23 @@ export function DashboardView({ userName }: { userName: string | null }) {
             <div className="flex flex-wrap gap-2">
               {latestSosial ? (
                 <>
-                  <RecordSosialContributionDialog
+                  <IncomeRecordActions
+                    singleTrigger={
+                      <RecordSosialContributionDialog
+                        periodId={latestSosial.id}
+                        unpaidMembers={sosialUnpaid}
+                        minAmount={sosialMin}
+                        triggerVariant="outline"
+                      />
+                    }
                     periodId={latestSosial.id}
                     unpaidMembers={sosialUnpaid}
+                    defaultAmount={sosialMin}
                     minAmount={sosialMin}
+                    dialogTitle="Catat Batch Iuran Sosial"
+                    submitLabel="Catat Iuran Batch"
+                    keys={sosialKeys}
+                    batchAction={createSosialIncomesBatch}
                     triggerVariant="outline"
                   />
                   <AddSosialExpenseDialog
@@ -304,11 +337,25 @@ export function DashboardView({ userName }: { userName: string | null }) {
             <div className="flex flex-wrap gap-2">
               {latestArisan ? (
                 <>
-                  <RecordArisanContributionDialog
+                  <IncomeRecordActions
+                    singleTrigger={
+                      <RecordArisanContributionDialog
+                        periodId={latestArisan.id}
+                        unpaidMembers={arisanUnpaid}
+                        contributionAmount={arisanContribution}
+                        triggerVariant="outline"
+                      />
+                    }
                     periodId={latestArisan.id}
                     unpaidMembers={arisanUnpaid}
-                    contributionAmount={arisanContribution}
+                    defaultAmount={arisanContribution}
+                    minAmount={1}
+                    dialogTitle="Catat Batch Iuran Arisan"
+                    submitLabel="Catat Iuran Batch"
+                    keys={arisanKeys}
+                    batchAction={createArisanIncomesBatch}
                     triggerVariant="outline"
+                    showBatch={!arisanHasActiveDraw}
                   />
                   {!arisanHasActiveDraw ? (
                     <DrawDialog

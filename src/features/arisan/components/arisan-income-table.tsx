@@ -16,7 +16,9 @@ import {
 import { Trash2 } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { RecordArisanContributionDialog } from "./record-arisan-contribution-dialog"
+import { IncomeRecordActions } from "@/components/income-record-actions"
 import { deleteArisanIncome } from "../actions/delete-arisan-income"
+import { createArisanIncomesBatch } from "../actions/create-arisan-incomes-batch"
 import { arisanKeys } from "../queries"
 import { formatCurrency, formatDate } from "@/lib/format"
 
@@ -80,10 +82,22 @@ export function ArisanIncomeTable({ periodId, period, members }: Props) {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Iuran Anggota</h3>
         {!hasActiveDraw && (
-          <RecordArisanContributionDialog
+          <IncomeRecordActions
+            singleTrigger={
+              <RecordArisanContributionDialog
+                periodId={periodId}
+                unpaidMembers={unpaidMembers}
+                contributionAmount={contributionAmount}
+              />
+            }
             periodId={periodId}
             unpaidMembers={unpaidMembers}
-            contributionAmount={contributionAmount}
+            defaultAmount={contributionAmount}
+            minAmount={1}
+            dialogTitle="Catat Batch Iuran Arisan"
+            submitLabel="Catat Iuran Batch"
+            keys={arisanKeys}
+            batchAction={createArisanIncomesBatch}
           />
         )}
       </div>
