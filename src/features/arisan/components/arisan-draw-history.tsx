@@ -93,7 +93,7 @@ export function ArisanDrawHistory({ draws, loading }: Props) {
                 <td className="p-3 text-sm">{formatCurrency(draw.collectedAmount)}</td>
                 <td className="p-3 text-sm">{formatCurrency(draw.payoutAmount)}</td>
                 <td className="p-3 text-sm tabular-nums">
-                  {formatCurrency(draw.savingsAfter)}
+                  {formatCurrency(draw.collectedAmount - draw.payoutAmount)}
                 </td>
                 <td className="p-3 text-sm">{formatDate(draw.drawnAt)}</td>
                 <td className="p-3 text-right">

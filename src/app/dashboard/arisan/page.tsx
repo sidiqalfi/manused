@@ -11,6 +11,7 @@ import {
 import { CreateArisanPeriodDialog } from "@/features/arisan/components/create-arisan-period-dialog"
 import { ArisanIncomeTable } from "@/features/arisan/components/arisan-income-table"
 import { ArisanDrawHistory } from "@/features/arisan/components/arisan-draw-history"
+import { ArisanYearDrawHistory } from "@/features/arisan/components/arisan-year-draw-history"
 import { DrawDialog } from "@/features/arisan/components/draw-dialog"
 import {
   arisanPeriodsQuery,
@@ -19,6 +20,7 @@ import {
   arisanDrawsQuery,
   arisanYearSummaryQuery,
   arisanYearChartQuery,
+  arisanYearDrawsQuery,
   arisanOverviewQuery,
 } from "@/features/arisan/queries"
 import { membersQuery } from "@/features/members/queries"
@@ -92,6 +94,12 @@ export default function ArisanPage() {
   const yearChart: YearlyFlowPoint[] = yearChartResult?.success
     ? yearChartResult.data ?? []
     : []
+
+  const yearDrawsResult = useQuery(arisanYearDrawsQuery(activeYear)).data ?? null
+  const yearDrawsLoading = useQuery(arisanYearDrawsQuery(activeYear)).isPending
+  const yearDraws = yearDrawsResult?.success
+    ? yearDrawsResult.data ?? []
+    : null
 
   const arisanOverviewResult = useQuery(arisanOverviewQuery).data ?? null
   const arisanOverview = arisanOverviewResult?.success
@@ -206,6 +214,11 @@ export default function ArisanPage() {
             year={activeYear}
             data={yearChart}
             title={`Arus arisan tahun ${activeYear}`}
+          />
+          <ArisanYearDrawHistory
+            draws={yearDraws}
+            loading={yearDrawsLoading}
+            year={activeYear}
           />
         </>
       ) : (
