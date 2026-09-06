@@ -2,6 +2,8 @@ import assert from "node:assert/strict"
 import { mock, test } from "node:test"
 
 const periodCreate = mock.fn(async () => ({}))
+const appSettingUpsert = mock.fn(async () => ({}))
+const activityLogCreate = mock.fn(async () => ({}))
 const auth = mock.fn(async () => ({
   user: { id: "8a010ca6-4e5a-4d91-8490-6a6a5f4b1357" },
 }))
@@ -20,6 +22,12 @@ mockModule("@/lib/prisma", {
       sosialPeriod: {
         create: periodCreate,
       },
+      appSetting: {
+        upsert: appSettingUpsert,
+      },
+      activityLog: {
+        create: activityLogCreate,
+      },
     },
   },
 })
@@ -33,6 +41,12 @@ function validPeriodFormData() {
   formData.set("year", "2026")
   formData.set("minAmount", "2000")
 
+  return formData
+}
+
+function validInitialBalanceFormData() {
+  const formData = new FormData()
+  formData.set("initialBalance", "100000")
   return formData
 }
 
@@ -59,10 +73,38 @@ test("createSosialPeriod rejects an out-of-range month before creating a period"
 })
 
 test("createSosialPeriod creates a period with a valid payload", async () => {
+  activityLogCreate.mock.resetCalls()
   const { createSosialPeriod } = await import("./actions/create-sosial-period")
 
   const result = await createSosialPeriod(validPeriodFormData())
 
   assert.deepEqual(result, { success: true })
   assert.equal(periodCreate.mock.callCount(), 1)
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const args = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  const log = args[0].data as Record<string, unknown>
+  assert.equal(log.action, "CREATE")
+  assert.equal(log.entity, "sosialPeriod")
+})
+
+test("setSosialInitialBalance records an appSetting activity log", async () => {
+  activityLogCreate.mock.resetCalls()
+  appSettingUpsert.mock.resetCalls()
+  const { setSosialInitialBalance } = await import(
+    "./actions/set-initial-balance"
+  )
+
+  const result = await setSosialInitialBalance(validInitialBalanceFormData())
+
+  assert.deepEqual(result, { success: true })
+  assert.equal(appSettingUpsert.mock.callCount(), 1)
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const args = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  const log = args[0].data as Record<string, unknown>
+  assert.equal(log.action, "UPDATE")
+  assert.equal(log.entity, "appSetting")
 })

@@ -3,10 +3,17 @@ import { mock, test } from "node:test"
 
 const incomeCreate = mock.fn(async () => ({}))
 const incomeDelete = mock.fn(async () => ({}))
-const incomeFindUnique = mock.fn(async () => null as { createdById: string } | null)
+const incomeFindUnique = mock.fn(async () => null as {
+  createdById: string
+  amount: number
+  memberId: string
+  periodId: string
+  paidAt: Date
+} | null)
 const periodFindUnique = mock.fn(async () => ({ minAmount: 2000 }))
 const periodUpdate = mock.fn(async () => ({}))
-const transaction = mock.fn(async () => [])
+const activityLogCreate = mock.fn(async () => ({}))
+const transaction = mock.fn(async (ops: unknown[]) => ops)
 const auth = mock.fn(async () => ({
   user: { id: "8a010ca6-4e5a-4d91-8490-6a6a5f4b1357" },
 }))
@@ -30,6 +37,9 @@ mockModule("@/lib/prisma", {
       sosialPeriod: {
         findUnique: periodFindUnique,
         update: periodUpdate,
+      },
+      activityLog: {
+        create: activityLogCreate,
       },
       $transaction: transaction,
     },
@@ -75,12 +85,20 @@ test("createSosialIncome rejects an amount below the period minimum", async () =
 })
 
 test("createSosialIncome creates income for a valid payload", async () => {
+  activityLogCreate.mock.resetCalls()
   const { createSosialIncome } = await import("./actions/create-sosial-income")
 
   const result = await createSosialIncome(validIncomeFormData())
 
   assert.deepEqual(result, { success: true })
   assert.equal(incomeCreate.mock.callCount(), 1)
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const args = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  const log = args[0].data as Record<string, unknown>
+  assert.equal(log.action, "CREATE")
+  assert.equal(log.entity, "sosialIncome")
 })
 
 test("deleteSosialIncome rejects an invalid id before deleting income", async () => {
@@ -95,6 +113,10 @@ test("deleteSosialIncome rejects an invalid id before deleting income", async ()
 test("deleteSosialIncome rejects deleting another user's income", async () => {
   incomeFindUnique.mock.mockImplementation(async () => ({
     createdById: "11111111-1111-4111-8111-111111111111",
+    amount: 5000,
+    memberId: UUID,
+    periodId: UUID,
+    paidAt: new Date("2026-08-24T00:00:00.000Z"),
   }))
   const { deleteSosialIncome } = await import("./actions/delete-sosial-income")
 
@@ -107,8 +129,13 @@ test("deleteSosialIncome rejects deleting another user's income", async () => {
 })
 
 test("deleteSosialIncome deletes the user's own income", async () => {
+  activityLogCreate.mock.resetCalls()
   incomeFindUnique.mock.mockImplementation(async () => ({
     createdById: "8a010ca6-4e5a-4d91-8490-6a6a5f4b1357",
+    amount: 5000,
+    memberId: UUID,
+    periodId: UUID,
+    paidAt: new Date("2026-08-24T00:00:00.000Z"),
   }))
   const { deleteSosialIncome } = await import("./actions/delete-sosial-income")
 
@@ -116,4 +143,11 @@ test("deleteSosialIncome deletes the user's own income", async () => {
 
   assert.deepEqual(result, { success: true })
   assert.equal(incomeDelete.mock.callCount(), 1)
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const args = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  const log = args[0].data as Record<string, unknown>
+  assert.equal(log.action, "DELETE")
+  assert.equal(log.entity, "sosialIncome")
 })

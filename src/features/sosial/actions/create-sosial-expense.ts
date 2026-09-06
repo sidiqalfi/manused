@@ -1,8 +1,10 @@
 "use server"
 
+import crypto from "crypto"
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
 import { createSosialExpenseSchema, getSosialExpenseFormValues } from "../sosial-schemas"
+import { activityLogData } from "@/features/log/activity-log"
 import { revalidatePath } from "next/cache"
 
 export async function createSosialExpense(formData: FormData) {
@@ -34,9 +36,11 @@ export async function createSosialExpense(formData: FormData) {
     }
 
     // Use transaction for atomic operation to prevent race conditions
+    const id = crypto.randomUUID()
     await prisma.$transaction([
       prisma.sosialExpense.create({
         data: {
+          id,
           periodId: validation.data.periodId,
           description: validation.data.description,
           amount: validation.data.amount,
@@ -48,6 +52,25 @@ export async function createSosialExpense(formData: FormData) {
       prisma.sosialPeriod.update({
         where: { id: validation.data.periodId },
         data: { updatedAt: new Date() },
+      }),
+      prisma.activityLog.create({
+        data: activityLogData({
+          actor: {
+            id: session.user.id,
+            name: session.user.name ?? null,
+            email: session.user.email ?? null,
+          },
+          action: "CREATE",
+          entity: "sosialExpense",
+          entityId: id,
+          summary: "Mencatat pengeluaran sosial",
+          after: {
+            periodId: validation.data.periodId,
+            description: validation.data.description,
+            amount: validation.data.amount,
+            spentAt: validation.data.spentAt.toISOString(),
+          },
+        }),
       }),
     ])
 

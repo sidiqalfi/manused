@@ -3,12 +3,17 @@ import { mock, test } from "node:test"
 
 const expenseCreate = mock.fn(async () => ({}))
 const expenseDelete = mock.fn(async () => ({}))
-const expenseFindUnique = mock.fn(
-  async () => null as { createdById: string } | null
-)
+const expenseFindUnique = mock.fn(async () => null as {
+  createdById: string
+  description: string
+  amount: number
+  periodId: string
+  spentAt: Date
+} | null)
 const periodFindUnique = mock.fn(async () => ({ minAmount: 2000 }))
 const periodUpdate = mock.fn(async () => ({}))
-const transaction = mock.fn(async () => [])
+const activityLogCreate = mock.fn(async () => ({}))
+const transaction = mock.fn(async (ops: unknown[]) => ops)
 const auth = mock.fn(async () => ({
   user: { id: "8a010ca6-4e5a-4d91-8490-6a6a5f4b1357" },
 }))
@@ -32,6 +37,9 @@ mockModule("@/lib/prisma", {
       sosialPeriod: {
         findUnique: periodFindUnique,
         update: periodUpdate,
+      },
+      activityLog: {
+        create: activityLogCreate,
       },
       $transaction: transaction,
     },
@@ -65,12 +73,20 @@ test("createSosialExpense rejects an invalid payload before creating expense", a
 })
 
 test("createSosialExpense creates expense for a valid payload", async () => {
+  activityLogCreate.mock.resetCalls()
   const { createSosialExpense } = await import("./actions/create-sosial-expense")
 
   const result = await createSosialExpense(validExpenseFormData())
 
   assert.deepEqual(result, { success: true })
   assert.equal(expenseCreate.mock.callCount(), 1)
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const args = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  const log = args[0].data as Record<string, unknown>
+  assert.equal(log.action, "CREATE")
+  assert.equal(log.entity, "sosialExpense")
 })
 
 test("deleteSosialExpense rejects an invalid id before deleting expense", async () => {
@@ -85,6 +101,10 @@ test("deleteSosialExpense rejects an invalid id before deleting expense", async 
 test("deleteSosialExpense rejects deleting another user's expense", async () => {
   expenseFindUnique.mock.mockImplementation(async () => ({
     createdById: "11111111-1111-4111-8111-111111111111",
+    description: "Konsumsi rapat",
+    amount: 15000,
+    periodId: UUID,
+    spentAt: new Date("2026-08-24T00:00:00.000Z"),
   }))
   const { deleteSosialExpense } = await import("./actions/delete-sosial-expense")
 
@@ -97,8 +117,13 @@ test("deleteSosialExpense rejects deleting another user's expense", async () => 
 })
 
 test("deleteSosialExpense deletes the user's own expense", async () => {
+  activityLogCreate.mock.resetCalls()
   expenseFindUnique.mock.mockImplementation(async () => ({
     createdById: "8a010ca6-4e5a-4d91-8490-6a6a5f4b1357",
+    description: "Konsumsi rapat",
+    amount: 15000,
+    periodId: UUID,
+    spentAt: new Date("2026-08-24T00:00:00.000Z"),
   }))
   const { deleteSosialExpense } = await import("./actions/delete-sosial-expense")
 
@@ -106,4 +131,11 @@ test("deleteSosialExpense deletes the user's own expense", async () => {
 
   assert.deepEqual(result, { success: true })
   assert.equal(expenseDelete.mock.callCount(), 1)
+  assert.equal(activityLogCreate.mock.callCount(), 1)
+  const args = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  const log = args[0].data as Record<string, unknown>
+  assert.equal(log.action, "DELETE")
+  assert.equal(log.entity, "sosialExpense")
 })

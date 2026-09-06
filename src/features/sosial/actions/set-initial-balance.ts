@@ -7,6 +7,7 @@ import {
   initialBalanceSchema,
   getInitialBalanceFormValues,
 } from "../sosial-schemas"
+import { logActivity } from "@/features/log/activity-log"
 import { revalidatePath } from "next/cache"
 
 export async function setSosialInitialBalance(formData: FormData) {
@@ -27,6 +28,22 @@ export async function setSosialInitialBalance(formData: FormData) {
       where: { key: SOSIAL_INITIAL_BALANCE_KEY },
       create: { key: SOSIAL_INITIAL_BALANCE_KEY, value: String(validation.data) },
       update: { value: String(validation.data) },
+    })
+
+    await logActivity(prisma, {
+      actor: {
+        id: session.user.id,
+        name: session.user.name ?? null,
+        email: session.user.email ?? null,
+      },
+      action: "UPDATE",
+      entity: "appSetting",
+      entityId: SOSIAL_INITIAL_BALANCE_KEY,
+      summary: "Mengubah saldo awal sosial",
+      after: {
+        key: SOSIAL_INITIAL_BALANCE_KEY,
+        value: String(validation.data),
+      },
     })
 
     revalidatePath("/dashboard/settings")
