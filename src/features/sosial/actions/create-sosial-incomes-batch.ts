@@ -6,6 +6,7 @@ import { auth } from "@/features/auth/lib/auth"
 import {
   createSosialIncomesBatchSchema,
   getSosialIncomeBatchFormValues,
+  SOSIAL_MIN_CONTRIBUTION,
 } from "../sosial-schemas"
 import { activityLogData } from "@/features/log/activity-log"
 import { revalidatePath } from "next/cache"
@@ -40,9 +41,9 @@ export async function createSosialIncomesBatch(formData: FormData) {
       return { error: "Periode tidak ditemukan atau sudah dihapus" }
     }
 
-    if (amount < period.minAmount) {
+    if (amount < SOSIAL_MIN_CONTRIBUTION) {
       return {
-        error: `Nominal minimal adalah Rp ${period.minAmount.toLocaleString("id-ID")}`,
+        error: `Nominal minimal adalah Rp ${SOSIAL_MIN_CONTRIBUTION.toLocaleString("id-ID")}`,
       }
     }
 

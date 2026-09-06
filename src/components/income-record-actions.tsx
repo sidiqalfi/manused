@@ -33,6 +33,8 @@ type Props = {
   unpaidMembers: Member[]
   defaultAmount: number
   minAmount: number
+  /** Nilai yang ditampilkan pada label "Nominal (min: …)" — default sama dengan minAmount. */
+  labelMinAmount?: number
   dialogTitle: string
   submitLabel: string
   keys: { all: readonly string[] }
@@ -48,6 +50,7 @@ export function IncomeRecordActions({
   unpaidMembers,
   defaultAmount,
   minAmount,
+  labelMinAmount,
   dialogTitle,
   submitLabel,
   keys,
@@ -190,7 +193,8 @@ export function IncomeRecordActions({
 
                 <div className="space-y-2">
                   <Label htmlFor="batch-amount">
-                    Nominal (min: Rp {minAmount.toLocaleString("id-ID")})
+                    Nominal (min: Rp{" "}
+                    {(labelMinAmount ?? minAmount).toLocaleString("id-ID")})
                   </Label>
                   <Input
                     type="number"

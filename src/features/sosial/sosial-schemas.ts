@@ -6,6 +6,10 @@ const nonNegativeInt = z.number().int().min(0)
 
 export const SOSIAL_INITIAL_BALANCE_KEY = "sosial.initialBalance"
 
+// Batas terendah iuran sosial yang boleh dicatat petugas.
+// Iuran normal tetap 2000 (placeholder), tapi 1000 diterima.
+export const SOSIAL_MIN_CONTRIBUTION = 1000
+
 export const initialBalanceSchema = nonNegativeInt
 
 export function getInitialBalanceFormValues(formData: FormData) {

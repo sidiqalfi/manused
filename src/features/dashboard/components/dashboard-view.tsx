@@ -42,6 +42,7 @@ import { createSosialIncomesBatch } from "@/features/sosial/actions/create-sosia
 import { createArisanIncomesBatch } from "@/features/arisan/actions/create-arisan-incomes-batch"
 import { cashKeys } from "@/features/cash/queries"
 import { sosialKeys } from "@/features/sosial/queries"
+import { SOSIAL_MIN_CONTRIBUTION } from "@/features/sosial/sosial-schemas"
 import { arisanKeys } from "@/features/arisan/queries"
 import type { YearlyFlowPoint } from "@/components/yearly-income-expense-chart"
 
@@ -315,7 +316,8 @@ export function DashboardView({ userName }: { userName: string | null }) {
                     periodId={latestSosial.id}
                     unpaidMembers={sosialUnpaid}
                     defaultAmount={sosialMin}
-                    minAmount={sosialMin}
+                    minAmount={SOSIAL_MIN_CONTRIBUTION}
+                    labelMinAmount={sosialMin}
                     dialogTitle="Catat Batch Iuran Sosial"
                     submitLabel="Catat Iuran Batch"
                     keys={sosialKeys}

@@ -76,11 +76,11 @@ test("createSosialIncome rejects an invalid payload before creating income", asy
 test("createSosialIncome rejects an amount below the period minimum", async () => {
   const { createSosialIncome } = await import("./actions/create-sosial-income")
   const formData = validIncomeFormData()
-  formData.set("amount", "1000")
+  formData.set("amount", "500")
 
   const result = await createSosialIncome(formData)
 
-  assert.equal(result.error, "Nominal minimal adalah Rp 2.000")
+  assert.equal(result.error, "Nominal minimal adalah Rp 1.000")
   assert.equal(incomeCreate.mock.callCount(), 0)
 })
 

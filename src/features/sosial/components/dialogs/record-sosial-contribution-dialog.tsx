@@ -15,6 +15,7 @@ import { Plus } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { createSosialIncome } from "../../actions/create-sosial-income"
 import { sosialKeys } from "../../queries"
+import { SOSIAL_MIN_CONTRIBUTION } from "../../sosial-schemas"
 
 type Member = {
   id: string
@@ -95,7 +96,7 @@ export function RecordSosialContributionDialog({
               name="amount"
               id="amount"
               defaultValue={minAmount}
-              min={minAmount}
+              min={SOSIAL_MIN_CONTRIBUTION}
               required
             />
           </div>

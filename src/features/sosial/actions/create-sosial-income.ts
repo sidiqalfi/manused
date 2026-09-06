@@ -3,7 +3,7 @@
 import crypto from "crypto"
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
-import { createSosialIncomeSchema, getSosialIncomeFormValues } from "../sosial-schemas"
+import { createSosialIncomeSchema, getSosialIncomeFormValues, SOSIAL_MIN_CONTRIBUTION } from "../sosial-schemas"
 import { activityLogData } from "@/features/log/activity-log"
 import { revalidatePath } from "next/cache"
 
@@ -30,10 +30,11 @@ export async function createSosialIncome(formData: FormData) {
       return { error: "Periode tidak ditemukan atau sudah dihapus" }
     }
 
-    // Validate amount >= minAmount
-    if (validation.data.amount < period.minAmount) {
+    // Validate amount >= SOSIAL_MIN_CONTRIBUTION (normal dues stay 2000,
+    // but 1000 is accepted for members who insist on paying less)
+    if (validation.data.amount < SOSIAL_MIN_CONTRIBUTION) {
       return {
-        error: `Nominal minimal adalah Rp ${period.minAmount.toLocaleString("id-ID")}`
+        error: `Nominal minimal adalah Rp ${SOSIAL_MIN_CONTRIBUTION.toLocaleString("id-ID")}`
       }
     }
 

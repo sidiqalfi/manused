@@ -20,6 +20,7 @@ import { IncomeRecordActions } from "@/components/income-record-actions"
 import { deleteSosialIncome } from "../actions/delete-sosial-income"
 import { createSosialIncomesBatch } from "../actions/create-sosial-incomes-batch"
 import { sosialKeys } from "../queries"
+import { SOSIAL_MIN_CONTRIBUTION } from "../sosial-schemas"
 import { formatCurrency, formatDate } from "@/lib/format"
 
 type Income = {
@@ -87,7 +88,8 @@ export function SosialIncomeTable({ periodId, period, summary, members }: Props)
           periodId={periodId}
           unpaidMembers={unpaidMembers}
           defaultAmount={minAmount}
-          minAmount={minAmount}
+          minAmount={SOSIAL_MIN_CONTRIBUTION}
+          labelMinAmount={minAmount}
           dialogTitle="Catat Batch Iuran Sosial"
           submitLabel="Catat Iuran Batch"
           keys={sosialKeys}

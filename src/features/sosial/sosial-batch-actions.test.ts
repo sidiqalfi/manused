@@ -63,11 +63,11 @@ test("createSosialIncomesBatch rejects an amount below the period minimum", asyn
     "./actions/create-sosial-incomes-batch"
   )
   const formData = validBatchFormData()
-  formData.set("amount", "1000")
+  formData.set("amount", "500")
 
   const result = await createSosialIncomesBatch(formData)
 
-  assert.equal(result.error, "Nominal minimal adalah Rp 2.000")
+  assert.equal(result.error, "Nominal minimal adalah Rp 1.000")
   assert.equal(incomeCreate.mock.callCount(), 0)
 })
 
