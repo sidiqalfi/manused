@@ -14,6 +14,7 @@ export interface PreviewArisanDrawData {
   winnerMemberId: string
   winnerName: string
   cycleNumber: number
+  winnerHousehold: string[]
 }
 
 export interface PreviewArisanDrawResult {
@@ -47,8 +48,16 @@ export async function previewArisanDraw(
 
     const paidMemberIds = period.incomes.map((i) => i.memberId)
     const activeMembers = await prisma.member.findMany({
-      where: { id: { in: paidMemberIds }, status: "ACTIVE" },
-      select: { id: true, name: true },
+      where: {
+        id: { in: paidMemberIds },
+        status: "ACTIVE",
+        headOfHouseholdId: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        householdMembers: { select: { name: true }, orderBy: { name: "asc" } },
+      },
     })
 
     const history = await prisma.arisanDraw.findMany({
@@ -90,6 +99,8 @@ export async function previewArisanDraw(
         winnerMemberId: winnerId,
         winnerName: winner?.name ?? "",
         cycleNumber: cycle,
+        winnerHousehold:
+          winner?.householdMembers.map((m) => m.name) ?? [],
       },
     }
   } catch (error) {

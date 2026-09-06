@@ -28,17 +28,20 @@ import { updateMember } from "@features/members/actions/update-member"
 import { membersKeys } from "@features/members/queries"
 import { updateMemberRoles } from "@/features/roles/actions/update-member-roles"
 import { rolesKeys } from "@/features/roles/queries"
+import { householdHeads } from "@features/members/household"
 
 interface EditMemberDialogProps {
   member: Member
   allRoles: Role[]
   currentRoleIds: string[]
+  allMembers?: Member[]
 }
 
 export function EditMemberDialog({
   member,
   allRoles,
   currentRoleIds,
+  allMembers = [],
 }: EditMemberDialogProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -227,6 +230,30 @@ export function EditMemberDialog({
               </Select>
             </Field>
           </div>
+
+          <Field>
+            <FieldLabel>
+              <Label>Kepala Rumah (opsional)</Label>
+            </FieldLabel>
+            <Select
+              name="headOfHouseholdId"
+              defaultValue={member.headOfHouseholdId ?? "__none__"}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih kepala rumah" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">— Sendiri —</SelectItem>
+                {householdHeads(allMembers)
+                  .filter((head) => head.id !== member.id)
+                  .map((head) => (
+                    <SelectItem key={head.id} value={head.id}>
+                      {head.name} - {head.fullName}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </Field>
 
           <Field>
             <FieldLabel>

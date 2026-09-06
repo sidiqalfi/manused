@@ -61,6 +61,10 @@ model Member {
   createdUser User         @relation(fields: [createdById], references: [id])
   joinDate    DateTime     @default(now()) @db.Date // Tanggal bergabung
 
+  headOfHouseholdId String?  @db.Uuid
+  headOfHousehold   Member?  @relation("Household", fields: [headOfHouseholdId], references: [id], onDelete: SetNull)
+  householdMembers  Member[] @relation("Household")
+
   cashIncomes CashIncome[]
 
   sosialIncomes SosialIncome[]

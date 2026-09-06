@@ -19,7 +19,7 @@ export function MembersTable({ data, roles, rolesMap }: MembersTableProps) {
 
   return (
     <DataTable
-      columns={memberColumns(rolesMap, roles)}
+      columns={memberColumns(rolesMap, roles, data)}
       data={data}
       search={{
         placeholder: "Cari nama atau no. HP…",

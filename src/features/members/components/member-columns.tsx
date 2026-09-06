@@ -24,7 +24,14 @@ export function memberGlobalFilterFn(
 export function memberColumns(
   rolesMap: MemberActiveRolesMap,
   allRoles: Role[],
+  members: Member[],
 ): ColumnDef<Member>[] {
+  const headNameById = new Map(
+    members
+      .filter((m) => m.headOfHouseholdId == null)
+      .map((m) => [m.id, m.name]),
+  )
+
   return [
     {
       accessorKey: "name",
@@ -63,6 +70,18 @@ export function memberColumns(
       accessorKey: "address",
       header: "Dusun",
       filterFn: "equals",
+    },
+    {
+      id: "household",
+      header: "Rumah",
+      cell: ({ row }) => {
+        const member = row.original
+        if (member.headOfHouseholdId == null) {
+          return <span className="text-muted-foreground">—</span>
+        }
+        const headName = headNameById.get(member.headOfHouseholdId)
+        return headName ?? <span className="text-muted-foreground">—</span>
+      },
     },
     {
       accessorKey: "rt",
@@ -140,6 +159,7 @@ export function memberColumns(
               member={member}
               allRoles={allRoles}
               currentRoleIds={currentRoleIds}
+              allMembers={members}
             />
             <DeleteMemberDialog id={member.id} name={member.name} />
           </div>

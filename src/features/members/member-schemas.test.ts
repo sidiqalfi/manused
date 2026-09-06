@@ -15,6 +15,7 @@ const validMember = {
   rt: "013",
   rw: "006",
   phone: "",
+  headOfHouseholdId: null,
 }
 
 test("accepts a valid create payload and normalizes a blank phone number", () => {

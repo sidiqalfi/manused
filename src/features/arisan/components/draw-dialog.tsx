@@ -26,6 +26,7 @@ type Preview = {
   winnerMemberId: string
   winnerName: string
   cycleNumber: number
+  winnerHousehold: string[]
 }
 
 export function DrawDialog({ periodId, payoutTarget, triggerVariant = "default" }: Props) {
@@ -97,6 +98,11 @@ export function DrawDialog({ periodId, payoutTarget, triggerVariant = "default" 
                 <p className="mt-2 text-2xl font-bold tracking-tight">
                   {preview.winnerName}
                 </p>
+                {preview.winnerHousehold.length > 0 && (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Rumah: {preview.winnerHousehold.join(", ")}
+                  </p>
+                )}
                 <p className="mt-1 text-sm text-muted-foreground">
                   Siklus {preview.cycleNumber} · hadiah {formatCurrency(payoutTarget)}
                 </p>

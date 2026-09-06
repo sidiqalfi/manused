@@ -13,6 +13,13 @@ const periodFindUnique = mock.fn<() => Promise<{
   contributionAmount: 5000,
   draws: [],
 }))
+const memberFindUnique = mock.fn<() => Promise<{
+  id: string
+  headOfHouseholdId: string | null
+}>>(async () => ({
+  id: UUID,
+  headOfHouseholdId: null,
+}))
 const incomeCreate = mock.fn(async () => ({}))
 const periodUpdate = mock.fn(async () => ({}))
 const transaction = mock.fn(async (ops: unknown[]) => ops)
@@ -42,6 +49,9 @@ mockModule("@/lib/prisma", {
         create: incomeCreate,
         findUnique: incomeFindUnique,
         delete: incomeDelete,
+      },
+      member: {
+        findUnique: memberFindUnique,
       },
       $transaction: transaction,
     },
@@ -108,6 +118,24 @@ test("createArisanIncome records a valid contribution", async () => {
 
   assert.deepEqual(result, { success: true })
   assert.equal(incomeCreate.mock.callCount(), 1)
+})
+
+test("createArisanIncome rejects a member that belongs to another household", async () => {
+  incomeCreate.mock.resetCalls()
+  memberFindUnique.mock.mockImplementationOnce(async () => ({
+    id: UUID,
+    headOfHouseholdId: "11111111-1111-4111-8111-111111111111",
+  }))
+
+  const { createArisanIncome } = await import("./actions/create-arisan-income")
+
+  const result = await createArisanIncome(validIncomeFormData())
+
+  assert.equal(
+    result.error,
+    "Anggota ini ikut rumah lain — bayar lewat kepala rumah",
+  )
+  assert.equal(incomeCreate.mock.callCount(), 0)
 })
 
 test("deleteArisanIncome is rejected when the period has an active draw", async () => {

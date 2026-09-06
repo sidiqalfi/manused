@@ -32,7 +32,7 @@ export default function Page() {
             Daftar pemuda pemudi yang terdaftar.
           </p>
         </div>
-        <CreateMemberDialog />
+        <CreateMemberDialog members={members} />
       </div>
       {loading ? (
         <div className="text-center py-12">

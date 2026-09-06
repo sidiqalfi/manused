@@ -23,11 +23,17 @@ import {
 } from "@/components/ui/select"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
+import type { Member } from "@/generated/prisma/client"
 import { createMember } from "@features/members/actions/create-member"
 import { membersKeys } from "@features/members/queries"
 import { rolesKeys } from "@/features/roles/queries"
+import { householdHeads } from "@features/members/household"
 
-export function CreateMemberDialog() {
+interface CreateMemberDialogProps {
+  members?: Member[]
+}
+
+export function CreateMemberDialog({ members = [] }: CreateMemberDialogProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -161,6 +167,25 @@ export function CreateMemberDialog() {
               type="tel"
               placeholder="Contoh: 081234567890"
             />
+          </Field>
+
+          <Field>
+            <FieldLabel>
+              <Label>Kepala Rumah (opsional)</Label>
+            </FieldLabel>
+            <Select name="headOfHouseholdId" defaultValue="__none__">
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih kepala rumah" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">— Sendiri —</SelectItem>
+                {householdHeads(members).map((head) => (
+                  <SelectItem key={head.id} value={head.id}>
+                    {head.name} - {head.fullName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
 
           {error && (

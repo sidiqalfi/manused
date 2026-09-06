@@ -40,15 +40,27 @@ import type { YearlyFlowPoint } from "@/components/yearly-income-expense-chart"
 
 type PeriodOption = { id: string; month: number; year: number }
 
-type MemberLike = { id: string; name: string; fullName: string; status: string }
+type MemberLike = {
+  id: string
+  name: string
+  fullName: string
+  status: string
+  headOfHouseholdId: string | null
+}
 
 function unpaidOf(
   members: { success: boolean; data?: MemberLike[]; error?: string } | null,
-  incomes: { memberId: string }[] | undefined
+  incomes: { memberId: string }[] | undefined,
+  options: { headsOnly?: boolean } = {}
 ): MemberLike[] {
   const all = members?.success ? members.data ?? [] : []
   const paid = new Set((incomes ?? []).map((i) => i.memberId))
-  return all.filter((m) => m.status === "ACTIVE" && !paid.has(m.id))
+  return all.filter(
+    (m) =>
+      m.status === "ACTIVE" &&
+      (!options.headsOnly || m.headOfHouseholdId == null) &&
+      !paid.has(m.id)
+  )
 }
 
 export function DashboardView({ userName }: { userName: string | null }) {
@@ -152,7 +164,7 @@ export function DashboardView({ userName }: { userName: string | null }) {
 
   const cashUnpaid = unpaidOf(membersResult, cashIncomes)
   const sosialUnpaid = unpaidOf(membersResult, sosialIncomes)
-  const arisanUnpaid = unpaidOf(membersResult, arisanIncomes)
+  const arisanUnpaid = unpaidOf(membersResult, arisanIncomes, { headsOnly: true })
 
   const cashMin = cashSummary?.minAmount ?? 0
   const cashDues = cashSummary?.duesAmount ?? cashMin
@@ -314,7 +326,7 @@ export function DashboardView({ userName }: { userName: string | null }) {
           <div className="space-y-2">
             <p className="text-sm font-medium text-muted-foreground">Anggota</p>
             <div className="flex flex-wrap gap-2">
-              <CreateMemberDialog />
+              <CreateMemberDialog members={members} />
             </div>
           </div>
         </CardContent>

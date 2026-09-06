@@ -6,7 +6,16 @@ import { arisanPeriodIdSchema } from "../arisan-schemas"
 
 const periodDetailsInclude = {
   incomes: {
-    include: { member: true },
+    include: {
+      member: {
+        include: {
+          householdMembers: {
+            select: { name: true },
+            orderBy: { name: "asc" },
+          },
+        },
+      },
+    },
     orderBy: { paidAt: "asc" },
   },
   draws: {

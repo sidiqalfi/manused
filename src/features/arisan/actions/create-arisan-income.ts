@@ -32,6 +32,21 @@ export async function createArisanIncome(formData: FormData) {
       return { error: "Periode sudah di-kocok, iuran terkunci" }
     }
 
+    const member = await prisma.member.findUnique({
+      where: { id: validation.data.memberId },
+      select: { id: true, headOfHouseholdId: true },
+    })
+
+    if (!member) {
+      return { error: "Anggota tidak ditemukan" }
+    }
+
+    if (member.headOfHouseholdId != null) {
+      return {
+        error: "Anggota ini ikut rumah lain — bayar lewat kepala rumah",
+      }
+    }
+
     await prisma.$transaction([
       prisma.arisanIncome.create({
         data: {

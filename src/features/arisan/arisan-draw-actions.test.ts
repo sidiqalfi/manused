@@ -37,8 +37,8 @@ const periodFindUnique = mock.fn<() => Promise<{
   ],
 }))
 const memberFindMany = mock.fn(async () => [
-  { id: M1, status: "ACTIVE" },
-  { id: M2, status: "ACTIVE" },
+  { id: M1, status: "ACTIVE", name: "Sidiq", householdMembers: [] },
+  { id: M2, status: "ACTIVE", name: "Rasyid", householdMembers: [] },
 ])
 const drawFindMany = mock.fn<() => Promise<DrawLike[]>>(async () => [])
 const drawCreate = mock.fn(async () => ({}))
@@ -116,6 +116,19 @@ test("previewArisanDraw picks a deterministic winner from the eligible pool", as
   assert.ok(preview)
   assert.equal(preview.winnerMemberId, M1)
   assert.equal(preview.cycleNumber, 1)
+  assert.deepEqual(preview.winnerHousehold, [])
+})
+
+test("previewArisanDraw restricts the pool to household heads", async () => {
+  memberFindMany.mock.resetCalls()
+  const { previewArisanDraw } = await import("./actions/preview-arisan-draw")
+
+  await previewArisanDraw(previewFormData())
+
+  const args = memberFindMany.mock.calls[0]?.arguments as unknown as [
+    { where: Record<string, unknown> },
+  ]
+  assert.equal(args[0].where.headOfHouseholdId, null)
 })
 
 test("previewArisanDraw advances the cycle when no one is eligible in the current cycle", async () => {

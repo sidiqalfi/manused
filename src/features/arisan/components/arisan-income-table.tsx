@@ -29,6 +29,7 @@ type Income = {
   member: {
     name: string
     fullName: string
+    householdMembers: { name: string }[]
   }
 }
 
@@ -37,6 +38,7 @@ interface MembersData {
   name: string
   fullName: string
   status: string
+  headOfHouseholdId: string | null
 }
 
 type Props = {
@@ -68,8 +70,10 @@ export function ArisanIncomeTable({ periodId, period, members }: Props) {
 
   const membersData = members?.success ? members.data ?? [] : []
   const paidMemberIds = new Set(incomes.map((i) => i.memberId))
-  const activeMembers = membersData.filter((m) => m.status === "ACTIVE")
-  const unpaidMembers = activeMembers.filter((m) => !paidMemberIds.has(m.id))
+  const activeHeads = membersData.filter(
+    (m) => m.status === "ACTIVE" && m.headOfHouseholdId == null,
+  )
+  const unpaidMembers = activeHeads.filter((m) => !paidMemberIds.has(m.id))
 
   return (
     <div className="space-y-4">
@@ -108,7 +112,17 @@ export function ArisanIncomeTable({ periodId, period, members }: Props) {
             )}
             {incomes.map((income) => (
               <tr key={income.id} className="border-b">
-                <td className="p-3 text-sm">{income.member.name}</td>
+                <td className="p-3 text-sm">
+                  <span className="font-medium">{income.member.name}</span>
+                  {income.member.householdMembers.length > 0 && (
+                    <span className="block text-xs text-muted-foreground">
+                      Rumah:{" "}
+                      {income.member.householdMembers
+                        .map((m) => m.name)
+                        .join(", ")}
+                    </span>
+                  )}
+                </td>
                 <td className="p-3">
                   <Badge variant="default">Sudah Bayar</Badge>
                 </td>

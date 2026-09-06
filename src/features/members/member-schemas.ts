@@ -20,6 +20,10 @@ const phone = z
   .union([z.string(), z.null()])
   .transform((value) => value?.trim() || null)
 
+const headOfHouseholdId = z
+  .union([z.string().uuid(), z.null()])
+  .transform((value) => value ?? null)
+
 export const createMemberSchema = z.object({
   name: requiredText,
   fullName: requiredText,
@@ -29,6 +33,7 @@ export const createMemberSchema = z.object({
   rt: administrativeCode,
   rw: administrativeCode,
   phone,
+  headOfHouseholdId,
 })
 
 export const updateMemberSchema = createMemberSchema.extend({
@@ -38,6 +43,7 @@ export const updateMemberSchema = createMemberSchema.extend({
 export const memberIdSchema = z.string().uuid()
 
 export function getMemberFormValues(formData: FormData) {
+  const rawHead = formData.get("headOfHouseholdId")
   return {
     name: formData.get("name"),
     fullName: formData.get("fullName"),
@@ -48,5 +54,7 @@ export function getMemberFormValues(formData: FormData) {
     rw: formData.get("rw"),
     phone: formData.get("phone"),
     status: formData.get("status"),
+    headOfHouseholdId:
+      rawHead === null || rawHead === "__none__" ? null : rawHead,
   }
 }

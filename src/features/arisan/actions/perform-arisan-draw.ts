@@ -57,7 +57,11 @@ export async function performArisanDraw(formData: FormData) {
 
     const [activeMembers, setting] = await Promise.all([
       prisma.member.findMany({
-        where: { id: { in: paidMemberIds }, status: "ACTIVE" },
+        where: {
+          id: { in: paidMemberIds },
+          status: "ACTIVE",
+          headOfHouseholdId: null,
+        },
         select: { id: true },
       }),
       prisma.appSetting.findUnique({

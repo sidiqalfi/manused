@@ -65,6 +65,7 @@ function validMemberFormData() {
   formData.set("rw", "006")
   formData.set("phone", "")
   formData.set("status", "ACTIVE")
+  formData.set("headOfHouseholdId", "__none__")
 
   return formData
 }
@@ -124,4 +125,17 @@ test("createMember assigns the default Anggota role to a new member", async () =
       },
     },
   ])
+})
+
+test("createMember normalizes the head-of-household sentinel to null", async () => {
+  memberCreate.mock.resetCalls()
+  const { createMember } = await import("./actions/create-member")
+
+  const result = await createMember(validMemberFormData())
+
+  assert.deepEqual(result, { success: true })
+  const args = memberCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  assert.equal(args[0].data.headOfHouseholdId, null)
 })
