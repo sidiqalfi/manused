@@ -109,6 +109,16 @@ export default function ArisanPage() {
   const summary = summaryResult?.success ? summaryResult.data ?? null : null
   const draws = drawsResult?.success ? drawsResult.data ?? [] : null
 
+  const membersData = membersResult?.success ? membersResult.data ?? [] : []
+  const activeHeadCount = membersData.filter(
+    (m) => m.status === "ACTIVE" && m.headOfHouseholdId == null
+  ).length
+  const potentialCollected =
+    summary ? activeHeadCount * summary.contributionAmount : null
+  const collectedCaption = potentialCollected !== null
+    ? `Potensi ${formatCurrency(potentialCollected)} jika ${activeHeadCount} rumah bayar`
+    : null
+
   const hasActiveDraw = periodResult?.success
     ? (periodResult.data?.draws ?? []).some((d) => !d.voided)
     : false
@@ -139,6 +149,7 @@ export default function ArisanPage() {
             <StatCard
               label="Terkumpul"
               value={summary ? formatCurrency(summary.collected) : "-"}
+              caption={collectedCaption}
               icon={Coins}
             />
             <StatCard
