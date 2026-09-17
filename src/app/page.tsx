@@ -1,5 +1,12 @@
+import { auth } from "@features/auth/lib/auth"
+import { redirect } from "next/navigation"
+
 export default async function Home() {
-  return (
-    <p>hello world</p>
-  )
+  const session = await auth()
+
+  if (session) {
+    redirect("/dashboard")
+  }
+
+  redirect("/signin")
 }
