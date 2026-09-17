@@ -3,6 +3,7 @@
 import crypto from "crypto"
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
+import { isGuestSession, GUEST_WRITE_ERROR } from "@/features/auth/lib/guards"
 import { createCashPeriodSchema, getCashPeriodFormValues } from "../cash-schemas"
 import { logActivity } from "@/features/log/activity-log"
 import { revalidatePath } from "next/cache"
@@ -11,6 +12,9 @@ export async function createCashPeriod(formData: FormData) {
   const session = await auth()
   if (!session?.user?.id) {
     return { error: "Unauthorized" }
+  }
+  if (isGuestSession(session)) {
+    return { error: GUEST_WRITE_ERROR }
   }
 
   const data = getCashPeriodFormValues(formData)

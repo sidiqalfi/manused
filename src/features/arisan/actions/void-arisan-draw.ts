@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
+import { isGuestSession, GUEST_WRITE_ERROR } from "@/features/auth/lib/guards"
 import { arisanDrawIdSchema } from "../arisan-schemas"
 import { logActivity } from "@/features/log/activity-log"
 import { revalidatePath } from "next/cache"
@@ -10,6 +11,9 @@ export async function voidArisanDraw(drawId: string) {
   const session = await auth()
   if (!session?.user?.id) {
     return { error: "Unauthorized" }
+  }
+  if (isGuestSession(session)) {
+    return { error: GUEST_WRITE_ERROR }
   }
 
   const validation = arisanDrawIdSchema.safeParse(drawId)

@@ -18,12 +18,17 @@ import {
 import { Input } from "@/components/ui/input"
 import { useActionState } from "react"
 import { loginAction } from "@/features/auth/actions/auth"
+import { guestLoginAction } from "@/features/auth/actions/guest-login"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const [error, formAction, isPending] = useActionState(loginAction, null)
+  const [guestError, guestFormAction, isGuestPending] = useActionState(
+    guestLoginAction,
+    null
+  )
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -77,6 +82,19 @@ export function LoginForm({
                 </FieldDescription>
               </Field>
             </FieldGroup>
+          </form>
+          {guestError && (
+            <p className="mt-2 text-sm text-red-500">{guestError}</p>
+          )}
+          <form action={guestFormAction} className="mt-4">
+            <Button
+              type="submit"
+              variant="outline"
+              className="w-full"
+              disabled={isGuestPending}
+            >
+              {isGuestPending ? "Memproses..." : "Masuk sebagai Tamu"}
+            </Button>
           </form>
         </CardContent>
       </Card>

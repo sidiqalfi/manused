@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { auth } from "@features/auth/lib/auth"
+import { isGuestSession, GUEST_WRITE_ERROR } from "@/features/auth/lib/guards"
 import { memberIdSchema } from "@/features/members/member-schemas"
 import { revalidatePath } from "next/cache"
 import { logActivity } from "@/features/log/activity-log"
@@ -11,6 +12,10 @@ export async function deleteMember(id: string) {
 
   if (!session?.user?.id) {
     return { error: "Unauthorized" }
+  }
+
+  if (isGuestSession(session)) {
+    return { error: GUEST_WRITE_ERROR }
   }
 
   const parsedId = memberIdSchema.safeParse(id)

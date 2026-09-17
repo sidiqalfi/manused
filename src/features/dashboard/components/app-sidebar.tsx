@@ -30,6 +30,8 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
     avatar: user?.image ?? sidebarData.user.avatar,
   }
 
+  const isGuest = user?.role === "guest"
+
   return (
     <Sidebar
       collapsible="icon"
@@ -51,7 +53,11 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={sidebarData.navMain} />
+        <NavMain
+          items={sidebarData.navMain.filter(
+            (item) => !(isGuest && item.guestHidden)
+          )}
+        />
         <NavSecondary items={sidebarData.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

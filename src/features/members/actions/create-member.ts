@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
+import { isGuestSession, GUEST_WRITE_ERROR } from "@/features/auth/lib/guards"
 import {
   createMemberSchema,
   getMemberFormValues,
@@ -16,6 +17,9 @@ export async function createMember(formData: FormData) {
 
   if (!session?.user?.id) {
     return { error: "Unauthorized" }
+  }
+  if (isGuestSession(session)) {
+    return { error: GUEST_WRITE_ERROR }
   }
 
   const createdById = session.user.id

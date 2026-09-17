@@ -4,6 +4,14 @@ import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
 import { logActivity } from "@/features/log/activity-log"
 
+const GUEST_ID = "00000000-0000-0000-0000-000000000000"
+const GUEST_USER = {
+  id: GUEST_ID,
+  email: "guest@manused.local",
+  name: "Tamu",
+  role: "guest" as const,
+}
+
 async function recordAuthLog(input: {
   actor: { id: string | null; name: string | null; email: string | null }
   action: "LOGIN" | "LOGIN_FAILED"
@@ -69,7 +77,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name ?? null,
         }
       },
-    })
+    }),
+    Credentials({
+      id: "guest",
+      name: "Guest",
+      credentials: {},
+      async authorize() {
+        await recordAuthLog({
+          actor: { id: GUEST_ID, name: GUEST_USER.name, email: GUEST_USER.email },
+          action: "LOGIN",
+        })
+        return GUEST_USER
+      },
+    }),
   ],
   session: {
     strategy: "jwt",
@@ -81,6 +101,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.id = user.id
         token.email = user.email
         token.name = user.name
+        token.role = user.role ?? "user"
       }
       return token
     },
@@ -88,6 +109,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.id = token.id as string
       session.user.email = token.email as string
       session.user.name = (token.name ?? null) as string
+      session.user.role = (token.role ?? "user") as "user" | "guest"
       return session
     },
   },

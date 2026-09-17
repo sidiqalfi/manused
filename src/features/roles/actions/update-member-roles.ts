@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
+import { isGuestSession, GUEST_WRITE_ERROR } from "@/features/auth/lib/guards"
 import { revalidatePath } from "next/cache"
 import { updateMemberRolesSchema } from "@/features/roles/role-schemas"
 import { logActivity } from "@/features/log/activity-log"
@@ -14,6 +15,9 @@ export async function updateMemberRoles(
 
   if (!session?.user?.id) {
     return { error: "Unauthorized" }
+  }
+  if (isGuestSession(session)) {
+    return { error: GUEST_WRITE_ERROR }
   }
 
   const parsed = updateMemberRolesSchema.safeParse({ memberId, roleIds })

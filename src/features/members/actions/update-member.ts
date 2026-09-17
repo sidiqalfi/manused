@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { auth } from "@/features/auth/lib/auth"
+import { isGuestSession, GUEST_WRITE_ERROR } from "@/features/auth/lib/guards"
 import {
   getMemberFormValues,
   memberIdSchema,
@@ -15,6 +16,9 @@ export async function updateMember(id: string, formData: FormData) {
 
   if (!session?.user?.id) {
     return { error: "Unauthorized" }
+  }
+  if (isGuestSession(session)) {
+    return { error: GUEST_WRITE_ERROR }
   }
 
   const parsedId = memberIdSchema.safeParse(id)

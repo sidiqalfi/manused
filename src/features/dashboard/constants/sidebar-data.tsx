@@ -45,6 +45,7 @@ export const sidebarData = {
       title: "Members",
       url: "/dashboard/members",
       icon: <Users />,
+      guestHidden: true,
     },
     {
       title: "Log",
