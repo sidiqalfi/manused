@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { CheckCheck, Layers } from "lucide-react"
+import { dashboardKeys } from "@features/dashboard/queries"
 
 type Member = {
   id: string
@@ -111,7 +112,10 @@ export function IncomeRecordActions({
     } else {
       setBatchOpen(false)
       resetSelection()
-      await queryClient.invalidateQueries({ queryKey: keys.all })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: keys.all }),
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.data() }),
+      ])
     }
   }
 
@@ -128,7 +132,10 @@ export function IncomeRecordActions({
     if (result.error) {
       setAllError(result.error)
     } else {
-      await queryClient.invalidateQueries({ queryKey: keys.all })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: keys.all }),
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.data() }),
+      ])
     }
   }
 

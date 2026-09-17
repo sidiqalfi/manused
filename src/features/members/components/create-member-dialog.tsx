@@ -26,11 +26,15 @@ import { Label } from "@/components/ui/label"
 import type { Member } from "@/generated/prisma/client"
 import { createMember } from "@features/members/actions/create-member"
 import { membersKeys } from "@features/members/queries"
+import { dashboardKeys } from "@features/dashboard/queries"
 import { rolesKeys } from "@/features/roles/queries"
 import { householdHeads } from "@features/members/household"
 
+/** Field minimal yang benar-benar dipakai dialog (via householdHeads + SelectItem). */
+export type MemberLike = Pick<Member, "id" | "name" | "fullName" | "headOfHouseholdId">
+
 interface CreateMemberDialogProps {
-  members?: Member[]
+  members?: MemberLike[]
 }
 
 export function CreateMemberDialog({ members = [] }: CreateMemberDialogProps) {
@@ -56,6 +60,7 @@ export function CreateMemberDialog({ members = [] }: CreateMemberDialogProps) {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: membersKeys.all }),
       queryClient.invalidateQueries({ queryKey: rolesKeys.all }),
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.data() }),
     ])
     setLoading(false)
     setOpen(false)

@@ -5,27 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { OverviewCards } from "./overview-cards"
 import { BookSectionCard } from "./book-section-card"
-import {
-  cashPeriodsQuery,
-  cashPeriodQuery,
-  cashSummaryQuery,
-  cashYearSummaryQuery,
-  cashYearChartQuery,
-} from "@/features/cash/queries"
-import {
-  sosialPeriodsQuery,
-  sosialPeriodQuery,
-  sosialSummaryQuery,
-  sosialYearSummaryQuery,
-  sosialYearChartQuery,
-} from "@/features/sosial/queries"
-import { membersQuery } from "@/features/members/queries"
-import {
-  arisanPeriodsQuery,
-  arisanPeriodQuery,
-  arisanYearChartQuery,
-  arisanOverviewQuery,
-} from "@/features/arisan/queries"
+import { dashboardDataQuery } from "../queries"
 import { CreateArisanPeriodDialog } from "@/features/arisan/components/create-arisan-period-dialog"
 import { RecordArisanContributionDialog } from "@/features/arisan/components/record-arisan-contribution-dialog"
 import { DrawDialog } from "@/features/arisan/components/draw-dialog"
@@ -42,28 +22,20 @@ import { createSosialIncomesBatch } from "@/features/sosial/actions/create-sosia
 import { createArisanIncomesBatch } from "@/features/arisan/actions/create-arisan-incomes-batch"
 import { cashKeys } from "@/features/cash/queries"
 import { sosialKeys } from "@/features/sosial/queries"
-import { SOSIAL_MIN_CONTRIBUTION } from "@/features/sosial/sosial-schemas"
 import { arisanKeys } from "@/features/arisan/queries"
+import { SOSIAL_MIN_CONTRIBUTION } from "@/features/sosial/sosial-schemas"
 import type { YearlyFlowPoint } from "@/components/yearly-income-expense-chart"
+import type { DashboardMember, DashboardIncomeRow } from "../actions/get-dashboard-data"
 
 type PeriodOption = { id: string; month: number; year: number }
 
-type MemberLike = {
-  id: string
-  name: string
-  fullName: string
-  status: string
-  headOfHouseholdId: string | null
-}
-
 function unpaidOf(
-  members: { success: boolean; data?: MemberLike[]; error?: string } | null,
-  incomes: { memberId: string }[] | undefined,
+  members: DashboardMember[],
+  incomes: DashboardIncomeRow[],
   options: { headsOnly?: boolean } = {}
-): MemberLike[] {
-  const all = members?.success ? members.data ?? [] : []
-  const paid = new Set((incomes ?? []).map((i) => i.memberId))
-  return all.filter(
+): DashboardMember[] {
+  const paid = new Set(incomes.map((i) => i.memberId))
+  return members.filter(
     (m) =>
       m.status === "ACTIVE" &&
       (!options.headsOnly || m.headOfHouseholdId == null) &&
@@ -72,107 +44,49 @@ function unpaidOf(
 }
 
 export function DashboardView({ userName }: { userName: string | null }) {
-  const cashPeriodsResult = useQuery(cashPeriodsQuery).data ?? null
-  const sosialPeriodsResult = useQuery(sosialPeriodsQuery).data ?? null
-  const membersResult = useQuery(membersQuery).data ?? null
-  const membersLoading = useQuery(membersQuery).isPending
-  const arisanOverviewResult = useQuery(arisanOverviewQuery).data ?? null
-  const arisanPeriodsResult = useQuery(arisanPeriodsQuery).data ?? null
+  const { data: result, isPending } = useQuery(dashboardDataQuery)
 
-  const cashPeriods: PeriodOption[] = cashPeriodsResult?.success
-    ? cashPeriodsResult.data ?? []
-    : []
-  const sosialPeriods: PeriodOption[] = sosialPeriodsResult?.success
-    ? sosialPeriodsResult.data ?? []
-    : []
-  const arisanPeriods: PeriodOption[] = arisanPeriodsResult?.success
-    ? arisanPeriodsResult.data ?? []
-    : []
+  const data = result?.success ? result.data ?? null : null
+
+  const cashPeriods: PeriodOption[] = data?.periods.cash ?? []
+  const sosialPeriods: PeriodOption[] = data?.periods.sosial ?? []
+  const arisanPeriods: PeriodOption[] = data?.periods.arisan ?? []
+  const members: DashboardMember[] = data?.members ?? []
 
   const latestCash = cashPeriods[0] ?? null
   const latestSosial = sosialPeriods[0] ?? null
   const latestArisan = arisanPeriods[0] ?? null
 
-  const cashPeriodResult = useQuery(
-    cashPeriodQuery(latestCash?.id ?? "")
-  ).data ?? null
-  const cashSummaryResult = useQuery(
-    cashSummaryQuery(latestCash?.id ?? "")
-  ).data ?? null
-  const cashChartResult = useQuery(
-    cashYearChartQuery(latestCash?.year ?? null)
-  ).data ?? null
-  const cashYearSummaryResult = useQuery(
-    cashYearSummaryQuery(latestCash?.year ?? null)
-  ).data ?? null
+  const cashSummary = data?.summaries.cash ?? null
+  const sosialSummary = data?.summaries.sosial ?? null
+  const cashYearSummary = data?.yearSummaries.cash ?? null
+  const sosialYearSummary = data?.yearSummaries.sosial ?? null
+  const arisanOverview = data?.arisanOverview ?? null
 
-  const sosialPeriodResult = useQuery(
-    sosialPeriodQuery(latestSosial?.id ?? "")
-  ).data ?? null
-  const sosialSummaryResult = useQuery(
-    sosialSummaryQuery(latestSosial?.id ?? "")
-  ).data ?? null
-  const sosialChartResult = useQuery(
-    sosialYearChartQuery(latestSosial?.year ?? null)
-  ).data ?? null
-  const sosialYearSummaryResult = useQuery(
-    sosialYearSummaryQuery(latestSosial?.year ?? null)
-  ).data ?? null
-  const arisanChartResult = useQuery(
-    arisanYearChartQuery(latestArisan?.year ?? null)
-  ).data ?? null
-  const arisanPeriodResult = useQuery(
-    arisanPeriodQuery(latestArisan?.id ?? "")
-  ).data ?? null
-
-  const cashSummary = cashSummaryResult?.success ? cashSummaryResult.data ?? null : null
-  const sosialSummary = sosialSummaryResult?.success ? sosialSummaryResult.data ?? null : null
-  const cashYearSummary = cashYearSummaryResult?.success ? cashYearSummaryResult.data ?? null : null
-  const sosialYearSummary = sosialYearSummaryResult?.success ? sosialYearSummaryResult.data ?? null : null
-
-  const members = membersResult?.success ? membersResult.data ?? [] : []
   const activeMembers = members.filter((m) => m.status === "ACTIVE").length
 
-  const cashIncomes = cashPeriodResult?.success ? cashPeriodResult.data?.incomes ?? [] : []
-  const sosialIncomes = sosialPeriodResult?.success ? sosialPeriodResult.data?.incomes ?? [] : []
-  const arisanIncomes = arisanPeriodResult?.success
-    ? arisanPeriodResult.data?.incomes ?? []
-    : []
-  const arisanContribution = arisanPeriodResult?.success
-    ? arisanPeriodResult.data?.contributionAmount ?? 0
-    : 0
-  const arisanPayoutTarget = arisanPeriodResult?.success
-    ? arisanPeriodResult.data?.payoutTarget ?? 0
-    : 0
-  const arisanHasActiveDraw = arisanPeriodResult?.success
-    ? (arisanPeriodResult.data?.draws ?? []).some((d) => !d.voided)
-    : false
+  const cashIncomes = data?.latest.cash?.incomes ?? []
+  const sosialIncomes = data?.latest.sosial?.incomes ?? []
+  const arisanIncomes = data?.latest.arisan?.incomes ?? []
 
-  const cashChart: YearlyFlowPoint[] = cashChartResult?.success
-    ? cashChartResult.data ?? []
-    : []
-  const sosialChart: YearlyFlowPoint[] = sosialChartResult?.success
-    ? sosialChartResult.data ?? []
-    : []
-  const arisanChart: YearlyFlowPoint[] = arisanChartResult?.success
-    ? arisanChartResult.data ?? []
-    : []
+  const arisanHasActiveDraw = data?.latest.arisan?.hasActiveDraw ?? false
+
+  const cashChart: YearlyFlowPoint[] = data?.yearCharts.cash ?? []
+  const sosialChart: YearlyFlowPoint[] = data?.yearCharts.sosial ?? []
+  const arisanChart: YearlyFlowPoint[] = data?.yearCharts.arisan ?? []
 
   const cashYearCaption = cashYearSummary ? `Total tahun ${cashYearSummary.year}` : null
   const sosialYearCaption = sosialYearSummary ? `Total tahun ${sosialYearSummary.year}` : null
 
-  const arisanOverview = arisanOverviewResult?.success
-    ? arisanOverviewResult.data ?? null
-    : null
   const arisanCaption = arisanOverview
     ? arisanOverview.lastWinnerName
       ? `Pemenang: ${arisanOverview.lastWinnerName}`
       : "Belum ada pemenang"
     : null
 
-  const cashUnpaid = unpaidOf(membersResult, cashIncomes)
-  const sosialUnpaid = unpaidOf(membersResult, sosialIncomes)
-  const arisanUnpaid = unpaidOf(membersResult, arisanIncomes, { headsOnly: true })
+  const cashUnpaid = unpaidOf(members, cashIncomes)
+  const sosialUnpaid = unpaidOf(members, sosialIncomes)
+  const arisanUnpaid = unpaidOf(members, arisanIncomes, { headsOnly: true })
 
   const cashMin = cashSummary?.minAmount ?? 0
   const cashDues = cashSummary?.duesAmount ?? cashMin
@@ -196,8 +110,8 @@ export function DashboardView({ userName }: { userName: string | null }) {
         sosialCaption={sosialYearCaption}
         arisanSavings={arisanOverview?.savings ?? null}
         arisanCaption={arisanCaption}
-        activeMembers={membersResult?.success ? activeMembers : null}
-        totalMembers={membersResult?.success ? members.length : null}
+        activeMembers={result?.success ? activeMembers : null}
+        totalMembers={result?.success ? members.length : null}
       />
 
       <div className="grid gap-4 xl:grid-cols-3">
@@ -344,13 +258,13 @@ export function DashboardView({ userName }: { userName: string | null }) {
                       <RecordArisanContributionDialog
                         periodId={latestArisan.id}
                         unpaidMembers={arisanUnpaid}
-                        contributionAmount={arisanContribution}
+                        contributionAmount={data?.latest.arisan?.period.contributionAmount ?? 0}
                         triggerVariant="outline"
                       />
                     }
                     periodId={latestArisan.id}
                     unpaidMembers={arisanUnpaid}
-                    defaultAmount={arisanContribution}
+                    defaultAmount={data?.latest.arisan?.period.contributionAmount ?? 0}
                     minAmount={1}
                     dialogTitle="Catat Batch Iuran Arisan"
                     submitLabel="Catat Iuran Batch"
@@ -361,7 +275,7 @@ export function DashboardView({ userName }: { userName: string | null }) {
                   {!arisanHasActiveDraw ? (
                     <DrawDialog
                       periodId={latestArisan.id}
-                      payoutTarget={arisanPayoutTarget}
+                      payoutTarget={data?.latest.arisan?.period.payoutTarget ?? 0}
                       triggerVariant="outline"
                     />
                   ) : null}
@@ -380,7 +294,7 @@ export function DashboardView({ userName }: { userName: string | null }) {
         </CardContent>
       </Card>
 
-      {membersLoading && (
+      {isPending && (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {[0, 1, 2, 3].map((i) => (
             <div

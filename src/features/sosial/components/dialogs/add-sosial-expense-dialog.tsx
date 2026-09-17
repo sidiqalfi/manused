@@ -15,6 +15,7 @@ import { Plus } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { createSosialExpense } from "../../actions/create-sosial-expense"
 import { sosialKeys } from "../../queries"
+import { dashboardKeys } from "@features/dashboard/queries"
 
 type Props = {
   periodId: string
@@ -35,7 +36,10 @@ export function AddSosialExpenseDialog({ periodId, triggerVariant = "default" }:
       setError(result.error)
     } else {
       setOpen(false)
-      await queryClient.invalidateQueries({ queryKey: sosialKeys.all })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: sosialKeys.all }),
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.data() }),
+      ])
     }
   }
 
