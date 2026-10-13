@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import { membersQuery } from "@features/members/queries"
 import { MembersTable } from "@features/members/components/members-table"
 import { CreateMemberDialog } from "@features/members/components/create-member-dialog"
+import { ExportMembersButton } from "@features/members/components/export-members-button"
 import { rolesQuery, memberRolesMapQuery } from "@/features/roles/queries"
 
 export default function Page() {
@@ -32,7 +33,14 @@ export default function Page() {
             Daftar pemuda pemudi yang terdaftar.
           </p>
         </div>
-        <CreateMemberDialog members={members} />
+        <div className="flex items-center gap-2">
+          <ExportMembersButton
+            data={members}
+            rolesMap={rolesMap}
+            disabled={loading}
+          />
+          <CreateMemberDialog members={members} />
+        </div>
       </div>
       {loading ? (
         <div className="text-center py-12">
