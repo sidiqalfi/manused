@@ -9,6 +9,10 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { MONTHS } from "@/lib/months"
+import {
+  computeArrears,
+  computeMonthlyDeficits,
+} from "@/lib/payments/arrears"
 import type { ArisanPaymentMatrix } from "@/features/arisan/actions/get-arisan-payment-matrix"
 
 type Props = {
@@ -32,14 +36,6 @@ function shortFormat(amount: number): string {
   return String(amount)
 }
 
-/** true kalau bulan (1-12, tahun matrix) sudah lewat dari hari ini */
-function isPastMonth(month: number, year: number): boolean {
-  const now = new Date()
-  const current = now.getFullYear() * 12 + now.getMonth()
-  const target = year * 12 + (month - 1)
-  return target < current
-}
-
 export function PaymentMatrixTable({ title, matrix, loading, year }: Props) {
   if (loading) {
     return (
@@ -55,18 +51,11 @@ export function PaymentMatrixTable({ title, matrix, loading, year }: Props) {
 
   const { members, months } = matrix
 
-  // Tunggakan per anggota: bulan lewat tanpa bayar x nominal wajib bulan itu
-  const arrearsByMember = new Map<string, number>()
-  for (const member of members) {
-    let total = 0
-    for (const month of months) {
-      if (!isPastMonth(month.month, year)) continue
-      if (month.paidBy[member.id] === undefined) {
-        total += month.expected
-      }
-    }
-    if (total > 0) arrearsByMember.set(member.id, total)
-  }
+  // Tunggakan via settlement FIFO yang sama dengan badge/banner — satu
+  // sumber kebenaran: kelebihan bayar di bulan mana pun menutup kekurangan
+  // bulan lebih tua, jadi sel ✕ dan kolom Tunggakan selalu konsisten.
+  const arrearsMap = computeArrears(matrix, year, 0)
+  const monthlyDeficits = computeMonthlyDeficits(matrix, year, 0)
 
   return (
     <div className="space-y-4">
@@ -88,11 +77,12 @@ export function PaymentMatrixTable({ title, matrix, loading, year }: Props) {
           </TableHeader>
           <TableBody>
             {members.map((member) => {
-              const arrears = arrearsByMember.get(member.id) ?? 0
+              const arrears = arrearsMap.get(member.id)
+              const memberDeficits = monthlyDeficits.get(member.id)
               return (
                 <TableRow
                   key={member.id}
-                  className={arrears > 0 ? "bg-destructive/5" : undefined}
+                  className={arrears ? "bg-destructive/5" : undefined}
                 >
                   <TableCell className="sticky left-0 z-10 bg-background font-medium min-w-[10rem]">
                     {member.name}
@@ -102,8 +92,7 @@ export function PaymentMatrixTable({ title, matrix, loading, year }: Props) {
                   </TableCell>
                   {months.map((month) => {
                     const amount = month.paidBy[member.id]
-                    const overdue =
-                      isPastMonth(month.month, year) && amount === undefined
+                    const remainingDeficit = memberDeficits?.get(month.month)
                     return (
                       <TableCell
                         key={month.month}
@@ -111,10 +100,10 @@ export function PaymentMatrixTable({ title, matrix, loading, year }: Props) {
                       >
                         {amount !== undefined ? (
                           <span>{shortFormat(amount)}</span>
-                        ) : overdue ? (
+                        ) : remainingDeficit !== undefined ? (
                           <span
                             className="text-destructive font-semibold"
-                            title={`Belum bayar (wajib ${shortFormat(month.expected)})`}
+                            title={`Belum tertutup pembayaran (wajib ${shortFormat(month.expected)})`}
                           >
                             ✕
                           </span>
@@ -125,9 +114,9 @@ export function PaymentMatrixTable({ title, matrix, loading, year }: Props) {
                     )
                   })}
                   <TableCell className="text-center tabular-nums">
-                    {arrears > 0 ? (
+                    {arrears ? (
                       <span className="text-destructive font-semibold">
-                        {shortFormat(arrears)}
+                        {shortFormat(arrears.amount)}
                       </span>
                     ) : (
                       <span className="text-muted-foreground/40">–</span>
