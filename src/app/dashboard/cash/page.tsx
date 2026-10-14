@@ -14,7 +14,8 @@ import {
 import { CashIncomeTable } from "@/features/cash/components/cash-income-table";
 import { CashExpenseTable } from "@/features/cash/components/cash-expense-table";
 import { CreatePeriodDialog } from "@/features/cash/components/dialogs/create-period-dialog";
-import { cashPeriodsQuery, cashPeriodQuery, cashSummaryQuery, cashYearSummaryQuery, cashYearChartQuery } from "@/features/cash/queries";
+import { cashPeriodsQuery, cashPeriodQuery, cashSummaryQuery, cashYearSummaryQuery, cashYearChartQuery, cashYearPaymentMatrixQuery } from "@/features/cash/queries";
+import { PaymentMatrixTable } from "@/components/payment-matrix-table";
 import { membersQuery } from "@features/members/queries";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -100,6 +101,7 @@ export default function CashPage() {
   const yearChartPoints: YearlyFlowPoint[] = yearChartResult?.success
     ? yearChartResult.data ?? []
     : [];
+  const paymentMatrix = useQuery(cashYearPaymentMatrixQuery(activeYear));
 
   const periodResult = periodQuery.data ?? null;
   const summaryResult = summaryQuery.data ?? null;
@@ -189,6 +191,12 @@ export default function CashPage() {
             <YearlyIncomeExpenseChart
               year={activeYear}
               data={yearChartPoints}
+            />
+            <PaymentMatrixTable
+              title={`Iuran Kas ${activeYear}`}
+              matrix={paymentMatrix.data?.success ? paymentMatrix.data.data ?? null : null}
+              loading={paymentMatrix.isPending}
+              year={activeYear}
             />
           </>
         ) : (

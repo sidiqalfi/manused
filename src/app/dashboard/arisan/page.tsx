@@ -12,6 +12,7 @@ import { CreateArisanPeriodDialog } from "@/features/arisan/components/create-ar
 import { ArisanIncomeTable } from "@/features/arisan/components/arisan-income-table"
 import { ArisanDrawHistory } from "@/features/arisan/components/arisan-draw-history"
 import { ArisanYearDrawHistory } from "@/features/arisan/components/arisan-year-draw-history"
+import { PaymentMatrixTable } from "@/components/payment-matrix-table"
 import { DrawDialog } from "@/features/arisan/components/draw-dialog"
 import { ManualDrawDialog } from "@/features/arisan/components/manual-draw-dialog"
 import {
@@ -22,6 +23,7 @@ import {
   arisanYearSummaryQuery,
   arisanYearChartQuery,
   arisanYearDrawsQuery,
+  arisanYearPaymentMatrixQuery,
   arisanOverviewQuery,
 } from "@/features/arisan/queries"
 import { membersQuery } from "@/features/members/queries"
@@ -100,6 +102,13 @@ export default function ArisanPage() {
   const yearDrawsLoading = useQuery(arisanYearDrawsQuery(activeYear)).isPending
   const yearDraws = yearDrawsResult?.success
     ? yearDrawsResult.data ?? []
+    : null
+
+  const paymentMatrixResult = useQuery(
+    arisanYearPaymentMatrixQuery(activeYear)
+  )
+  const paymentMatrix = paymentMatrixResult.data?.success
+    ? paymentMatrixResult.data.data ?? null
     : null
 
   const arisanOverviewResult = useQuery(arisanOverviewQuery).data ?? null
@@ -235,6 +244,11 @@ export default function ArisanPage() {
             year={activeYear}
             data={yearChart}
             title={`Arus arisan tahun ${activeYear}`}
+          />
+          <PaymentMatrixTable
+            matrix={paymentMatrix}
+            loading={paymentMatrixResult.isPending}
+            year={activeYear}
           />
           <ArisanYearDrawHistory
             draws={yearDraws}

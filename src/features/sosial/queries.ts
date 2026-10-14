@@ -3,6 +3,7 @@ import { getSosialPeriod, getSosialPeriods } from "./actions/get-sosial-periods"
 import { getSosialSummary } from "./actions/get-sosial-summary"
 import { getSosialYearSummary } from "./actions/get-sosial-year-summary"
 import { getSosialYearChart } from "./actions/get-sosial-year-chart"
+import { getSosialPaymentMatrix } from "@/lib/payments/get-payment-matrix"
 import { getSosialInitialBalance } from "./actions/get-initial-balance"
 
 export const sosialKeys = {
@@ -53,6 +54,14 @@ export function sosialYearChartQuery(year: number | null) {
   return queryOptions({
     queryKey: sosialKeys.yearChart(year ?? 0),
     queryFn: () => getSosialYearChart(year as number),
+    enabled: year !== null,
+  })
+}
+
+export function sosialYearPaymentMatrixQuery(year: number | null) {
+  return queryOptions({
+    queryKey: [...sosialKeys.yearChart(year ?? 0), "payment-matrix"] as const,
+    queryFn: () => getSosialPaymentMatrix(year as number),
     enabled: year !== null,
   })
 }

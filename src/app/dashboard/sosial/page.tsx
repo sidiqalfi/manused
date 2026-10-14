@@ -20,7 +20,9 @@ import {
   sosialSummaryQuery,
   sosialYearSummaryQuery,
   sosialYearChartQuery,
+  sosialYearPaymentMatrixQuery,
 } from "@/features/sosial/queries";
+import { PaymentMatrixTable } from "@/components/payment-matrix-table";
 import { membersQuery } from "@features/members/queries";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -99,6 +101,7 @@ export default function SosialPage() {
   const yearChartPoints: YearlyFlowPoint[] = yearChartResult?.success
     ? yearChartResult.data ?? []
     : [];
+  const paymentMatrix = useQuery(sosialYearPaymentMatrixQuery(activeYear));
 
   const periodResult = periodQuery.data ?? null;
   const summaryResult = summaryQuery.data ?? null;
@@ -192,6 +195,12 @@ export default function SosialPage() {
               year={activeYear}
               data={yearChartPoints}
               title={`Arus sosial tahun ${activeYear}`}
+            />
+            <PaymentMatrixTable
+              title={`Iuran Sosial ${activeYear}`}
+              matrix={paymentMatrix.data?.success ? paymentMatrix.data.data ?? null : null}
+              loading={paymentMatrix.isPending}
+              year={activeYear}
             />
           </>
         ) : (

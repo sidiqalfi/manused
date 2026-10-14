@@ -3,6 +3,7 @@ import { getCashPeriod, getCashPeriods } from "./actions/get-cash-periods"
 import { getCashSummary } from "./actions/get-cash-summary"
 import { getCashYearSummary } from "./actions/get-cash-year-summary"
 import { getCashYearChart } from "./actions/get-cash-year-chart"
+import { getCashPaymentMatrix } from "@/lib/payments/get-payment-matrix"
 import { getCashInitialBalance } from "./actions/get-initial-balance"
 
 export const cashKeys = {
@@ -53,6 +54,14 @@ export function cashYearChartQuery(year: number | null) {
   return queryOptions({
     queryKey: cashKeys.yearChart(year ?? 0),
     queryFn: () => getCashYearChart(year as number),
+    enabled: year !== null,
+  })
+}
+
+export function cashYearPaymentMatrixQuery(year: number | null) {
+  return queryOptions({
+    queryKey: [...cashKeys.yearChart(year ?? 0), "payment-matrix"] as const,
+    queryFn: () => getCashPaymentMatrix(year as number),
     enabled: year !== null,
   })
 }

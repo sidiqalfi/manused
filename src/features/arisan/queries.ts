@@ -5,6 +5,7 @@ import { getArisanDraws } from "./actions/get-arisan-draws"
 import { getArisanOverview } from "./actions/get-arisan-overview"
 import { getArisanYearChart } from "./actions/get-arisan-year-chart"
 import { getArisanYearDraws } from "./actions/get-arisan-year-draws"
+import { getArisanPaymentMatrix } from "./actions/get-arisan-payment-matrix"
 import { getArisanYearSummary } from "./actions/get-arisan-year-summary"
 import { getInitialSave } from "./actions/get-initial-save"
 
@@ -70,6 +71,14 @@ export function arisanYearDrawsQuery(year: number | null) {
   return queryOptions({
     queryKey: arisanKeys.yearDraws(year ?? 0),
     queryFn: () => getArisanYearDraws(year as number),
+    enabled: year !== null,
+  })
+}
+
+export function arisanYearPaymentMatrixQuery(year: number | null) {
+  return queryOptions({
+    queryKey: [...arisanKeys.yearDraws(year ?? 0), "payment-matrix"] as const,
+    queryFn: () => getArisanPaymentMatrix(year as number),
     enabled: year !== null,
   })
 }
