@@ -29,6 +29,7 @@ import {
 import { membersQuery } from "@/features/members/queries"
 import { formatCurrency } from "@/lib/format"
 import { cn } from "@/lib/utils"
+import { computeArrears, type MemberArrears } from "@/lib/payments/arrears"
 import { Coins, Target, PiggyBank, Trophy, TrendingUp, TrendingDown, type LucideIcon } from "lucide-react"
 
 function StatCard({
@@ -110,6 +111,13 @@ export default function ArisanPage() {
   const paymentMatrix = paymentMatrixResult.data?.success
     ? paymentMatrixResult.data.data ?? null
     : null
+  const selectedPeriodMonth = periodResult?.success
+    ? periodResult.data?.month ?? null
+    : null
+  const arrears =
+    paymentMatrix && selectedPeriodId && selectedPeriodMonth
+      ? computeArrears(paymentMatrix, activeYear ?? 0, selectedPeriodMonth)
+      : new Map<string, MemberArrears>()
 
   const arisanOverviewResult = useQuery(arisanOverviewQuery).data ?? null
   const arisanOverview = arisanOverviewResult?.success
@@ -203,6 +211,7 @@ export default function ArisanPage() {
             periodId={selectedPeriodId}
             period={periodResult}
             members={membersResult}
+            arrears={arrears}
           />
 
           <ArisanDrawHistory draws={draws} loading={drawsLoading} />

@@ -21,6 +21,7 @@ import { deleteArisanIncome } from "../actions/delete-arisan-income"
 import { createArisanIncomesBatch } from "../actions/create-arisan-incomes-batch"
 import { arisanKeys } from "../queries"
 import { formatCurrency, formatDate } from "@/lib/format"
+import type { MemberArrears } from "@/lib/payments/arrears"
 
 type Income = {
   id: string
@@ -47,9 +48,11 @@ type Props = {
   periodId: string
   period: { success: boolean; data?: { incomes: Income[]; contributionAmount: number; draws: { voided: boolean }[] }; error?: string } | null
   members: { success: boolean; data?: MembersData[]; error?: string } | null
+  /** Tunggakan bulan-bulan sebelumnya per memberId (opsional) */
+  arrears?: Map<string, MemberArrears>
 }
 
-export function ArisanIncomeTable({ periodId, period, members }: Props) {
+export function ArisanIncomeTable({ periodId, period, members, arrears }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [deletingIncome, setDeletingIncome] = useState<Income | null>(null)
   const queryClient = useQueryClient()
@@ -167,11 +170,19 @@ export function ArisanIncomeTable({ periodId, period, members }: Props) {
             Belum bayar ({unpaidMembers.length} anggota):
           </p>
           <div className="flex flex-wrap gap-2">
-            {unpaidMembers.map((m) => (
-              <Badge key={m.id} variant="outline">
-                {m.name}
-              </Badge>
-            ))}
+            {unpaidMembers.map((m) => {
+              const owed = arrears?.get(m.id)
+              return (
+                <Badge key={m.id} variant="outline" className={owed ? "border-destructive/50 text-destructive" : undefined}>
+                  {m.name}
+                  {owed && (
+                    <span className="ml-1">
+                      · nunggak {owed.count} bln ({formatCurrency(owed.amount)})
+                    </span>
+                  )}
+                </Badge>
+              )
+            })}
           </div>
         </div>
       )}

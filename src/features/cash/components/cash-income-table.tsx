@@ -21,6 +21,7 @@ import { deleteCashIncome } from "../actions/delete-cash-income"
 import { createCashIncomesBatch } from "../actions/create-cash-incomes-batch"
 import { cashKeys } from "../queries"
 import { formatCurrency, formatDate } from "@/lib/format"
+import type { MemberArrears } from "@/lib/payments/arrears"
 
 type Income = {
   id: string
@@ -46,9 +47,11 @@ type Props = {
   period: { success: boolean; data?: { incomes: Income[] }; error?: string } | null
   summary: { success: boolean; data?: { duesAmount: number; minAmount: number }; error?: string } | null
   members: { success: boolean; data?: MembersData[]; error?: string } | null
+  /** Tunggakan bulan-bulan sebelumnya per memberId (opsional) */
+  arrears?: Map<string, MemberArrears>
 }
 
-export function CashIncomeTable({ periodId, period, summary, members }: Props) {
+export function CashIncomeTable({ periodId, period, summary, members, arrears }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [deletingIncome, setDeletingIncome] = useState<Income | null>(null)
   const queryClient = useQueryClient()
@@ -152,11 +155,19 @@ export function CashIncomeTable({ periodId, period, summary, members }: Props) {
             Belum bayar ({unpaidMembers.length} anggota):
           </p>
           <div className="flex flex-wrap gap-2">
-            {unpaidMembers.map((m) => (
-              <Badge key={m.id} variant="outline">
-                {m.name}
-              </Badge>
-            ))}
+            {unpaidMembers.map((m) => {
+              const owed = arrears?.get(m.id)
+              return (
+                <Badge key={m.id} variant="outline" className={owed ? "border-destructive/50 text-destructive" : undefined}>
+                  {m.name}
+                  {owed && (
+                    <span className="ml-1">
+                      · nunggak {owed.count} bln ({formatCurrency(owed.amount)})
+                    </span>
+                  )}
+                </Badge>
+              )
+            })}
           </div>
         </div>
       )}

@@ -23,6 +23,7 @@ import {
   sosialYearPaymentMatrixQuery,
 } from "@/features/sosial/queries";
 import { PaymentMatrixTable } from "@/components/payment-matrix-table";
+import { computeArrears, type MemberArrears } from "@/lib/payments/arrears";
 import { membersQuery } from "@features/members/queries";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -106,6 +107,13 @@ export default function SosialPage() {
   const periodResult = periodQuery.data ?? null;
   const summaryResult = summaryQuery.data ?? null;
   const membersResult = membersQueryState.data ?? null;
+  const selectedPeriodMonth = periodResult?.success
+    ? periodResult.data?.month ?? null
+    : null
+  const arrears =
+    paymentMatrix.data?.success && selectedPeriodId && selectedPeriodMonth && activeYear
+      ? computeArrears(paymentMatrix.data.data!, activeYear, selectedPeriodMonth)
+      : new Map<string, MemberArrears>()
   const yearSummary = yearSummaryResult?.success
     ? yearSummaryResult.data ?? null
     : null;
@@ -145,6 +153,7 @@ export default function SosialPage() {
                 period={periodResult}
                 summary={summaryResult}
                 members={membersResult}
+                arrears={arrears}
               />
             </TabsContent>
 
