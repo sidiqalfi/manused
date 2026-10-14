@@ -14,6 +14,8 @@ export interface ArisanPaymentMatrixMonth {
   month: number
   /** memberId -> total iuran bulan itu */
   paidBy: Record<string, number>
+  /** Nominal iuran wajib bulan itu (untuk hitung tunggakan) */
+  expected: number
 }
 
 export interface ArisanPaymentMatrix {
@@ -41,7 +43,7 @@ export async function getArisanPaymentMatrix(
     const [periods, members] = await Promise.all([
       prisma.arisanPeriod.findMany({
         where: { year: validation.data },
-        select: { id: true, month: true },
+        select: { id: true, month: true, contributionAmount: true },
         orderBy: { month: "asc" },
       }),
       prisma.member.findMany({
@@ -87,7 +89,9 @@ export async function getArisanPaymentMatrix(
         for (const [memberId, amount] of byMonth.get(month)!) {
           paidBy[memberId] = amount
         }
-        return { month, paidBy }
+        const expected =
+          periods.find((p) => p.month === month)?.contributionAmount ?? 0
+        return { month, paidBy, expected }
       })
 
     return {

@@ -32,6 +32,14 @@ function shortFormat(amount: number): string {
   return String(amount)
 }
 
+/** true kalau bulan (1-12, tahun matrix) sudah lewat dari hari ini */
+function isPastMonth(month: number, year: number): boolean {
+  const now = new Date()
+  const current = now.getFullYear() * 12 + now.getMonth()
+  const target = year * 12 + (month - 1)
+  return target < current
+}
+
 export function PaymentMatrixTable({ title, matrix, loading, year }: Props) {
   if (loading) {
     return (
@@ -46,6 +54,19 @@ export function PaymentMatrixTable({ title, matrix, loading, year }: Props) {
   }
 
   const { members, months } = matrix
+
+  // Tunggakan per anggota: bulan lewat tanpa bayar x nominal wajib bulan itu
+  const arrearsByMember = new Map<string, number>()
+  for (const member of members) {
+    let total = 0
+    for (const month of months) {
+      if (!isPastMonth(month.month, year)) continue
+      if (month.paidBy[member.id] === undefined) {
+        total += month.expected
+      }
+    }
+    if (total > 0) arrearsByMember.set(member.id, total)
+  }
 
   return (
     <div className="space-y-4">
@@ -62,38 +83,63 @@ export function PaymentMatrixTable({ title, matrix, loading, year }: Props) {
                   {MONTHS[month.month - 1]?.slice(0, 3)}
                 </TableHead>
               ))}
+              <TableHead className="text-center">Tunggakan</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {members.map((member) => (
-              <TableRow key={member.id}>
-                <TableCell className="sticky left-0 z-10 bg-background font-medium min-w-[10rem]">
-                  {member.name}
-                  <span className="block text-xs text-muted-foreground">
-                    {member.fullName}
-                  </span>
-                </TableCell>
-                {months.map((month) => {
-                  const amount = month.paidBy[member.id]
-                  return (
-                    <TableCell
-                      key={month.month}
-                      className="text-center tabular-nums"
-                    >
-                      {amount !== undefined ? (
-                        <span>{shortFormat(amount)}</span>
-                      ) : (
-                        <span className="text-muted-foreground/40">–</span>
-                      )}
-                    </TableCell>
-                  )
-                })}
-              </TableRow>
-            ))}
+            {members.map((member) => {
+              const arrears = arrearsByMember.get(member.id) ?? 0
+              return (
+                <TableRow
+                  key={member.id}
+                  className={arrears > 0 ? "bg-destructive/5" : undefined}
+                >
+                  <TableCell className="sticky left-0 z-10 bg-background font-medium min-w-[10rem]">
+                    {member.name}
+                    <span className="block text-xs text-muted-foreground">
+                      {member.fullName}
+                    </span>
+                  </TableCell>
+                  {months.map((month) => {
+                    const amount = month.paidBy[member.id]
+                    const overdue =
+                      isPastMonth(month.month, year) && amount === undefined
+                    return (
+                      <TableCell
+                        key={month.month}
+                        className="text-center tabular-nums"
+                      >
+                        {amount !== undefined ? (
+                          <span>{shortFormat(amount)}</span>
+                        ) : overdue ? (
+                          <span
+                            className="text-destructive font-semibold"
+                            title={`Belum bayar (wajib ${shortFormat(month.expected)})`}
+                          >
+                            ✕
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground/40">–</span>
+                        )}
+                      </TableCell>
+                    )
+                  })}
+                  <TableCell className="text-center tabular-nums">
+                    {arrears > 0 ? (
+                      <span className="text-destructive font-semibold">
+                        {shortFormat(arrears)}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/40">–</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              )
+            })}
             {members.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={months.length + 1}
+                  colSpan={months.length + 2}
                   className="text-center py-8 text-sm text-muted-foreground"
                 >
                   Belum ada anggota aktif

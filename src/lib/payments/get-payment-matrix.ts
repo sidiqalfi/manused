@@ -26,12 +26,12 @@ async function buildPaymentMatrix(
       kind === "cash"
         ? await prisma.cashPeriod.findMany({
             where: { year: validation.data },
-            select: { id: true, month: true },
+            select: { id: true, month: true, duesAmount: true, minAmount: true },
             orderBy: { month: "asc" },
           })
         : await prisma.sosialPeriod.findMany({
             where: { year: validation.data },
-            select: { id: true, month: true },
+            select: { id: true, month: true, minAmount: true },
             orderBy: { month: "asc" },
           })
 
@@ -80,7 +80,11 @@ async function buildPaymentMatrix(
         for (const [memberId, amount] of byMonth.get(month)!) {
           paidBy[memberId] = amount
         }
-        return { month, paidBy }
+        const period = periods.find((p) => p.month === month) as
+          | { month: number; duesAmount?: number; minAmount?: number }
+          | undefined
+        const expected = period?.duesAmount ?? period?.minAmount ?? 0
+        return { month, paidBy, expected }
       })
 
     return { success: true, data: { members, months } }
