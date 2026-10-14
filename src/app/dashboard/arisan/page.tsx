@@ -13,6 +13,7 @@ import { ArisanIncomeTable } from "@/features/arisan/components/arisan-income-ta
 import { ArisanDrawHistory } from "@/features/arisan/components/arisan-draw-history"
 import { ArisanYearDrawHistory } from "@/features/arisan/components/arisan-year-draw-history"
 import { DrawDialog } from "@/features/arisan/components/draw-dialog"
+import { ManualDrawDialog } from "@/features/arisan/components/manual-draw-dialog"
 import {
   arisanPeriodsQuery,
   arisanPeriodQuery,
@@ -113,6 +114,9 @@ export default function ArisanPage() {
   const activeHeadCount = membersData.filter(
     (m) => m.status === "ACTIVE" && m.headOfHouseholdId == null
   ).length
+  const activeHeads = membersData.filter(
+    (m) => m.status === "ACTIVE" && m.headOfHouseholdId == null
+  )
   const potentialCollected =
     summary ? activeHeadCount * summary.contributionAmount : null
   const collectedCaption = potentialCollected !== null
@@ -174,10 +178,16 @@ export default function ArisanPage() {
           </div>
 
           {!hasActiveDraw && summary ? (
-            <DrawDialog
-              periodId={selectedPeriodId}
-              payoutTarget={summary.target}
-            />
+            <div className="flex items-center gap-2">
+              <DrawDialog
+                periodId={selectedPeriodId}
+                payoutTarget={summary.target}
+              />
+              <ManualDrawDialog
+                periodId={selectedPeriodId}
+                activeHeads={activeHeads}
+              />
+            </div>
           ) : null}
 
           <ArisanIncomeTable
