@@ -90,6 +90,7 @@ export function ArisanIncomeTable({ periodId, period, members, arrears }: Props)
               periodId={periodId}
               unpaidMembers={unpaidMembers}
               contributionAmount={contributionAmount}
+              arrears={arrears}
             />
           }
           periodId={periodId}

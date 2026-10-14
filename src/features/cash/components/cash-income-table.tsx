@@ -87,6 +87,7 @@ export function CashIncomeTable({ periodId, period, summary, members, arrears }:
               unpaidMembers={unpaidMembers}
               duesAmount={duesAmount}
               minAmount={minAmount}
+              arrears={arrears}
             />
           }
           periodId={periodId}

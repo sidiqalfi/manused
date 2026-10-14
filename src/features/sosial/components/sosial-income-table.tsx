@@ -86,6 +86,7 @@ export function SosialIncomeTable({ periodId, period, summary, members, arrears 
               periodId={periodId}
               unpaidMembers={unpaidMembers}
               minAmount={minAmount}
+              arrears={arrears}
             />
           }
           periodId={periodId}
