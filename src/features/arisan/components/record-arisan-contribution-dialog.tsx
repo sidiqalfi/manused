@@ -15,7 +15,6 @@ import { Plus } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { createArisanIncome } from "../actions/create-arisan-income"
 import { arisanKeys } from "../queries"
-import { dashboardKeys } from "@features/dashboard/queries"
 import { formatCurrency } from "@/lib/format"
 
 type Member = {
@@ -50,10 +49,7 @@ export function RecordArisanContributionDialog({
       setError(result.error)
     } else {
       setOpen(false)
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: arisanKeys.all }),
-        queryClient.invalidateQueries({ queryKey: dashboardKeys.data() }),
-      ])
+      await queryClient.invalidateQueries({ queryKey: arisanKeys.all })
     }
   }
 

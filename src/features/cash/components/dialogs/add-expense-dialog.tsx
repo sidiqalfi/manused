@@ -15,7 +15,6 @@ import { Plus } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { createCashExpense } from "../../actions/create-cash-expense"
 import { cashKeys } from "../../queries"
-import { dashboardKeys } from "@features/dashboard/queries"
 
 type Props = {
   periodId: string
@@ -36,10 +35,7 @@ export function AddExpenseDialog({ periodId, triggerVariant = "default" }: Props
       setError(result.error)
     } else {
       setOpen(false)
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: cashKeys.all }),
-        queryClient.invalidateQueries({ queryKey: dashboardKeys.data() }),
-      ])
+      await queryClient.invalidateQueries({ queryKey: cashKeys.all })
     }
   }
 

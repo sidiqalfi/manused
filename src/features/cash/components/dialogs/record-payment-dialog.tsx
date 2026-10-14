@@ -15,7 +15,6 @@ import { Plus } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { createCashIncome } from "../../actions/create-cash-income"
 import { cashKeys } from "../../queries"
-import { dashboardKeys } from "@features/dashboard/queries"
 
 type Member = {
   id: string
@@ -45,10 +44,7 @@ export function RecordPaymentDialog({ periodId, unpaidMembers, duesAmount, minAm
       setError(result.error)
     } else {
       setOpen(false)
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: cashKeys.all }),
-        queryClient.invalidateQueries({ queryKey: dashboardKeys.data() }),
-      ])
+      await queryClient.invalidateQueries({ queryKey: cashKeys.all })
     }
   }
 

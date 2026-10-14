@@ -15,7 +15,6 @@ import { Plus } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { createArisanPeriod } from "../actions/create-arisan-period"
 import { arisanKeys } from "../queries"
-import { dashboardKeys } from "@features/dashboard/queries"
 
 const MONTHS = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -42,10 +41,7 @@ export function CreateArisanPeriodDialog({
       setError(result.error)
     } else {
       setOpen(false)
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: arisanKeys.periods() }),
-        queryClient.invalidateQueries({ queryKey: dashboardKeys.data() }),
-      ])
+      await queryClient.invalidateQueries({ queryKey: arisanKeys.periods() })
     }
   }
 

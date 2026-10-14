@@ -14,7 +14,6 @@ import { useQueryClient } from "@tanstack/react-query"
 import { previewArisanDraw } from "../actions/preview-arisan-draw"
 import { performArisanDraw } from "../actions/perform-arisan-draw"
 import { arisanKeys } from "../queries"
-import { dashboardKeys } from "@features/dashboard/queries"
 import { formatCurrency } from "@/lib/format"
 
 type Props = {
@@ -70,10 +69,7 @@ export function DrawDialog({ periodId, payoutTarget, triggerVariant = "default" 
     } else {
       setOpen(false)
       setPreview(null)
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: arisanKeys.all }),
-        queryClient.invalidateQueries({ queryKey: dashboardKeys.data() }),
-      ])
+      await queryClient.invalidateQueries({ queryKey: arisanKeys.all })
     }
   }
 

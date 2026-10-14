@@ -15,7 +15,6 @@ import { Plus } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { createSosialPeriod } from "../../actions/create-sosial-period"
 import { sosialKeys } from "../../queries"
-import { dashboardKeys } from "@features/dashboard/queries"
 import { MONTHS } from "@/lib/months"
 
 export function CreateSosialPeriodDialog({
@@ -38,10 +37,7 @@ export function CreateSosialPeriodDialog({
       setError(result.error)
     } else {
       setOpen(false)
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: sosialKeys.periods() }),
-        queryClient.invalidateQueries({ queryKey: dashboardKeys.data() }),
-      ])
+      await queryClient.invalidateQueries({ queryKey: sosialKeys.periods() })
     }
   }
 
