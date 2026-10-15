@@ -10,6 +10,9 @@ const periodDetailsInclude = {
     orderBy: { paidAt: "asc" },
   },
   expenses: {
+    include: {
+      relatedEvent: { select: { id: true, name: true } },
+    },
     orderBy: { spentAt: "asc" },
   },
 } satisfies Prisma.CashPeriodInclude
