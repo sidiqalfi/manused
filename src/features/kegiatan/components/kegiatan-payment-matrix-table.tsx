@@ -56,6 +56,7 @@ export function KegiatanPaymentMatrixTable({ matrix, loading }: Props) {
 
   const arrearsMap = computeEventArrears(matrix)
   const deficitsMap = computeEventDeficits(matrix)
+  const nowTs = Date.now()
 
   return (
     <div className="space-y-4">
@@ -103,6 +104,10 @@ export function KegiatanPaymentMatrixTable({ matrix, loading }: Props) {
                     const isParticipant = event.participantIds.includes(member.id)
                     const amount = event.paidBy[member.id]
                     const remainingDeficit = memberDeficits?.get(event.id)
+                    const isPast = new Date(event.date).getTime() < nowTs
+                    const unpaidUpcoming =
+                      isParticipant && !isPast &&
+                      (amount ?? 0) < event.expected
                     return (
                       <TableCell
                         key={event.id}
@@ -118,6 +123,13 @@ export function KegiatanPaymentMatrixTable({ matrix, loading }: Props) {
                             title={`Belum bayar (wajib ${shortFormat(event.expected)})`}
                           >
                             ✕
+                          </span>
+                        ) : unpaidUpcoming ? (
+                          <span
+                            className="font-medium text-orange-500"
+                            title={`Belum setor (wajib ${shortFormat(event.expected)}) — event belum lewat`}
+                          >
+                            ○
                           </span>
                         ) : (
                           <span className="text-muted-foreground/40">–</span>
