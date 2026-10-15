@@ -50,12 +50,16 @@ export function YearlyIncomeExpenseChart({ year, data, title, type = "bar" }: Pr
         tickLine={false}
         axisLine={false}
         tickMargin={8}
+        // Di layar sempit recharts menyisipkan label bulan (Jan, Mar, ...)
+        // alih-alih memampatkan 12 label berdesakan.
+        minTickGap={24}
+        interval="preserveStartEnd"
         tickFormatter={(month: number) => MONTHS[month - 1].slice(0, 3)}
       />
       <YAxis
         tickLine={false}
         axisLine={false}
-        width={44}
+        width={40}
         tickFormatter={(value: number) =>
           value === 0 ? "0" : `${Math.round(value / 1000)}rb`
         }
@@ -88,7 +92,7 @@ export function YearlyIncomeExpenseChart({ year, data, title, type = "bar" }: Pr
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-64 w-full">
+        <ChartContainer config={chartConfig} className="h-48 w-full sm:h-64">
           {type === "line" ? (
             <LineChart data={data} margin={{ left: 4, right: 4 }}>
               {axes}

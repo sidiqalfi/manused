@@ -208,8 +208,10 @@ export function DashboardView({
         totalMembers={membersResult?.success ? members.length : null}
       />
 
-      <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
-        <div className="space-y-4">
+      {/* min-w-0: tanpa ini, kartu grafik memaksa grid melebar melebihi
+          viewport di layar sempit begitu data chart termuat. */}
+      <div className="grid min-w-0 gap-4 xl:grid-cols-[2fr_1fr]">
+        <div className="min-w-0 space-y-4">
           <BookSectionCard
             title="Kas"
             href="/dashboard/cash"

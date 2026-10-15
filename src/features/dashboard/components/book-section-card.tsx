@@ -66,7 +66,7 @@ export function BookSectionCard({
           </Button>
         </CardAction>
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-w-0 overflow-hidden">
         {hasPeriod ? (
           <div className="space-y-2">
             <YearlyIncomeExpenseChart
