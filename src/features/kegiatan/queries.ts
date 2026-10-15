@@ -3,6 +3,7 @@ import { getKegiatanList } from "./actions/get-kegiatan-list"
 import { getKegiatanDetail } from "./actions/get-kegiatan-detail"
 import { getKegiatanYearSummary } from "./actions/get-kegiatan-year-summary"
 import { getKegiatanYearChart } from "./actions/get-kegiatan-year-chart"
+import { getKegiatanPaymentMatrix } from "./actions/get-kegiatan-payment-matrix"
 
 export const kegiatanKeys = {
   all: ["kegiatan"] as const,
@@ -39,6 +40,14 @@ export function kegiatanYearChartQuery(year: number | null) {
   return queryOptions({
     queryKey: kegiatanKeys.yearChart(year ?? 0),
     queryFn: () => getKegiatanYearChart(year as number),
+    enabled: year !== null,
+  })
+}
+
+export function kegiatanYearPaymentMatrixQuery(year: number | null) {
+  return queryOptions({
+    queryKey: kegiatanKeys.yearPaymentMatrix(year ?? 0),
+    queryFn: () => getKegiatanPaymentMatrix(year as number),
     enabled: year !== null,
   })
 }

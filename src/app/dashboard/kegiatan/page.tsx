@@ -17,7 +17,9 @@ import { CreateKegiatanDialog } from "@/features/kegiatan/components/create-kegi
 import {
   kegiatanListQuery,
   kegiatanYearSummaryQuery,
+  kegiatanYearPaymentMatrixQuery,
 } from "@/features/kegiatan/queries"
+import { KegiatanPaymentMatrixTable } from "@/features/kegiatan/components/kegiatan-payment-matrix-table"
 import { KEGIATAN_STATUS_LABEL } from "@/features/kegiatan/kegiatan-schemas"
 import { formatCurrency, formatDate } from "@/lib/format"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -32,14 +34,16 @@ const STATUS_VARIANT: Record<string, StatusBadgeVariant> = {
 }
 
 export default function KegiatanPage() {
-  const listResult = useQuery(kegiatanListQuery)
   const currentYear = new Date().getFullYear()
+  // Filter tahun (client-side — list kegiatan kecil)
+  const [yearFilter, setYearFilter] = useState<number>(currentYear)
+  const listResult = useQuery(kegiatanListQuery)
   const yearSummaryResult = useQuery(kegiatanYearSummaryQuery(currentYear))
+  const matrixResult = useQuery(kegiatanYearPaymentMatrixQuery(yearFilter))
+  const matrix = matrixResult.data?.success ? matrixResult.data.data ?? null : null
 
   const kegiatanList = listResult.data?.success ? listResult.data.data ?? [] : []
 
-  // Filter tahun (client-side — list kegiatan kecil)
-  const [yearFilter, setYearFilter] = useState<number>(currentYear)
   const years = useMemo(() => {
     const set = new Set<number>(
       kegiatanList.map((k) => new Date(k.eventDate).getFullYear())
@@ -127,6 +131,9 @@ export default function KegiatanPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Rekap tahunan */}
+      <KegiatanPaymentMatrixTable matrix={matrix} loading={matrixResult.isPending} />
 
       {/* Daftar kegiatan */}
       {listResult.isPending ? (
