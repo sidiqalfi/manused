@@ -57,6 +57,7 @@ export const sidebarData = {
       title: "Log",
       url: "/dashboard/log",
       icon: <ScrollText />,
+      guestHidden: true,
     },
   ],
   navSecondary: [
@@ -64,6 +65,7 @@ export const sidebarData = {
       title: "Settings",
       url: "/dashboard/settings",
       icon: <Settings />,
+      guestHidden: true,
     },
     {
       title: "Support",

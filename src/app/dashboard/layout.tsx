@@ -4,6 +4,7 @@ import { DashboardBreadcrumb } from "@/features/dashboard/components/dashboard-b
 import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { auth } from "@/features/auth/lib/auth"
+import { GuestProvider } from "@/features/auth/components/guest-context"
 import { redirect } from "next/navigation"
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
@@ -13,6 +14,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   }
 
   return (
+    <GuestProvider isGuest={session.user?.role === "guest"}>
     <SidebarProvider defaultOpen={false}>
       <AppSidebar user={session.user} />
       <SidebarInset>
@@ -31,5 +33,6 @@ export default async function Layout({ children }: { children: React.ReactNode }
         </div>
       </SidebarInset>
     </SidebarProvider>
+    </GuestProvider>
   )
 }

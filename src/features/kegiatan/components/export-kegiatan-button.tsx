@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { DownloadIcon, FileJsonIcon, FileSpreadsheetIcon } from "lucide-react"
+import { useIsGuest } from "@/features/auth/components/guest-context"
 
 const STATUS_LABEL: Record<string, string> = {
   ACTIVE: "Aktif",
@@ -110,7 +111,11 @@ export function ExportKegiatanButton({
   data,
   disabled,
 }: ExportKegiatanButtonProps) {
+  const isGuest = useIsGuest()
   const base = `kegiatan-${slugify(kegiatanName) || "peserta"}-${todayStamp()}`
+
+  // Tamu tidak boleh mengexport data apa pun.
+  if (isGuest) return null
 
   const handleExportCsv = () => {
     download(toCsv(toRows(data)), `${base}.csv`, "text/csv;charset=utf-8")

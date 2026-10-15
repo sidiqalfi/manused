@@ -58,7 +58,12 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
             (item) => !(isGuest && item.guestHidden)
           )}
         />
-        <NavSecondary items={sidebarData.navSecondary} className="mt-auto" />
+        <NavSecondary
+          items={sidebarData.navSecondary.filter(
+            (item) => !(isGuest && "guestHidden" in item && item.guestHidden)
+          )}
+          className="mt-auto"
+        />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={currentUser} />
