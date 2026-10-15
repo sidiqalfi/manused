@@ -9,6 +9,7 @@ import {
   Users,
   HandCoins,
   Shuffle,
+  CalendarDays,
   ScrollText,
   Settings,
 } from "lucide-react"
@@ -40,6 +41,11 @@ export const sidebarData = {
       title: "Arisan",
       url: "/dashboard/arisan",
       icon: <Shuffle />,
+    },
+    {
+      title: "Kegiatan",
+      url: "/dashboard/kegiatan",
+      icon: <CalendarDays />,
     },
     {
       title: "Members",
