@@ -58,7 +58,7 @@ export function ArisanDrawHistory({ draws, loading }: Props) {
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/50">

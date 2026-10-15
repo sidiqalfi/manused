@@ -16,7 +16,7 @@ export function ArisanYearDrawHistory({ draws, loading, year }: Props) {
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Riwayat Kocokan</h3>
 
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/50">
