@@ -21,6 +21,7 @@ import {
 } from "@/features/sosial/queries"
 import { membersQuery } from "@/features/members/queries"
 import { activeSlotHeads } from "@/features/members/household"
+import { KegiatanCalendar } from "@/features/kegiatan/components/kegiatan-calendar"
 import {
   arisanPeriodsQuery,
   arisanPeriodQuery,
@@ -201,63 +202,70 @@ export function DashboardView({ userName }: { userName: string | null }) {
         totalMembers={membersResult?.success ? members.length : null}
       />
 
-      <div className="grid gap-4 xl:grid-cols-3">
-        <BookSectionCard
-          title="Kas"
-          href="/dashboard/cash"
-          periodLabel={latestCash ? `Tahun ${latestCash.year}` : null}
-          chart={
-            latestCash
-              ? {
-                  year: latestCash.year,
-                  data: cashChart,
-                  title: `Arus kas tahun ${latestCash.year}`,
-                }
-              : null
-          }
-          emptyText="Belum ada periode kas. Buat periode untuk memulai."
-          createPeriodTrigger={<CreatePeriodDialog triggerVariant="outline" />}
-          initialBalance={cashYearSummary?.initialBalance ?? null}
-        />
-        <BookSectionCard
-          title="Sosial"
-          href="/dashboard/sosial"
-          periodLabel={latestSosial ? `Tahun ${latestSosial.year}` : null}
-          chart={
-            latestSosial
-              ? {
-                  year: latestSosial.year,
-                  data: sosialChart,
-                  title: `Arus sosial tahun ${latestSosial.year}`,
-                }
-              : null
-          }
-          emptyText="Belum ada periode sosial. Buat periode untuk memulai."
-          createPeriodTrigger={
-            <CreateSosialPeriodDialog triggerVariant="outline" />
-          }
-          initialBalance={sosialYearSummary?.initialBalance ?? null}
-        />
-        <BookSectionCard
-          title="Arisan"
-          href="/dashboard/arisan"
-          periodLabel={latestArisan ? `Tahun ${latestArisan.year}` : null}
-          chart={
-            latestArisan
-              ? {
-                  year: latestArisan.year,
-                  data: arisanChart,
-                  title: `Arus arisan tahun ${latestArisan.year}`,
-                }
-              : null
-          }
-          emptyText="Belum ada periode arisan. Buat periode untuk memulai."
-          createPeriodTrigger={
-            <CreateArisanPeriodDialog triggerVariant="outline" />
-          }
-          initialBalance={arisanOverview?.initialSave ?? null}
-          initialBalanceLabel="Saldo awal dana save"
-        />
+      <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
+        <div className="space-y-4">
+          <BookSectionCard
+            title="Kas"
+            href="/dashboard/cash"
+            periodLabel={latestCash ? `Tahun ${latestCash.year}` : null}
+            chart={
+              latestCash
+                ? {
+                    year: latestCash.year,
+                    data: cashChart,
+                    title: `Arus kas tahun ${latestCash.year}`,
+                  }
+                : null
+            }
+            emptyText="Belum ada periode kas. Buat periode untuk memulai."
+            createPeriodTrigger={<CreatePeriodDialog triggerVariant="outline" />}
+            initialBalance={cashYearSummary?.initialBalance ?? null}
+          />
+          <BookSectionCard
+            title="Sosial"
+            href="/dashboard/sosial"
+            periodLabel={latestSosial ? `Tahun ${latestSosial.year}` : null}
+            chart={
+              latestSosial
+                ? {
+                    year: latestSosial.year,
+                    data: sosialChart,
+                    title: `Arus sosial tahun ${latestSosial.year}`,
+                  }
+                : null
+            }
+            emptyText="Belum ada periode sosial. Buat periode untuk memulai."
+            createPeriodTrigger={
+              <CreateSosialPeriodDialog triggerVariant="outline" />
+            }
+            initialBalance={sosialYearSummary?.initialBalance ?? null}
+          />
+          <BookSectionCard
+            title="Arisan"
+            href="/dashboard/arisan"
+            periodLabel={latestArisan ? `Tahun ${latestArisan.year}` : null}
+            chart={
+              latestArisan
+                ? {
+                    year: latestArisan.year,
+                    data: arisanChart,
+                    title: `Arus arisan tahun ${latestArisan.year}`,
+                  }
+                : null
+            }
+            emptyText="Belum ada periode arisan. Buat periode untuk memulai."
+            createPeriodTrigger={
+              <CreateArisanPeriodDialog triggerVariant="outline" />
+            }
+            initialBalance={arisanOverview?.initialSave ?? null}
+            initialBalanceLabel="Saldo awal dana save"
+          />
+        </div>
+        <Card>
+          <CardContent className="p-4">
+            <KegiatanCalendar />
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
