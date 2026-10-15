@@ -70,12 +70,14 @@ export function KegiatanPaymentMatrixTable({ matrix, loading }: Props) {
               {events.map((event) => (
                 <TableHead
                   key={event.id}
-                  className="min-w-[5rem] text-center"
+                  className="min-w-[8rem] max-w-[12rem] p-2 align-top text-center"
                   title={`${event.name} — ${shortDate(event.date)}`}
                 >
-                  <span className="block">{shortDate(event.date)}</span>
-                  <span className="block max-w-[6rem] truncate text-xs font-normal text-muted-foreground">
+                  <span className="block whitespace-normal break-words text-xs font-medium leading-snug">
                     {event.name}
+                  </span>
+                  <span className="mt-1 block text-xs font-normal text-muted-foreground">
+                    {shortDate(event.date)}
                   </span>
                 </TableHead>
               ))}
