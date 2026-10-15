@@ -137,7 +137,15 @@ async function resolveMemberIds(
 
   const [activeHeads, existingIncomes] = await Promise.all([
     prisma.member.findMany({
-      where: { status: "ACTIVE", headOfHouseholdId: null },
+      where: {
+        // Slot = keluarga: head inactive tetap ikut batch "semua" selama
+        // rumahnya masih punya anggota aktif.
+        headOfHouseholdId: null,
+        OR: [
+          { status: "ACTIVE" },
+          { householdMembers: { some: { status: "ACTIVE" } } },
+        ],
+      },
       select: { id: true },
       orderBy: { name: "asc" },
     }),

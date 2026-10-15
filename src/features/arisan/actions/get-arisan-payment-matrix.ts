@@ -47,7 +47,15 @@ export async function getArisanPaymentMatrix(
         orderBy: { month: "asc" },
       }),
       prisma.member.findMany({
-        where: { status: "ACTIVE", headOfHouseholdId: null },
+        where: {
+          headOfHouseholdId: null,
+          // Slot = keluarga: head inactive tetap tampil selama rumahnya
+          // masih punya anggota aktif.
+          OR: [
+            { status: "ACTIVE" },
+            { householdMembers: { some: { status: "ACTIVE" } } },
+          ],
+        },
         select: { id: true, name: true, fullName: true },
         orderBy: { name: "asc" },
       }),

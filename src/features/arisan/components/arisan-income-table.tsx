@@ -21,6 +21,7 @@ import { deleteArisanIncome } from "../actions/delete-arisan-income"
 import { createArisanIncomesBatch } from "../actions/create-arisan-incomes-batch"
 import { arisanKeys } from "../queries"
 import { formatCurrency, formatDate } from "@/lib/format"
+import { activeSlotHeads } from "@/features/members/household"
 import type { MemberArrears } from "@/lib/payments/arrears"
 
 type Income = {
@@ -75,9 +76,9 @@ export function ArisanIncomeTable({ periodId, period, members, arrears }: Props)
 
   const membersData = members?.success ? members.data ?? [] : []
   const paidMemberIds = new Set(incomes.map((i) => i.memberId))
-  const activeHeads = membersData.filter(
-    (m) => m.status === "ACTIVE" && m.headOfHouseholdId == null,
-  )
+  // Slot = keluarga: head inactive tetap muncul selama rumahnya
+  // masih punya anggota aktif.
+  const activeHeads = activeSlotHeads(membersData)
   const unpaidMembers = activeHeads.filter((m) => !paidMemberIds.has(m.id))
 
   return (

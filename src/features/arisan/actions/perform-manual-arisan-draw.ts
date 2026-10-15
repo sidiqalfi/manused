@@ -64,7 +64,15 @@ export async function performManualArisanDraw(formData: FormData) {
     })
 
     const activeHeads = await prisma.member.findMany({
-      where: { status: "ACTIVE", headOfHouseholdId: null },
+      where: {
+        // Slot = keluarga: head inactive tetap eligible selama
+        // rumahnya masih punya anggota aktif.
+        headOfHouseholdId: null,
+        OR: [
+          { status: "ACTIVE" },
+          { householdMembers: { some: { status: "ACTIVE" } } },
+        ],
+      },
       select: { id: true },
     })
 

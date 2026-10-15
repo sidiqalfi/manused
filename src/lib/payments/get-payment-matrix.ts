@@ -50,7 +50,15 @@ async function buildPaymentMatrix(
       : []
 
     const members = await prisma.member.findMany({
-      where: { status: "ACTIVE", headOfHouseholdId: null },
+      // Slot = keluarga: head inactive tetap tampil selama rumahnya
+      // masih punya anggota aktif.
+      where: {
+        headOfHouseholdId: null,
+        OR: [
+          { status: "ACTIVE" },
+          { householdMembers: { some: { status: "ACTIVE" } } },
+        ],
+      },
       select: { id: true, name: true, fullName: true },
       orderBy: { name: "asc" },
     })

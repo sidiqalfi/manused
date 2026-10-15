@@ -20,6 +20,7 @@ import {
   sosialYearChartQuery,
 } from "@/features/sosial/queries"
 import { membersQuery } from "@/features/members/queries"
+import { activeSlotHeads } from "@/features/members/household"
 import {
   arisanPeriodsQuery,
   arisanPeriodQuery,
@@ -63,12 +64,12 @@ function unpaidOf(
 ): MemberLike[] {
   const all = members?.success ? members.data ?? [] : []
   const paid = new Set((incomes ?? []).map((i) => i.memberId))
-  return all.filter(
-    (m) =>
-      m.status === "ACTIVE" &&
-      (!options.headsOnly || m.headOfHouseholdId == null) &&
-      !paid.has(m.id)
-  )
+  if (options.headsOnly) {
+    // Slot = keluarga: head inactive tetap dihitung selama rumahnya
+    // masih punya anggota aktif.
+    return activeSlotHeads(all).filter((m) => !paid.has(m.id))
+  }
+  return all.filter((m) => m.status === "ACTIVE" && !paid.has(m.id))
 }
 
 export function DashboardView({ userName }: { userName: string | null }) {

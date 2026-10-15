@@ -15,6 +15,7 @@ import { ArisanYearDrawHistory } from "@/features/arisan/components/arisan-year-
 import { PaymentMatrixTable } from "@/components/payment-matrix-table"
 import { DrawDialog } from "@/features/arisan/components/draw-dialog"
 import { ManualDrawDialog } from "@/features/arisan/components/manual-draw-dialog"
+import { activeSlotHeads } from "@/features/members/household"
 import {
   arisanPeriodsQuery,
   arisanPeriodQuery,
@@ -128,12 +129,9 @@ export default function ArisanPage() {
   const draws = drawsResult?.success ? drawsResult.data ?? [] : null
 
   const membersData = membersResult?.success ? membersResult.data ?? [] : []
-  const activeHeadCount = membersData.filter(
-    (m) => m.status === "ACTIVE" && m.headOfHouseholdId == null
-  ).length
-  const activeHeads = membersData.filter(
-    (m) => m.status === "ACTIVE" && m.headOfHouseholdId == null
-  )
+  const activeSlots = activeSlotHeads(membersData)
+  const activeHeadCount = activeSlots.length
+  const activeHeads = activeSlots
   const potentialCollected =
     summary ? activeHeadCount * summary.contributionAmount : null
   const collectedCaption = potentialCollected !== null
