@@ -73,7 +73,13 @@ function unpaidOf(
   return all.filter((m) => m.status === "ACTIVE" && !paid.has(m.id))
 }
 
-export function DashboardView({ userName }: { userName: string | null }) {
+export function DashboardView({
+  userName,
+  isGuest = false,
+}: {
+  userName: string | null
+  isGuest?: boolean
+}) {
   const cashPeriodsResult = useQuery(cashPeriodsQuery).data ?? null
   const sosialPeriodsResult = useQuery(sosialPeriodsQuery).data ?? null
   const membersResult = useQuery(membersQuery).data ?? null
@@ -268,10 +274,11 @@ export function DashboardView({ userName }: { userName: string | null }) {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Aksi Cepat</CardTitle>
-        </CardHeader>
+      {!isGuest && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Aksi Cepat</CardTitle>
+          </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <p className="text-sm font-medium text-muted-foreground">Kas</p>
@@ -387,7 +394,8 @@ export function DashboardView({ userName }: { userName: string | null }) {
             </div>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      )}
 
       {membersLoading && (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

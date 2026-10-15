@@ -8,5 +8,10 @@ export default async function Page() {
     redirect("/signin")
   }
 
-  return <DashboardView userName={session.user?.name ?? null} />
+  return (
+    <DashboardView
+      userName={session.user?.name ?? null}
+      isGuest={session.user?.role === "guest"}
+    />
+  )
 }

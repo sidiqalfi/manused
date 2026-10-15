@@ -129,9 +129,6 @@ export function KegiatanPaymentsTable({
               <TableRow key={r.memberId}>
                 <TableCell>
                   <span className="font-medium">{r.member.name}</span>
-                  <span className="block text-xs text-muted-foreground">
-                    {r.member.fullName}
-                  </span>
                 </TableCell>
                 <TableCell className="text-center tabular-nums text-sm">
                   {formatCurrency(r.paid)}

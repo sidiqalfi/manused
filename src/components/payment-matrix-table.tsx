@@ -86,9 +86,6 @@ export function PaymentMatrixTable({ title, matrix, loading, year }: Props) {
                 >
                   <TableCell className="sticky left-0 z-10 bg-background font-medium min-w-[10rem]">
                     {member.name}
-                    <span className="block text-xs text-muted-foreground">
-                      {member.fullName}
-                    </span>
                   </TableCell>
                   {months.map((month) => {
                     const amount = month.paidBy[member.id]

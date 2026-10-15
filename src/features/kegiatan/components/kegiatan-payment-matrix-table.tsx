@@ -96,9 +96,6 @@ export function KegiatanPaymentMatrixTable({ matrix, loading }: Props) {
                 >
                   <TableCell className="sticky left-0 z-10 min-w-[10rem] bg-background font-medium">
                     {member.name}
-                    <span className="block text-xs text-muted-foreground">
-                      {member.fullName}
-                    </span>
                   </TableCell>
                   {events.map((event) => {
                     const isParticipant = event.participantIds.includes(member.id)

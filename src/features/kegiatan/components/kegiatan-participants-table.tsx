@@ -103,9 +103,6 @@ export function KegiatanParticipantsTable({
               <TableRow key={p.id}>
                 <TableCell>
                   <span className="font-medium">{p.member.name}</span>
-                  <span className="block text-xs text-muted-foreground">
-                    {p.member.fullName}
-                  </span>
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge variant={p.member.status === "ACTIVE" ? "default" : "outline"}>
