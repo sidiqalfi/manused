@@ -29,6 +29,10 @@ model User {
   createdArisanPeriods ArisanPeriod[]
   createdArisanIncomes ArisanIncome[]
   createdArisanDraws ArisanDraw[]
+  createdKegiatans Kegiatan[]
+  createdKegiatanParticipants KegiatanParticipant[]
+  createdKegiatanPayments KegiatanPayment[]
+  createdKegiatanExpenses KegiatanExpense[]
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
@@ -42,6 +46,12 @@ enum Gender {
 enum MemberStatus {
   ACTIVE
   INACTIVE
+}
+
+enum KegiatanStatus {
+  PLANNED
+  COMPLETED
+  CANCELLED
 }
 
 model Member {
@@ -71,6 +81,9 @@ model Member {
 
   arisanIncomes ArisanIncome[]
   arisanDraws  ArisanDraw[]
+
+  kegiatanParticipations KegiatanParticipant[]
+  kegiatanPayments       KegiatanPayment[]
 
   roles MemberRoleAssignment[]
 
@@ -158,6 +171,11 @@ model CashExpense {
   description String // "Beli konsumsi rapat", dll
   amount      Int
   spentAt     DateTime @db.Date
+
+  // Opsional: tautkan expense ini ke sebuah Kegiatan (subsidi acara).
+  // Hapus kegiatan tidak menghapus expense-nya (SetNull).
+  relatedEventId String?   @db.Uuid
+  relatedEvent   Kegiatan? @relation("CashExpenseKegiatan", fields: [relatedEventId], references: [id], onDelete: SetNull)
 
   createdById String @db.Uuid
   createdUser User   @relation(fields: [createdById], references: [id])
@@ -279,6 +297,84 @@ model ArisanDraw {
 
   voided   Boolean   @default(false)
   voidedAt DateTime? @db.Date
+
+  createdById String @db.Uuid
+  createdUser User   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+}
+
+model Kegiatan {
+  id String @id @default(uuid()) @db.Uuid
+
+  name         String // "HUT Muda Mudi 2026 — Outbound New Rivermoon"
+  eventDate    DateTime @db.Date
+  location     String?  // "New Rivermoon"
+  feePerPerson Int      // Tarif tetap per peserta (bisa 0)
+  status       KegiatanStatus @default(PLANNED)
+  note         String?
+
+  participants        KegiatanParticipant[]
+  payments            KegiatanPayment[]
+  expenses            KegiatanExpense[]
+  relatedCashExpenses CashExpense[] @relation("CashExpenseKegiatan")
+
+  createdById String @db.Uuid
+  createdUser User   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  @@index([eventDate])
+}
+
+model KegiatanParticipant {
+  id String @id @default(uuid()) @db.Uuid
+
+  kegiatanId String   @db.Uuid
+  kegiatan   Kegiatan @relation(fields: [kegiatanId], references: [id], onDelete: Cascade)
+
+  memberId String @db.Uuid
+  member   Member @relation(fields: [memberId], references: [id])
+
+  joinedAt DateTime @default(now()) @db.Timestamp(6)
+
+  createdById String @db.Uuid
+  createdUser User   @relation(fields: [createdById], references: [id])
+
+  @@unique([kegiatanId, memberId])
+}
+
+model KegiatanPayment {
+  id String @id @default(uuid()) @db.Uuid
+
+  kegiatanId String   @db.Uuid
+  kegiatan   Kegiatan @relation(fields: [kegiatanId], references: [id], onDelete: Cascade)
+
+  memberId String @db.Uuid
+  member   Member @relation(fields: [memberId], references: [id])
+
+  amount Int      // Nominal yang dibayar (bisa parsial — sengaja tanpa @@unique)
+  paidAt DateTime @db.Date
+  note   String?
+
+  createdById String @db.Uuid
+  createdUser User   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([kegiatanId, memberId])
+}
+
+model KegiatanExpense {
+  id String @id @default(uuid()) @db.Uuid
+
+  kegiatanId String   @db.Uuid
+  kegiatan   Kegiatan @relation(fields: [kegiatanId], references: [id], onDelete: Cascade)
+
+  description String
+  amount      Int
+  spentAt     DateTime @db.Date
 
   createdById String @db.Uuid
   createdUser User   @relation(fields: [createdById], references: [id])
