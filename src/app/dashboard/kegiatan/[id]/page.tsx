@@ -49,6 +49,7 @@ import { kegiatanDetailQuery, kegiatanKeys } from "@/features/kegiatan/queries"
 import { membersQuery } from "@features/members/queries"
 import { KegiatanParticipantsTable } from "@/features/kegiatan/components/kegiatan-participants-table"
 import { KegiatanPaymentsTable } from "@/features/kegiatan/components/kegiatan-payments-table"
+import { ExportKegiatanButton } from "@/features/kegiatan/components/export-kegiatan-button"
 import { createKegiatanExpense } from "@/features/kegiatan/actions/create-kegiatan-expense"
 import { deleteKegiatanExpense } from "@/features/kegiatan/actions/delete-kegiatan-expense"
 import { KEGIATAN_STATUS_LABEL } from "@/features/kegiatan/kegiatan-schemas"
@@ -130,6 +131,27 @@ export default function KegiatanDetailPage({
     member: p.member,
   }))
 
+  // Payload export: satu baris per peserta, termasuk status member
+  // (perlu lookup dari list members penuh).
+  const memberStatusById = new Map(
+    members.map((m) => [m.id, m.status as string])
+  )
+  const exportData = participants.map((p) => {
+    const paid = paidBy[p.memberId] ?? 0
+    return {
+      name: p.member.name,
+      fullName: p.member.fullName,
+      status: memberStatusById.get(p.memberId) ?? "ACTIVE",
+      joinedAt: p.joinedAt,
+      totalPaid: paid,
+      expected: kegiatan.feePerPerson,
+      remaining: Math.max(kegiatan.feePerPerson - paid, 0),
+      history: payments
+        .filter((pay) => pay.memberId === p.memberId)
+        .map((pay) => ({ amount: pay.amount, paidAt: pay.paidAt, note: pay.note })),
+    }
+  })
+
   async function handleExpenseSubmit(formData: FormData) {
     setExpenseError(null)
     const result = await createKegiatanExpense(formData)
@@ -182,6 +204,11 @@ export default function KegiatanDetailPage({
             </Badge>
           </div>
         </div>
+        <ExportKegiatanButton
+          kegiatanName={kegiatan.name}
+          data={exportData}
+          disabled={participants.length === 0}
+        />
       </div>
 
       {/* Ringkasan */}
