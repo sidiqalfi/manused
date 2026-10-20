@@ -11,7 +11,8 @@ export interface GetMembersResult {
 export async function getMembers(): Promise<GetMembersResult> {
   try {
     const members = await prisma.member.findMany({
-      orderBy: { createdAt: "desc" },
+      // Urut abjad agar dropdown/picker nama di semua form mudah dipilih.
+      orderBy: { name: "asc" },
     })
     return { success: true, data: members }
   } catch (error) {
