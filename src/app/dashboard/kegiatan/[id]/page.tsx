@@ -50,6 +50,7 @@ import { membersQuery } from "@features/members/queries"
 import { KegiatanParticipantsTable } from "@/features/kegiatan/components/kegiatan-participants-table"
 import { KegiatanPaymentsTable } from "@/features/kegiatan/components/kegiatan-payments-table"
 import { ExportKegiatanButton } from "@/features/kegiatan/components/export-kegiatan-button"
+import { EditKegiatanDialog } from "@/features/kegiatan/components/edit-kegiatan-dialog"
 import { createKegiatanExpense } from "@/features/kegiatan/actions/create-kegiatan-expense"
 import { deleteKegiatanExpense } from "@/features/kegiatan/actions/delete-kegiatan-expense"
 import { KEGIATAN_STATUS_LABEL } from "@/features/kegiatan/kegiatan-schemas"
@@ -204,11 +205,14 @@ export default function KegiatanDetailPage({
             </Badge>
           </div>
         </div>
-        <ExportKegiatanButton
-          kegiatanName={kegiatan.name}
-          data={exportData}
-          disabled={participants.length === 0}
-        />
+        <div className="flex items-center gap-2">
+          <EditKegiatanDialog kegiatan={kegiatan} />
+          <ExportKegiatanButton
+            kegiatanName={kegiatan.name}
+            data={exportData}
+            disabled={participants.length === 0}
+          />
+        </div>
       </div>
 
       {/* Ringkasan */}
