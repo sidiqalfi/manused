@@ -20,6 +20,7 @@ import { KEGIATAN_STATUS_LABEL } from "../kegiatan-schemas"
 type Kegiatan = {
   id: string
   name: string
+  slug: string
   eventDate: Date | string
   location: string | null
   feePerPerson: number
@@ -103,6 +104,21 @@ export function EditKegiatanDialog({ kegiatan }: { kegiatan: Kegiatan }) {
               defaultValue={kegiatan.location ?? ""}
               placeholder="New Rivermoon"
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={`slug-${kegiatan.id}`}>Link (slug)</Label>
+            <Input
+              type="text"
+              name="slug"
+              id={`slug-${kegiatan.id}`}
+              defaultValue={kegiatan.slug}
+              placeholder="hut-muda-mudi-2026"
+            />
+            <p className="text-xs text-muted-foreground">
+              Alamat yang dibagikan: /dashboard/kegiatan/{kegiatan.slug}.
+              Kosongkan untuk tidak mengubah. Hanya huruf kecil, angka, dan
+              tanda hubung. Mengubah ini membuat link lama tidak berlaku.
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor={`status-${kegiatan.id}`}>Status</Label>

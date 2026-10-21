@@ -10,6 +10,7 @@ import {
 } from "../kegiatan-schemas"
 import { activityLogData } from "@/features/log/activity-log"
 import { revalidatePath } from "next/cache"
+import { slugifyKegiatan } from "../slug"
 
 export async function createKegiatan(formData: FormData) {
   const session = await auth()
@@ -29,10 +30,21 @@ export async function createKegiatan(formData: FormData) {
 
   try {
     const id = crypto.randomUUID()
+    // Slug murni dari nama; jika sudah dipakai kegiatan lain, tambah
+    // -2, -3, dst. Tidak berubah saat rename — hanya bisa diubah manual
+    // lewat edit.
+    const base = slugifyKegiatan(validation.data.name) || "kegiatan"
+    let slug = base
+    let n = 2
+    while (await prisma.kegiatan.findUnique({ where: { slug } })) {
+      slug = `${base}-${n}`
+      n += 1
+    }
     await prisma.$transaction([
       prisma.kegiatan.create({
         data: {
           id,
+          slug,
           name: validation.data.name,
           eventDate: validation.data.eventDate,
           location: validation.data.location ?? null,

@@ -86,7 +86,7 @@ export async function addKegiatanParticipants(formData: FormData) {
       ),
     ])
 
-    revalidatePath(`/dashboard/kegiatan/${kegiatanId}`)
+    revalidatePath("/dashboard/kegiatan", "layout")
     return { success: true, count: entries.length }
   }
   catch (error) {

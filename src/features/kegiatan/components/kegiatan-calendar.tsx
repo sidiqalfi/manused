@@ -106,7 +106,7 @@ export function KegiatanCalendar() {
             {listItems.map((e) => (
               <li key={e.id}>
                 <Link
-                  href={`/dashboard/kegiatan/${e.id}`}
+                  href={`/dashboard/kegiatan/${e.slug}`}
                   className="flex items-start justify-between gap-3 rounded-md border p-3 transition hover:bg-muted/50"
                 >
                   <div className="min-w-0 flex-1">

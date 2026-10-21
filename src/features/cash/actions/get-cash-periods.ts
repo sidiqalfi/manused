@@ -11,7 +11,7 @@ const periodDetailsInclude = {
   },
   expenses: {
     include: {
-      relatedEvent: { select: { id: true, name: true } },
+      relatedEvent: { select: { id: true, slug: true, name: true } },
     },
     orderBy: { spentAt: "asc" },
   },

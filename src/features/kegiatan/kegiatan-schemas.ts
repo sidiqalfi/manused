@@ -29,8 +29,20 @@ export const createKegiatanSchema = z.object({
 
 export const kegiatanIdSchema = z.string().uuid()
 
+// Slug opsional saat edit (kosong = tidak diubah). Saat create slug
+// selalu dibuat otomatis dari nama oleh server.
+export const slugSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .regex(/^[a-z0-9](-?[a-z0-9])*$/, {
+    message: "Slug hanya boleh huruf kecil, angka, dan tanda hubung",
+  })
+  .max(40)
+
 export const updateKegiatanSchema = createKegiatanSchema.partial().extend({
   id: z.string().uuid(),
+  slug: slugSchema.nullish(),
 })
 
 export const addKegiatanParticipantsBatchSchema = z
@@ -103,6 +115,7 @@ export function getUpdateKegiatanFormValues(formData: FormData) {
     feePerPerson: Number(formData.get("feePerPerson")),
     status: formData.get("status"),
     note: formData.get("note"),
+    slug: formData.get("slug"),
   }
 }
 

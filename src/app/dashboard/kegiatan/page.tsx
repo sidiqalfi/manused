@@ -172,7 +172,7 @@ export default function KegiatanPage() {
                   <TableRow key={k.id}>
                     <TableCell>
                       <Link
-                        href={`/dashboard/kegiatan/${k.id}`}
+                        href={`/dashboard/kegiatan/${k.slug}`}
                         className="font-medium hover:underline"
                       >
                         {k.name}

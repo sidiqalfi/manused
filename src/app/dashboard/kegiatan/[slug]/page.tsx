@@ -68,10 +68,10 @@ const STATUS_VARIANT: Record<string, StatusBadgeVariant> = {
 export default function KegiatanDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }) {
-  const { id } = use(params)
-  const detailResult = useQuery(kegiatanDetailQuery(id))
+  const { slug } = use(params)
+  const detailResult = useQuery(kegiatanDetailQuery(slug))
   const membersResult = useQuery(membersQuery)
   const queryClient = useQueryClient()
 

@@ -69,7 +69,7 @@ export async function linkCashExpenseToKegiatan(formData: FormData) {
     ])
 
     revalidatePath("/dashboard/cash")
-    revalidatePath(`/dashboard/kegiatan/${kegiatanId}`)
+    revalidatePath("/dashboard/kegiatan", "layout")
     return { success: true }
   }
   catch (error) {

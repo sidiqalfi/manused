@@ -43,16 +43,19 @@ export interface GetKegiatanDetailResult {
 }
 
 export async function getKegiatanDetail(
-  kegiatanId: string
+  slugOrId: string
 ): Promise<GetKegiatanDetailResult> {
-  const validation = kegiatanIdSchema.safeParse(kegiatanId)
-  if (!validation.success) {
-    return { success: false, error: "ID kegiatan tidak valid" }
+  // Terima slug URL maupun uuid lama (link lama tetap hidup).
+  const isUuid = kegiatanIdSchema.safeParse(slugOrId).success
+  if (!isUuid && !/^[a-z0-9](-?[a-z0-9])*$/.test(slugOrId)) {
+    return { success: false, error: "Link kegiatan tidak valid" }
   }
 
   try {
-    const kegiatan = await prisma.kegiatan.findUnique({
-      where: { id: validation.data },
+    const kegiatan = await prisma.kegiatan.findFirst({
+      where: isUuid
+        ? { OR: [{ id: slugOrId }, { slug: slugOrId }] }
+        : { slug: slugOrId },
       include: kegiatanDetailsInclude,
     })
 

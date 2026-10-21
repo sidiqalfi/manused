@@ -26,7 +26,7 @@ export async function updateKegiatan(formData: FormData) {
     return { error: "Data tidak valid", details: validation.error.issues }
   }
 
-  const { id, ...updates } = validation.data
+  const { id, slug, ...updates } = validation.data
 
   try {
     const existing = await prisma.kegiatan.findUnique({ where: { id } })
@@ -39,9 +39,21 @@ export async function updateKegiatan(formData: FormData) {
       return { error: "Anda tidak memiliki izin untuk mengubah kegiatan ini" }
     }
 
+    // Slug hanya diubah jika dikirim dan benar-benar beda; tolak jika
+    // sudah dipakai kegiatan lain.
+    let nextSlug: string | undefined
+    if (slug !== undefined && slug !== null && slug !== "" && slug !== existing.slug) {
+      const clash = await prisma.kegiatan.findUnique({ where: { slug } })
+      if (clash) {
+        return { error: "Slug sudah dipakai kegiatan lain" }
+      }
+      nextSlug = slug
+    }
+
     const kegiatan = await prisma.kegiatan.update({
       where: { id },
       data: {
+        ...(nextSlug !== undefined && { slug: nextSlug }),
         ...(updates.name !== undefined && { name: updates.name }),
         ...(updates.eventDate !== undefined && { eventDate: updates.eventDate }),
         ...(updates.location !== undefined && { location: updates.location }),
@@ -65,6 +77,7 @@ export async function updateKegiatan(formData: FormData) {
         summary: `Mengubah kegiatan ${existing.name}`,
         before: {
           name: existing.name,
+          slug: existing.slug,
           eventDate: existing.eventDate.toISOString(),
           location: existing.location,
           feePerPerson: existing.feePerPerson,
@@ -73,6 +86,7 @@ export async function updateKegiatan(formData: FormData) {
         },
         after: {
           name: kegiatan.name,
+          slug: kegiatan.slug,
           eventDate: kegiatan.eventDate.toISOString(),
           location: kegiatan.location,
           feePerPerson: kegiatan.feePerPerson,
@@ -82,8 +96,7 @@ export async function updateKegiatan(formData: FormData) {
       }),
     })
 
-    revalidatePath("/dashboard/kegiatan")
-    revalidatePath(`/dashboard/kegiatan/${id}`)
+    revalidatePath("/dashboard/kegiatan", "layout")
     return { success: true }
   }
   catch (error) {

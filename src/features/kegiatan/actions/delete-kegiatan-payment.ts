@@ -63,7 +63,7 @@ export async function deleteKegiatanPayment(formData: FormData) {
       }),
     ])
 
-    revalidatePath(`/dashboard/kegiatan/${payment.kegiatanId}`)
+    revalidatePath("/dashboard/kegiatan", "layout")
     return { success: true }
   }
   catch (error) {

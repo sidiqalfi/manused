@@ -36,7 +36,7 @@ type Expense = {
   description: string
   amount: number
   spentAt: Date
-  relatedEvent?: { id: string; name: string } | null
+  relatedEvent?: { id: string; slug: string; name: string } | null
 }
 
 type Props = {
@@ -133,7 +133,7 @@ export function CashExpenseTable({ periodId, period }: Props) {
                   {expense.relatedEvent && (
                     <span className="mt-0.5 flex items-center gap-1">
                       <Link
-                        href={`/dashboard/kegiatan/${expense.relatedEvent.id}`}
+                        href={`/dashboard/kegiatan/${expense.relatedEvent.slug}`}
                       >
                         <Badge variant="secondary" className="hover:bg-secondary/80">
                           📅 {expense.relatedEvent.name}

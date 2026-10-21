@@ -306,6 +306,7 @@ model ArisanDraw {
 
 model Kegiatan {
   id String @id @default(uuid()) @db.Uuid
+  slug String @unique // URL-friendly, dibuat sekali saat create — tidak berubah saat rename agar link yang dibagikan tetap hidup
 
   name         String // "HUT Muda Mudi 2026 — Outbound New Rivermoon"
   eventDate    DateTime @db.Date
