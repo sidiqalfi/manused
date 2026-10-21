@@ -101,14 +101,14 @@ export function CashExpenseTable({ periodId, period }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="text-lg font-semibold">Pengeluaran</h3>
         <AddExpenseDialog periodId={periodId} />
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/50">

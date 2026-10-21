@@ -92,7 +92,7 @@ export function KegiatanPaymentsTable({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
           Terkumpul {formatCurrency(totalCollected)} dari {formatCurrency(feePerPerson * participants.length)}
         </p>
@@ -106,7 +106,7 @@ export function KegiatanPaymentsTable({
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">

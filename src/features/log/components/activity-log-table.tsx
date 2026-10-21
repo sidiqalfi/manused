@@ -165,7 +165,7 @@ export function ActivityLogTable() {
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/50">
@@ -220,7 +220,7 @@ export function ActivityLogTable() {
         </table>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
           {total} log aktivitas
         </p>
