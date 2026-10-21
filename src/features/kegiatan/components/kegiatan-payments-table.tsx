@@ -29,6 +29,8 @@ import { formatCurrency } from "@/lib/format"
 
 type Participant = {
   memberId: string
+  attending: boolean
+  expectedAmount: number | null
   member: { id: string; name: string; fullName: string }
 }
 
@@ -66,14 +68,28 @@ export function KegiatanPaymentsTable({
     return map
   }, [payments])
 
+  // Iuran yang disepakati per peserta (override patungan), fallback fee.
+  const expectedByMember = useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const p of participants) {
+      map[p.memberId] = p.expectedAmount ?? feePerPerson
+    }
+    return map
+  }, [participants, feePerPerson])
+
   const rows = participants
     .map((p) => {
+      const expected = expectedByMember[p.memberId] ?? feePerPerson
       const paid = paidBy[p.memberId] ?? 0
-      const remaining = Math.max(feePerPerson - paid, 0)
-      return { ...p, paid, remaining }
+      const remaining = Math.max(expected - paid, 0)
+      return { ...p, expected, paid, remaining }
     })
     .sort((a, b) => a.member.name.localeCompare(b.member.name))
 
+  const totalExpected = participants.reduce(
+    (s, p) => s + (p.expectedAmount ?? feePerPerson),
+    0
+  )
   const totalCollected = Object.values(paidBy).reduce((s, v) => s + v, 0)
 
   async function handleDelete() {
@@ -94,13 +110,14 @@ export function KegiatanPaymentsTable({
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          Terkumpul {formatCurrency(totalCollected)} dari {formatCurrency(feePerPerson * participants.length)}
+          Terkumpul {formatCurrency(totalCollected)} dari {formatCurrency(totalExpected)}
         </p>
         <RecordKegiatanPaymentDialog
           kegiatanId={kegiatanId}
           feePerPerson={feePerPerson}
           participants={participants}
           paidBy={paidBy}
+          expectedByMember={expectedByMember}
         />
       </div>
 
@@ -129,6 +146,9 @@ export function KegiatanPaymentsTable({
               <TableRow key={r.memberId}>
                 <TableCell>
                   <span className="font-medium">{r.member.name}</span>
+                  {!r.attending && (
+                    <Badge variant="outline" className="ml-2">Patungan</Badge>
+                  )}
                 </TableCell>
                 <TableCell className="text-center tabular-nums text-sm">
                   {formatCurrency(r.paid)}

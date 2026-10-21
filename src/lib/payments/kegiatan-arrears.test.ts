@@ -16,6 +16,7 @@ function matrixFrom(
     expected: number
     participantIds: string[]
     paidBy: Record<string, number>
+    expectedByMember?: Record<string, number>
   }[]
 ): KegiatanPaymentMatrix {
   return {
@@ -28,6 +29,7 @@ function matrixFrom(
       name: e.id,
       date: new Date(`${e.date}T00:00:00.000Z`),
       expected: e.expected,
+      expectedByMember: e.expectedByMember ?? {},
       participantIds: e.participantIds,
       paidBy: e.paidBy,
     })),
@@ -111,4 +113,37 @@ test("computeEventDeficits marks only the deficient events", () => {
   assert.ok(memberDeficits)
   assert.deepEqual(memberDeficits.get("e1"), 20000)
   assert.equal(memberDeficits.get("e2"), undefined)
+})
+
+test("patungan with reduced agreed fee pays less than feePerPerson and is clean", () => {
+  // Patungan 70rb dari iuran 80rb — bukan nunggak 10rb.
+  const matrix = matrixFrom([
+    {
+      id: "e1",
+      date: PAST,
+      expected: 80000,
+      participantIds: ["adit"],
+      paidBy: { adit: 70000 },
+      expectedByMember: { adit: 70000 },
+    },
+  ])
+
+  const result = computeEventArrears(matrix)
+  assert.equal(result.get("adit"), undefined)
+})
+
+test("patungan who underpays the agreed amount is in arrears for the difference", () => {
+  const matrix = matrixFrom([
+    {
+      id: "e1",
+      date: PAST,
+      expected: 80000,
+      participantIds: ["adit"],
+      paidBy: { adit: 50000 },
+      expectedByMember: { adit: 70000 },
+    },
+  ])
+
+  const result = computeEventArrears(matrix)
+  assert.deepEqual(result.get("adit"), { count: 1, amount: 20000 })
 })

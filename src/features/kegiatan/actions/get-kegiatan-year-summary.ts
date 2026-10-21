@@ -7,7 +7,7 @@ const yearSchema = z.number().int().min(2020).max(2100)
 
 export interface KegiatanYearSummary {
   kegiatanCount: number
-  totalExpected: number // feePerPerson × jumlah peserta, diakumulasi
+  totalExpected: number // Σ(iuran disepakati per peserta; patungan bisa < feePerPerson)
   totalCollected: number
   totalExpense: number // KegiatanExpense + CashExpense tertaut
 }
@@ -37,7 +37,7 @@ export async function getKegiatanYearSummary(
       select: {
         id: true,
         feePerPerson: true,
-        _count: { select: { participants: true } },
+        participants: { select: { expectedAmount: true } },
         payments: { select: { amount: true } },
         expenses: { select: { amount: true } },
         relatedCashExpenses: { select: { amount: true } },
@@ -49,7 +49,10 @@ export async function getKegiatanYearSummary(
     let totalExpense = 0
 
     for (const k of kegiatanList) {
-      totalExpected += k.feePerPerson * k._count.participants
+      totalExpected += k.participants.reduce(
+        (s, p) => s + (p.expectedAmount ?? k.feePerPerson),
+        0
+      )
       totalCollected += k.payments.reduce((s, p) => s + p.amount, 0)
       totalExpense +=
         k.expenses.reduce((s, e) => s + e.amount, 0) +

@@ -1,9 +1,20 @@
-import type { KegiatanPaymentMatrix } from "@/features/kegiatan/actions/get-kegiatan-payment-matrix"
+import type {
+  KegiatanPaymentMatrix,
+  KegiatanPaymentMatrixEvent,
+} from "@/features/kegiatan/actions/get-kegiatan-payment-matrix"
 
 export type EventArrears = { count: number; amount: number }
 
 function dateKey(d: Date): number {
   return new Date(d).getTime()
+}
+
+/**
+ * Iuran yang diharapkan dari member ini di event ini — override patungan
+ * (expectedByMember) bila ada, selain itu feePerPerson event.
+ */
+function expectedFor(event: KegiatanPaymentMatrixEvent, memberId: string): number {
+  return event.expectedByMember[memberId] ?? event.expected
 }
 
 /**
@@ -31,7 +42,7 @@ export function computeEventArrears(
       if (dateKey(event.date) >= nowTs) continue
 
       const paid = event.paidBy[member.id] ?? 0
-      const deficit = event.expected - paid
+      const deficit = expectedFor(event, member.id) - paid
       if (deficit > 0) {
         count += 1
         amount += deficit
@@ -65,7 +76,7 @@ export function computeEventDeficits(
       if (dateKey(event.date) >= nowTs) continue
 
       const paid = event.paidBy[member.id] ?? 0
-      const deficit = event.expected - paid
+      const deficit = expectedFor(event, member.id) - paid
       if (deficit > 0) {
         deficits.set(event.id, deficit)
       }

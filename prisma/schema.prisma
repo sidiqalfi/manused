@@ -338,6 +338,11 @@ model KegiatanParticipant {
   memberId String @db.Uuid
   member   Member @relation(fields: [memberId], references: [id])
 
+  // attending=false = "patungan": tidak hadir tapi tetap iuran (nominal bisa
+  // beda lewat expectedAmount). expectedAmount null = pakai feePerPerson.
+  attending      Boolean @default(true)
+  expectedAmount Int?
+
   joinedAt DateTime @default(now()) @db.Timestamp(6)
 
   createdById String @db.Uuid

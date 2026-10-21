@@ -19,6 +19,8 @@ import { formatCurrency } from "@/lib/format"
 
 type Participant = {
   memberId: string
+  attending: boolean
+  expectedAmount: number | null
   member: { id: string; name: string; fullName: string }
 }
 
@@ -28,6 +30,8 @@ type Props = {
   /** Peserta + total yang sudah dibayar masing-masing */
   participants: Participant[]
   paidBy: Record<string, number>
+  /** Iuran disepakati per memberId (override feePerPerson untuk patungan) */
+  expectedByMember?: Record<string, number>
   triggerVariant?: "default" | "outline" | "secondary" | "ghost" | "destructive" | "link"
 }
 
@@ -36,6 +40,7 @@ export function RecordKegiatanPaymentDialog({
   feePerPerson,
   participants,
   paidBy,
+  expectedByMember = {},
   triggerVariant = "default",
 }: Props) {
   const [open, setOpen] = useState(false)
@@ -46,9 +51,12 @@ export function RecordKegiatanPaymentDialog({
 
   const today = new Date().toISOString().split("T")[0]
 
+  // Iuran yang disepakati untuk satu peserta (override patungan bila ada).
+  const expectedOf = (id: string) => expectedByMember[id] ?? feePerPerson
+
   // Peserta yang belum lunas, urut nama.
   const owing = participants
-    .filter((p) => (paidBy[p.memberId] ?? 0) < feePerPerson)
+    .filter((p) => (paidBy[p.memberId] ?? 0) < expectedOf(p.memberId))
     .sort((a, b) => a.member.name.localeCompare(b.member.name))
 
   function handleSelect(id: string) {
@@ -56,7 +64,7 @@ export function RecordKegiatanPaymentDialog({
     // Pre-fill nominal dengan sisanya.
     if (id) {
       const paid = paidBy[id] ?? 0
-      setAmount(Math.max(feePerPerson - paid, 0))
+      setAmount(Math.max(expectedOf(id) - paid, 0))
     }
   }
 
@@ -104,7 +112,7 @@ export function RecordKegiatanPaymentDialog({
                 <option value="">Pilih peserta</option>
                 {owing.map((p) => {
                   const paid = paidBy[p.memberId] ?? 0
-                  const remaining = feePerPerson - paid
+                  const remaining = expectedOf(p.memberId) - paid
                   return (
                     <option key={p.memberId} value={p.memberId}>
                       {p.member.name} — {p.member.fullName} (kurang {formatCurrency(remaining)})
@@ -115,7 +123,9 @@ export function RecordKegiatanPaymentDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="amount">Nominal (iuran {formatCurrency(feePerPerson)})</Label>
+              <Label htmlFor="amount">
+                Nominal (iuran {memberId ? formatCurrency(expectedOf(memberId)) : formatCurrency(feePerPerson)})
+              </Label>
               <Input
                 type="number"
                 name="amount"
@@ -133,10 +143,10 @@ export function RecordKegiatanPaymentDialog({
                     size="sm"
                     onClick={() => {
                       const paid = paidBy[memberId] ?? 0
-                      setAmount(Math.max(feePerPerson - paid, 0))
+                      setAmount(Math.max(expectedOf(memberId) - paid, 0))
                     }}
                   >
-                    Sisa penuh ({formatCurrency(Math.max(feePerPerson - (paidBy[memberId] ?? 0), 0))})
+                    Sisa penuh ({formatCurrency(Math.max(expectedOf(memberId) - (paidBy[memberId] ?? 0), 0))})
                   </Button>
                 </div>
               )}

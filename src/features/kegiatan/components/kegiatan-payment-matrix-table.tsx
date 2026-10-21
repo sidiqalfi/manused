@@ -102,9 +102,12 @@ export function KegiatanPaymentMatrixTable({ matrix, loading }: Props) {
                     const amount = event.paidBy[member.id]
                     const remainingDeficit = memberDeficits?.get(event.id)
                     const isPast = new Date(event.date).getTime() < nowTs
+                    // Iuran peserta ini bisa jadi override patungan.
+                    const expectedForMember =
+                      event.expectedByMember[member.id] ?? event.expected
                     const unpaidUpcoming =
                       isParticipant && !isPast &&
-                      (amount ?? 0) < event.expected
+                      (amount ?? 0) < expectedForMember
                     return (
                       <TableCell
                         key={event.id}
@@ -117,14 +120,14 @@ export function KegiatanPaymentMatrixTable({ matrix, loading }: Props) {
                         ) : remainingDeficit !== undefined ? (
                           <span
                             className="font-semibold text-destructive"
-                            title={`Belum bayar (wajib ${shortFormat(event.expected)})`}
+                            title={`Belum bayar (iuran ${shortFormat(expectedForMember)})`}
                           >
                             ✕
                           </span>
                         ) : unpaidUpcoming ? (
                           <span
                             className="font-medium text-orange-500"
-                            title={`Belum setor (wajib ${shortFormat(event.expected)}) — event belum lewat`}
+                            title={`Belum setor (iuran ${shortFormat(expectedForMember)}) — event belum lewat`}
                           >
                             ○
                           </span>

@@ -19,6 +19,7 @@ type ExportParticipant = {
   name: string
   fullName: string
   status: string
+  attending: boolean
   joinedAt: Date | string
   totalPaid: number
   expected: number
@@ -46,6 +47,7 @@ function toRows(data: ExportParticipant[]) {
     Nama: p.name,
     "Nama Lengkap": p.fullName,
     Status: STATUS_LABEL[p.status] ?? p.status,
+    Kehadiran: p.attending ? "Hadir" : "Patungan",
     "Tanggal Ikut": formatDate(p.joinedAt),
     Wajib: p.expected,
     "Total Dibayar": p.totalPaid,

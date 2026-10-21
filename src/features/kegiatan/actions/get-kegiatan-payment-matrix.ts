@@ -7,8 +7,10 @@ export interface KegiatanPaymentMatrixEvent {
   id: string
   name: string
   date: Date
-  /** feePerPerson event ini */
+  /** feePerPerson event ini (default bila peserta tanpa override) */
   expected: number
+  /** memberId -> iuran yang disepakati (override expectedAmount; patungan) */
+  expectedByMember: Record<string, number>
   /** memberId yang terdaftar sebagai peserta event ini */
   participantIds: string[]
   /** memberId -> total dibayar di event ini */
@@ -53,7 +55,9 @@ export async function getKegiatanPaymentMatrix(
         name: true,
         eventDate: true,
         feePerPerson: true,
-        participants: { select: { memberId: true } },
+        participants: {
+          select: { memberId: true, attending: true, expectedAmount: true },
+        },
         payments: { select: { memberId: true, amount: true } },
       },
       orderBy: { eventDate: "asc" },
@@ -64,11 +68,18 @@ export async function getKegiatanPaymentMatrix(
       for (const p of k.payments) {
         paidBy[p.memberId] = (paidBy[p.memberId] ?? 0) + p.amount
       }
+      const expectedByMember: Record<string, number> = {}
+      for (const p of k.participants) {
+        if (p.expectedAmount !== null) {
+          expectedByMember[p.memberId] = p.expectedAmount
+        }
+      }
       return {
         id: k.id,
         name: k.name,
         date: k.eventDate,
         expected: k.feePerPerson,
+        expectedByMember,
         participantIds: k.participants.map((p) => p.memberId),
         paidBy,
       }

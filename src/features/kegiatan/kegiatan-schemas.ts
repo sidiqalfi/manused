@@ -59,6 +59,15 @@ export const addKegiatanParticipantsBatchSchema = z
     path: ["memberIds"],
   })
 
+// Edit satu peserta: kehadiran + iuran yang disepakati (override feePerPerson).
+export const updateKegiatanParticipantSchema = z.object({
+  kegiatanId: z.string().uuid(),
+  memberId: z.string().uuid(),
+  attending: z.boolean(),
+  // Kosong/null = kembali ke default feePerPerson kegiatan.
+  expectedAmount: nonNegativeInt.nullish(),
+})
+
 export const removeKegiatanParticipantSchema = z.object({
   kegiatanId: z.string().uuid(),
   memberId: z.string().uuid(),
@@ -130,6 +139,19 @@ export function getRemoveParticipantFormValues(formData: FormData) {
   return {
     kegiatanId: formData.get("kegiatanId"),
     memberId: formData.get("memberId"),
+  }
+}
+
+export function getUpdateParticipantFormValues(formData: FormData) {
+  const expectedRaw = formData.get("expectedAmount")
+  return {
+    kegiatanId: formData.get("kegiatanId"),
+    memberId: formData.get("memberId"),
+    attending: formData.get("attending") === "true",
+    expectedAmount:
+      expectedRaw === null || expectedRaw === ""
+        ? null
+        : Number(expectedRaw),
   }
 }
 

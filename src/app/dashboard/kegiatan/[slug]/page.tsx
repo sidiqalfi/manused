@@ -124,11 +124,19 @@ export default function KegiatanDetailPage({
   const totalExpense =
     expenses.reduce((s, e) => s + e.amount, 0) +
     cashSubsidies.reduce((s, e) => s + e.amount, 0)
-  const expected = kegiatan.feePerPerson * participants.length
+  // Iuran yang disepakati per peserta (patungan bisa beda dari feePerPerson).
+  const expected = participants.reduce(
+    (s, p) => s + (p.expectedAmount ?? kegiatan.feePerPerson),
+    0
+  )
+  const attendingCount = participants.filter((p) => p.attending).length
+  const patunganCount = participants.length - attendingCount
   const diff = totalCollected - totalExpense
 
   const participantPayload = participants.map((p) => ({
     memberId: p.memberId,
+    attending: p.attending,
+    expectedAmount: p.expectedAmount,
     member: p.member,
   }))
 
@@ -139,14 +147,16 @@ export default function KegiatanDetailPage({
   )
   const exportData = participants.map((p) => {
     const paid = paidBy[p.memberId] ?? 0
+    const expectedFor = p.expectedAmount ?? kegiatan.feePerPerson
     return {
       name: p.member.name,
       fullName: p.member.fullName,
       status: memberStatusById.get(p.memberId) ?? "ACTIVE",
+      attending: p.attending,
       joinedAt: p.joinedAt,
       totalPaid: paid,
-      expected: kegiatan.feePerPerson,
-      remaining: Math.max(kegiatan.feePerPerson - paid, 0),
+      expected: expectedFor,
+      remaining: Math.max(expectedFor - paid, 0),
       history: payments
         .filter((pay) => pay.memberId === p.memberId)
         .map((pay) => ({ amount: pay.amount, paidAt: pay.paidAt, note: pay.note })),
@@ -221,10 +231,15 @@ export default function KegiatanDetailPage({
           <CardContent className="flex items-center gap-3 p-4">
             <Users className="h-5 w-5 text-muted-foreground" />
             <div>
-              <p className="text-xs text-muted-foreground">Peserta</p>
+              <p className="text-xs text-muted-foreground">Peserta Hadir</p>
               <p className="text-lg font-semibold tabular-nums">
-                {participants.length}
+                {attendingCount}
               </p>
+              {patunganCount > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  + {patunganCount} patungan
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -276,6 +291,7 @@ export default function KegiatanDetailPage({
         <TabsContent value="participants">
           <KegiatanParticipantsTable
             kegiatanId={kegiatan.id}
+            feePerPerson={kegiatan.feePerPerson}
             participants={participants}
             allMembers={members.map((m) => ({
               id: m.id,
