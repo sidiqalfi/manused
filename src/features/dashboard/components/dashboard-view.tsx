@@ -25,6 +25,7 @@ import {
 import { CreateArisanPeriodDialog } from "@/features/arisan/components/create-arisan-period-dialog"
 import { CreatePeriodDialog } from "@/features/cash/components/dialogs/create-period-dialog"
 import { CreateSosialPeriodDialog } from "@/features/sosial/components/dialogs/create-sosial-period-dialog"
+import { motivationOfTheDay } from "../motivation"
 import type { YearlyFlowPoint } from "@/components/yearly-income-expense-chart"
 
 type PeriodOption = { id: string; month: number; year: number }
@@ -100,6 +101,8 @@ export function DashboardView({
       : "Belum ada pemenang"
     : null
 
+  const quote = motivationOfTheDay()
+
 
 
   return (
@@ -108,8 +111,10 @@ export function DashboardView({
         <h1 className="text-2xl font-bold tracking-tight">
           {userName ? `Selamat datang, ${userName}` : "Dashboard"}
         </h1>
-        <p className="text-muted-foreground">
-          Ringkasan kas, sosial, dan anggota organisasi.
+        <p className="text-sm italic text-muted-foreground">
+          &ldquo;{quote.text}&rdquo;
+          <span className="not-italic"> — {quote.author}</span>
+          {quote.source ? `, ${quote.source}` : null}
         </p>
       </div>
 
@@ -186,7 +191,7 @@ export function DashboardView({
           />
         </div>
         <Card>
-          <CardContent className="p-4">
+          <CardContent>
             <KegiatanCalendar />
           </CardContent>
         </Card>
