@@ -1,84 +1,38 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { OverviewCards } from "./overview-cards"
 import { BookSectionCard } from "./book-section-card"
 import {
   cashPeriodsQuery,
-  cashPeriodQuery,
-  cashSummaryQuery,
   cashYearSummaryQuery,
   cashYearChartQuery,
 } from "@/features/cash/queries"
 import {
   sosialPeriodsQuery,
-  sosialPeriodQuery,
-  sosialSummaryQuery,
   sosialYearSummaryQuery,
   sosialYearChartQuery,
 } from "@/features/sosial/queries"
 import { membersQuery } from "@/features/members/queries"
-import { activeSlotHeads } from "@/features/members/household"
 import { KegiatanCalendar } from "@/features/kegiatan/components/kegiatan-calendar"
 import {
   arisanPeriodsQuery,
-  arisanPeriodQuery,
   arisanYearChartQuery,
   arisanOverviewQuery,
 } from "@/features/arisan/queries"
 import { CreateArisanPeriodDialog } from "@/features/arisan/components/create-arisan-period-dialog"
-import { RecordArisanContributionDialog } from "@/features/arisan/components/record-arisan-contribution-dialog"
-import { DrawDialog } from "@/features/arisan/components/draw-dialog"
-import { RecordPaymentDialog } from "@/features/cash/components/dialogs/record-payment-dialog"
-import { AddExpenseDialog } from "@/features/cash/components/dialogs/add-expense-dialog"
 import { CreatePeriodDialog } from "@/features/cash/components/dialogs/create-period-dialog"
-import { RecordSosialContributionDialog } from "@/features/sosial/components/dialogs/record-sosial-contribution-dialog"
-import { AddSosialExpenseDialog } from "@/features/sosial/components/dialogs/add-sosial-expense-dialog"
 import { CreateSosialPeriodDialog } from "@/features/sosial/components/dialogs/create-sosial-period-dialog"
-import { CreateMemberDialog } from "@/features/members/components/create-member-dialog"
-import { IncomeRecordActions } from "@/components/income-record-actions"
-import { createCashIncomesBatch } from "@/features/cash/actions/create-cash-incomes-batch"
-import { createSosialIncomesBatch } from "@/features/sosial/actions/create-sosial-incomes-batch"
-import { createArisanIncomesBatch } from "@/features/arisan/actions/create-arisan-incomes-batch"
-import { cashKeys } from "@/features/cash/queries"
-import { sosialKeys } from "@/features/sosial/queries"
-import { SOSIAL_MIN_CONTRIBUTION } from "@/features/sosial/sosial-schemas"
-import { arisanKeys } from "@/features/arisan/queries"
 import type { YearlyFlowPoint } from "@/components/yearly-income-expense-chart"
 
 type PeriodOption = { id: string; month: number; year: number }
 
-type MemberLike = {
-  id: string
-  name: string
-  fullName: string
-  status: string
-  headOfHouseholdId: string | null
-}
-
-function unpaidOf(
-  members: { success: boolean; data?: MemberLike[]; error?: string } | null,
-  incomes: { memberId: string }[] | undefined,
-  options: { headsOnly?: boolean } = {}
-): MemberLike[] {
-  const all = members?.success ? members.data ?? [] : []
-  const paid = new Set((incomes ?? []).map((i) => i.memberId))
-  if (options.headsOnly) {
-    // Slot = keluarga: head inactive tetap dihitung selama rumahnya
-    // masih punya anggota aktif.
-    return activeSlotHeads(all).filter((m) => !paid.has(m.id))
-  }
-  return all.filter((m) => m.status === "ACTIVE" && !paid.has(m.id))
-}
-
 export function DashboardView({
   userName,
-  isGuest = false,
 }: {
   userName: string | null
-  isGuest?: boolean
 }) {
   const cashPeriodsResult = useQuery(cashPeriodsQuery).data ?? null
   const sosialPeriodsResult = useQuery(sosialPeriodsQuery).data ?? null
@@ -101,12 +55,6 @@ export function DashboardView({
   const latestSosial = sosialPeriods[0] ?? null
   const latestArisan = arisanPeriods[0] ?? null
 
-  const cashPeriodResult = useQuery(
-    cashPeriodQuery(latestCash?.id ?? "")
-  ).data ?? null
-  const cashSummaryResult = useQuery(
-    cashSummaryQuery(latestCash?.id ?? "")
-  ).data ?? null
   const cashChartResult = useQuery(
     cashYearChartQuery(latestCash?.year ?? null)
   ).data ?? null
@@ -114,12 +62,6 @@ export function DashboardView({
     cashYearSummaryQuery(latestCash?.year ?? null)
   ).data ?? null
 
-  const sosialPeriodResult = useQuery(
-    sosialPeriodQuery(latestSosial?.id ?? "")
-  ).data ?? null
-  const sosialSummaryResult = useQuery(
-    sosialSummaryQuery(latestSosial?.id ?? "")
-  ).data ?? null
   const sosialChartResult = useQuery(
     sosialYearChartQuery(latestSosial?.year ?? null)
   ).data ?? null
@@ -129,32 +71,12 @@ export function DashboardView({
   const arisanChartResult = useQuery(
     arisanYearChartQuery(latestArisan?.year ?? null)
   ).data ?? null
-  const arisanPeriodResult = useQuery(
-    arisanPeriodQuery(latestArisan?.id ?? "")
-  ).data ?? null
 
-  const cashSummary = cashSummaryResult?.success ? cashSummaryResult.data ?? null : null
-  const sosialSummary = sosialSummaryResult?.success ? sosialSummaryResult.data ?? null : null
   const cashYearSummary = cashYearSummaryResult?.success ? cashYearSummaryResult.data ?? null : null
   const sosialYearSummary = sosialYearSummaryResult?.success ? sosialYearSummaryResult.data ?? null : null
 
   const members = membersResult?.success ? membersResult.data ?? [] : []
   const activeMembers = members.filter((m) => m.status === "ACTIVE").length
-
-  const cashIncomes = cashPeriodResult?.success ? cashPeriodResult.data?.incomes ?? [] : []
-  const sosialIncomes = sosialPeriodResult?.success ? sosialPeriodResult.data?.incomes ?? [] : []
-  const arisanIncomes = arisanPeriodResult?.success
-    ? arisanPeriodResult.data?.incomes ?? []
-    : []
-  const arisanContribution = arisanPeriodResult?.success
-    ? arisanPeriodResult.data?.contributionAmount ?? 0
-    : 0
-  const arisanPayoutTarget = arisanPeriodResult?.success
-    ? arisanPeriodResult.data?.payoutTarget ?? 0
-    : 0
-  const arisanHasActiveDraw = arisanPeriodResult?.success
-    ? (arisanPeriodResult.data?.draws ?? []).some((d) => !d.voided)
-    : false
 
   const cashChart: YearlyFlowPoint[] = cashChartResult?.success
     ? cashChartResult.data ?? []
@@ -178,13 +100,7 @@ export function DashboardView({
       : "Belum ada pemenang"
     : null
 
-  const cashUnpaid = unpaidOf(membersResult, cashIncomes)
-  const sosialUnpaid = unpaidOf(membersResult, sosialIncomes)
-  const arisanUnpaid = unpaidOf(membersResult, arisanIncomes, { headsOnly: true })
 
-  const cashMin = cashSummary?.minAmount ?? 0
-  const cashDues = cashSummary?.duesAmount ?? cashMin
-  const sosialMin = sosialSummary?.minAmount ?? 0
 
   return (
     <div className="space-y-4">
@@ -275,129 +191,6 @@ export function DashboardView({
           </CardContent>
         </Card>
       </div>
-
-      {!isGuest && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Aksi Cepat</CardTitle>
-          </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">Kas</p>
-            <div className="flex flex-wrap gap-2">
-              {latestCash ? (
-                <>
-                  <IncomeRecordActions
-                    singleTrigger={
-                      <RecordPaymentDialog
-                        periodId={latestCash.id}
-                        unpaidMembers={cashUnpaid}
-                        duesAmount={cashDues}
-                        minAmount={cashMin}
-                        triggerVariant="outline"
-                      />
-                    }
-                    periodId={latestCash.id}
-                    unpaidMembers={cashUnpaid}
-                    defaultAmount={cashDues}
-                    minAmount={cashMin}
-                    dialogTitle="Catat Batch Pembayaran Iuran"
-                    submitLabel="Catat Pembayaran Batch"
-                    keys={cashKeys}
-                    batchAction={createCashIncomesBatch}
-                    triggerVariant="outline"
-                  />
-                  <AddExpenseDialog
-                    periodId={latestCash.id}
-                    triggerVariant="outline"
-                  />
-                </>
-              ) : null}
-              <CreatePeriodDialog triggerVariant="outline" />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">Sosial</p>
-            <div className="flex flex-wrap gap-2">
-              {latestSosial ? (
-                <>
-                  <IncomeRecordActions
-                    singleTrigger={
-                      <RecordSosialContributionDialog
-                        periodId={latestSosial.id}
-                        unpaidMembers={sosialUnpaid}
-                        minAmount={sosialMin}
-                        triggerVariant="outline"
-                      />
-                    }
-                    periodId={latestSosial.id}
-                    unpaidMembers={sosialUnpaid}
-                    defaultAmount={sosialMin}
-                    minAmount={SOSIAL_MIN_CONTRIBUTION}
-                    labelMinAmount={sosialMin}
-                    dialogTitle="Catat Batch Iuran Sosial"
-                    submitLabel="Catat Iuran Batch"
-                    keys={sosialKeys}
-                    batchAction={createSosialIncomesBatch}
-                    triggerVariant="outline"
-                  />
-                  <AddSosialExpenseDialog
-                    periodId={latestSosial.id}
-                    triggerVariant="outline"
-                  />
-                </>
-              ) : null}
-              <CreateSosialPeriodDialog triggerVariant="outline" />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">Arisan</p>
-            <div className="flex flex-wrap gap-2">
-              {latestArisan ? (
-                <>
-                  <IncomeRecordActions
-                    singleTrigger={
-                      <RecordArisanContributionDialog
-                        periodId={latestArisan.id}
-                        unpaidMembers={arisanUnpaid}
-                        contributionAmount={arisanContribution}
-                        triggerVariant="outline"
-                      />
-                    }
-                    periodId={latestArisan.id}
-                    unpaidMembers={arisanUnpaid}
-                    defaultAmount={arisanContribution}
-                    minAmount={1}
-                    dialogTitle="Catat Batch Iuran Arisan"
-                    submitLabel="Catat Iuran Batch"
-                    keys={arisanKeys}
-                    batchAction={createArisanIncomesBatch}
-                    triggerVariant="outline"
-                  />
-                  {!arisanHasActiveDraw ? (
-                    <DrawDialog
-                      periodId={latestArisan.id}
-                      payoutTarget={arisanPayoutTarget}
-                      triggerVariant="outline"
-                    />
-                  ) : null}
-                </>
-              ) : null}
-              <CreateArisanPeriodDialog triggerVariant="outline" />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">Anggota</p>
-            <div className="flex flex-wrap gap-2">
-              <CreateMemberDialog members={members} />
-            </div>
-          </div>
-        </CardContent>
-        </Card>
-      )}
 
       {membersLoading && (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

@@ -9,9 +9,6 @@ export default async function Page() {
   }
 
   return (
-    <DashboardView
-      userName={session.user?.name ?? null}
-      isGuest={session.user?.role === "guest"}
-    />
+    <DashboardView userName={session.user?.name ?? null} />
   )
 }
