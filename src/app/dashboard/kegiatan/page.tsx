@@ -28,6 +28,16 @@ import { CalendarDays, Users, TrendingUp, TrendingDown } from "lucide-react"
 
 type StatusBadgeVariant = "default" | "secondary" | "outline" | "destructive"
 
+type ListSortKey =
+  | "name"
+  | "date"
+  | "status"
+  | "participants"
+  | "fee"
+  | "collected"
+  | "spent"
+  | "diff"
+
 const STATUS_VARIANT: Record<string, StatusBadgeVariant> = {
   PLANNED: "secondary",
   COMPLETED: "default",
@@ -38,9 +48,7 @@ export default function KegiatanPage() {
   const currentYear = new Date().getFullYear()
   // Filter tahun (client-side — list kegiatan kecil)
   const [yearFilter, setYearFilter] = useState<number>(currentYear)
-  const [listSortKey, setListSortKey] = useState<
-    "name" | "date" | "status" | "participants" | "fee" | "collected" | "spent" | "diff"
-  >("date")
+  const [listSortKey, setListSortKey] = useState<ListSortKey>("date")
   const [listSortDirection, setListSortDirection] = useState<SortDirection>("desc")
   const listResult = useQuery(kegiatanListQuery)
   const yearSummaryResult = useQuery(kegiatanYearSummaryQuery(currentYear))
@@ -61,15 +69,21 @@ export default function KegiatanPage() {
     (k) => new Date(k.eventDate).getFullYear() === yearFilter
   )
 
-  type ListSortKey =
-    | "name"
-    | "date"
-    | "status"
-    | "participants"
-    | "fee"
-    | "collected"
-    | "spent"
-    | "diff"
+  // Config kolom: satu sumber untuk header sort + tipe align.
+  const LIST_COLUMNS: {
+    key: ListSortKey
+    label: string
+    align: "left" | "center" | "right"
+  }[] = [
+    { key: "name", label: "Nama", align: "left" },
+    { key: "date", label: "Tanggal", align: "center" },
+    { key: "status", label: "Status", align: "center" },
+    { key: "participants", label: "Peserta", align: "center" },
+    { key: "fee", label: "Iuran/Orang", align: "center" },
+    { key: "collected", label: "Terkumpul", align: "center" },
+    { key: "spent", label: "Pengeluaran", align: "center" },
+    { key: "diff", label: "Selisih", align: "right" },
+  ]
 
   function toggleListSort(key: ListSortKey) {
     if (listSortKey === key) {
@@ -233,85 +247,27 @@ export default function KegiatanPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead>
-                  <SortButton
-                    active={listSortKey === "name"}
-                    direction={listSortDirection}
-                    onClick={() => toggleListSort("name")}
+                {LIST_COLUMNS.map((c) => (
+                  <TableHead
+                    key={c.key}
+                    className={
+                      c.align === "center"
+                        ? "text-center"
+                        : c.align === "right"
+                          ? "text-right"
+                          : undefined
+                    }
                   >
-                    Nama
-                  </SortButton>
-                </TableHead>
-                <TableHead className="text-center">
-                  <SortButton
-                    align="center"
-                    active={listSortKey === "date"}
-                    direction={listSortDirection}
-                    onClick={() => toggleListSort("date")}
-                  >
-                    Tanggal
-                  </SortButton>
-                </TableHead>
-                <TableHead className="text-center">
-                  <SortButton
-                    align="center"
-                    active={listSortKey === "status"}
-                    direction={listSortDirection}
-                    onClick={() => toggleListSort("status")}
-                  >
-                    Status
-                  </SortButton>
-                </TableHead>
-                <TableHead className="text-center">
-                  <SortButton
-                    align="center"
-                    active={listSortKey === "participants"}
-                    direction={listSortDirection}
-                    onClick={() => toggleListSort("participants")}
-                  >
-                    Peserta
-                  </SortButton>
-                </TableHead>
-                <TableHead className="text-center">
-                  <SortButton
-                    align="center"
-                    active={listSortKey === "fee"}
-                    direction={listSortDirection}
-                    onClick={() => toggleListSort("fee")}
-                  >
-                    Iuran/Orang
-                  </SortButton>
-                </TableHead>
-                <TableHead className="text-center">
-                  <SortButton
-                    align="center"
-                    active={listSortKey === "collected"}
-                    direction={listSortDirection}
-                    onClick={() => toggleListSort("collected")}
-                  >
-                    Terkumpul
-                  </SortButton>
-                </TableHead>
-                <TableHead className="text-center">
-                  <SortButton
-                    align="center"
-                    active={listSortKey === "spent"}
-                    direction={listSortDirection}
-                    onClick={() => toggleListSort("spent")}
-                  >
-                    Pengeluaran
-                  </SortButton>
-                </TableHead>
-                <TableHead className="text-right">
-                  <SortButton
-                    align="right"
-                    active={listSortKey === "diff"}
-                    direction={listSortDirection}
-                    onClick={() => toggleListSort("diff")}
-                  >
-                    Selisih
-                  </SortButton>
-                </TableHead>
+                    <SortButton
+                      align={c.align}
+                      active={listSortKey === c.key}
+                      direction={listSortDirection}
+                      onClick={() => toggleListSort(c.key)}
+                    >
+                      {c.label}
+                    </SortButton>
+                  </TableHead>
+                ))}
               </TableRow>
             </TableHeader>
             <TableBody>

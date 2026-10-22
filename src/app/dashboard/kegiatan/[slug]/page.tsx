@@ -60,6 +60,19 @@ import { SortButton, type SortDirection } from "@/components/ui/sort-button"
 
 type StatusBadgeVariant = "default" | "secondary" | "outline" | "destructive"
 
+type ExpenseSortKey = "description" | "source" | "amount" | "date"
+
+const EXPENSE_COLUMNS: {
+  key: ExpenseSortKey
+  label: string
+  align: "left" | "center" | "right"
+}[] = [
+  { key: "description", label: "Deskripsi", align: "left" },
+  { key: "source", label: "Sumber", align: "center" },
+  { key: "amount", label: "Nominal", align: "center" },
+  { key: "date", label: "Tanggal", align: "center" },
+]
+
 const STATUS_VARIANT: Record<string, StatusBadgeVariant> = {
   PLANNED: "secondary",
   COMPLETED: "default",
@@ -83,15 +96,11 @@ export default function KegiatanDetailPage({
     description: string
     amount: number
   } | null>(null)
-  const [expenseSortKey, setExpenseSortKey] = useState<
-    "description" | "source" | "amount" | "date"
-  >("date")
+  const [expenseSortKey, setExpenseSortKey] = useState<ExpenseSortKey>("date")
   const [expenseSortDirection, setExpenseSortDirection] =
     useState<SortDirection>("desc")
 
-  function toggleExpenseSort(
-    key: "description" | "source" | "amount" | "date"
-  ) {
+  function toggleExpenseSort(key: ExpenseSortKey) {
     if (expenseSortKey === key) {
       setExpenseSortDirection((d) => (d === "asc" ? "desc" : "asc"))
     } else {
@@ -436,45 +445,27 @@ export default function KegiatanDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead>
-                      <SortButton
-                        active={expenseSortKey === "description"}
-                        direction={expenseSortDirection}
-                        onClick={() => toggleExpenseSort("description")}
+                    {EXPENSE_COLUMNS.map((c) => (
+                      <TableHead
+                        key={c.key}
+                        className={
+                          c.align === "center"
+                            ? "text-center"
+                            : c.align === "right"
+                              ? "text-right"
+                              : undefined
+                        }
                       >
-                        Deskripsi
-                      </SortButton>
-                    </TableHead>
-                    <TableHead className="text-center">
-                      <SortButton
-                        align="center"
-                        active={expenseSortKey === "source"}
-                        direction={expenseSortDirection}
-                        onClick={() => toggleExpenseSort("source")}
-                      >
-                        Sumber
-                      </SortButton>
-                    </TableHead>
-                    <TableHead className="text-center">
-                      <SortButton
-                        align="center"
-                        active={expenseSortKey === "amount"}
-                        direction={expenseSortDirection}
-                        onClick={() => toggleExpenseSort("amount")}
-                      >
-                        Nominal
-                      </SortButton>
-                    </TableHead>
-                    <TableHead className="text-center">
-                      <SortButton
-                        align="center"
-                        active={expenseSortKey === "date"}
-                        direction={expenseSortDirection}
-                        onClick={() => toggleExpenseSort("date")}
-                      >
-                        Tanggal
-                      </SortButton>
-                    </TableHead>
+                        <SortButton
+                          align={c.align}
+                          active={expenseSortKey === c.key}
+                          direction={expenseSortDirection}
+                          onClick={() => toggleExpenseSort(c.key)}
+                        >
+                          {c.label}
+                        </SortButton>
+                      </TableHead>
+                    ))}
                     <TableHead className="text-right">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>

@@ -56,6 +56,18 @@ type Props = {
 
 type SortKey = "name" | "attending" | "iuran" | "status" | "joined"
 
+const PARTICIPANT_COLUMNS: {
+  key: SortKey
+  label: string
+  align: "left" | "center" | "right"
+}[] = [
+  { key: "name", label: "Nama", align: "left" },
+  { key: "attending", label: "Kehadiran", align: "center" },
+  { key: "iuran", label: "Iuran", align: "center" },
+  { key: "status", label: "Status", align: "center" },
+  { key: "joined", label: "Terdaftar", align: "center" },
+]
+
 export function KegiatanParticipantsTable({
   kegiatanId,
   feePerPerson,
@@ -151,55 +163,27 @@ export function KegiatanParticipantsTable({
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead>
-                <SortButton
-                  active={sortKey === "name"}
-                  direction={sortDirection}
-                  onClick={() => toggleSort("name")}
+              {PARTICIPANT_COLUMNS.map((c) => (
+                <TableHead
+                  key={c.key}
+                  className={
+                    c.align === "center"
+                      ? "text-center"
+                      : c.align === "right"
+                        ? "text-right"
+                        : undefined
+                  }
                 >
-                  Nama
-                </SortButton>
-              </TableHead>
-              <TableHead className="text-center">
-                <SortButton
-                  align="center"
-                  active={sortKey === "attending"}
-                  direction={sortDirection}
-                  onClick={() => toggleSort("attending")}
-                >
-                  Kehadiran
-                </SortButton>
-              </TableHead>
-              <TableHead className="text-center">
-                <SortButton
-                  align="center"
-                  active={sortKey === "iuran"}
-                  direction={sortDirection}
-                  onClick={() => toggleSort("iuran")}
-                >
-                  Iuran
-                </SortButton>
-              </TableHead>
-              <TableHead className="text-center">
-                <SortButton
-                  align="center"
-                  active={sortKey === "status"}
-                  direction={sortDirection}
-                  onClick={() => toggleSort("status")}
-                >
-                  Status
-                </SortButton>
-              </TableHead>
-              <TableHead className="text-center">
-                <SortButton
-                  align="center"
-                  active={sortKey === "joined"}
-                  direction={sortDirection}
-                  onClick={() => toggleSort("joined")}
-                >
-                  Terdaftar
-                </SortButton>
-              </TableHead>
+                  <SortButton
+                    align={c.align}
+                    active={sortKey === c.key}
+                    direction={sortDirection}
+                    onClick={() => toggleSort(c.key)}
+                  >
+                    {c.label}
+                  </SortButton>
+                </TableHead>
+              ))}
               <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>

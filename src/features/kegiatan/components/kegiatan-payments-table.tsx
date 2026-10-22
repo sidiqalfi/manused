@@ -53,6 +53,17 @@ type Props = {
 
 type SortKey = "name" | "paid" | "remaining" | "status"
 
+const PAYMENT_COLUMNS: {
+  key: SortKey
+  label: string
+  align: "left" | "center" | "right"
+}[] = [
+  { key: "name", label: "Peserta", align: "left" },
+  { key: "paid", label: "Bayar", align: "center" },
+  { key: "remaining", label: "Sisa", align: "center" },
+  { key: "status", label: "Status", align: "center" },
+]
+
 export function KegiatanPaymentsTable({
   kegiatanId,
   feePerPerson,
@@ -162,45 +173,27 @@ export function KegiatanPaymentsTable({
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead>
-                <SortButton
-                  active={sortKey === "name"}
-                  direction={sortDirection}
-                  onClick={() => toggleSort("name")}
+              {PAYMENT_COLUMNS.map((c) => (
+                <TableHead
+                  key={c.key}
+                  className={
+                    c.align === "center"
+                      ? "text-center"
+                      : c.align === "right"
+                        ? "text-right"
+                        : undefined
+                  }
                 >
-                  Peserta
-                </SortButton>
-              </TableHead>
-              <TableHead className="text-center">
-                <SortButton
-                  align="center"
-                  active={sortKey === "paid"}
-                  direction={sortDirection}
-                  onClick={() => toggleSort("paid")}
-                >
-                  Bayar
-                </SortButton>
-              </TableHead>
-              <TableHead className="text-center">
-                <SortButton
-                  align="center"
-                  active={sortKey === "remaining"}
-                  direction={sortDirection}
-                  onClick={() => toggleSort("remaining")}
-                >
-                  Sisa
-                </SortButton>
-              </TableHead>
-              <TableHead className="text-center">
-                <SortButton
-                  align="center"
-                  active={sortKey === "status"}
-                  direction={sortDirection}
-                  onClick={() => toggleSort("status")}
-                >
-                  Status
-                </SortButton>
-              </TableHead>
+                  <SortButton
+                    align={c.align}
+                    active={sortKey === c.key}
+                    direction={sortDirection}
+                    onClick={() => toggleSort(c.key)}
+                  >
+                    {c.label}
+                  </SortButton>
+                </TableHead>
+              ))}
               <TableHead className="text-right">Riwayat</TableHead>
             </TableRow>
           </TableHeader>
