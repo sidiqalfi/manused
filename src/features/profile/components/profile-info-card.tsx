@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { profileQuery } from "../queries"
@@ -38,6 +38,12 @@ export function ProfileInfoCard() {
       <CardContent className="space-y-4">
         <div className="flex items-center gap-3">
           <Avatar>
+            {profile.avatarUrl && (
+              <AvatarImage
+                src={profile.avatarUrl}
+                alt={profile.name ?? profile.email}
+              />
+            )}
             <AvatarFallback>{initial}</AvatarFallback>
           </Avatar>
           <div className="grid flex-1 text-left text-sm leading-tight">

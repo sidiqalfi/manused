@@ -6,6 +6,7 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { auth } from "@/features/auth/lib/auth"
 import { GuestProvider } from "@/features/auth/components/guest-context"
 import { redirect } from "next/navigation"
+import { gravatarUrl } from "@/lib/gravatar"
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const session = await auth()
@@ -13,10 +14,16 @@ export default async function Layout({ children }: { children: React.ReactNode }
     redirect("/signin")
   }
 
+  // Tamu tidak punya email terdaftar; Gravatar hanya untuk pengguna.
+  const avatarUrl =
+    session.user?.role !== "guest" && session.user?.email
+      ? gravatarUrl(session.user.email)
+      : null
+
   return (
     <GuestProvider isGuest={session.user?.role === "guest"}>
     <SidebarProvider defaultOpen={true}>
-      <AppSidebar user={session.user} />
+      <AppSidebar user={session.user} avatarUrl={avatarUrl} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-8">

@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma"
 import { auth } from "@features/auth/lib/auth"
 import { isGuestSession } from "@/features/auth/lib/guards"
+import { gravatarUrl } from "@/lib/gravatar"
 
 export interface ProfileData {
   id: string
@@ -10,6 +11,7 @@ export interface ProfileData {
   email: string
   role: "user" | "guest"
   createdAt: Date
+  avatarUrl: string | null
 }
 
 export interface GetProfileResult {
@@ -35,6 +37,7 @@ export async function getProfile(): Promise<GetProfileResult> {
         email: session.user.email ?? "",
         role: "guest",
         createdAt: new Date(0),
+        avatarUrl: null,
       },
     }
   }
@@ -51,7 +54,7 @@ export async function getProfile(): Promise<GetProfileResult> {
 
     return {
       success: true,
-      data: { ...user, role: "user" },
+      data: { ...user, role: "user", avatarUrl: gravatarUrl(user.email) },
     }
   } catch {
     return { success: false, error: "Gagal memuat profil" }

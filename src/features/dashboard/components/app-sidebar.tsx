@@ -21,13 +21,14 @@ import { TerminalIcon } from "lucide-react"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user?: User
+  avatarUrl?: string | null
 }
 
-export function AppSidebar({ user, ...props }: AppSidebarProps) {
+export function AppSidebar({ user, avatarUrl, ...props }: AppSidebarProps) {
   const currentUser = {
     name: user?.name ?? sidebarData.user.name,
     email: user?.email ?? sidebarData.user.email,
-    avatar: user?.image ?? sidebarData.user.avatar,
+    avatar: avatarUrl ?? user?.image ?? sidebarData.user.avatar,
   }
 
   const isGuest = user?.role === "guest"
