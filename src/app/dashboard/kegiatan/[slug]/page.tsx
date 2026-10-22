@@ -56,6 +56,7 @@ import { deleteKegiatanExpense } from "@/features/kegiatan/actions/delete-kegiat
 import { KEGIATAN_STATUS_LABEL } from "@/features/kegiatan/kegiatan-schemas"
 import { formatCurrency, formatDate } from "@/lib/format"
 import { Skeleton } from "@/components/ui/skeleton"
+import { SortButton, type SortDirection } from "@/components/ui/sort-button"
 
 type StatusBadgeVariant = "default" | "secondary" | "outline" | "destructive"
 
@@ -82,6 +83,22 @@ export default function KegiatanDetailPage({
     description: string
     amount: number
   } | null>(null)
+  const [expenseSortKey, setExpenseSortKey] = useState<
+    "description" | "source" | "amount" | "date"
+  >("date")
+  const [expenseSortDirection, setExpenseSortDirection] =
+    useState<SortDirection>("desc")
+
+  function toggleExpenseSort(
+    key: "description" | "source" | "amount" | "date"
+  ) {
+    if (expenseSortKey === key) {
+      setExpenseSortDirection((d) => (d === "asc" ? "desc" : "asc"))
+    } else {
+      setExpenseSortKey(key)
+      setExpenseSortDirection(key === "description" ? "asc" : "desc")
+    }
+  }
 
   const kegiatan = detailResult.data?.success ? detailResult.data.data : null
   const members = membersResult.data?.success ? membersResult.data.data ?? [] : []
@@ -139,6 +156,59 @@ export default function KegiatanDetailPage({
     expectedAmount: p.expectedAmount,
     member: p.member,
   }))
+
+  // Satukan dua sumber pengeluaran agar bisa di-sort lintas-kategori.
+  // Subsidi kas tidak bisa dihapus di sini, hanya dikelola di menu Kas.
+  type ExpenseRow = {
+    id: string
+    description: string
+    amount: number
+    spentAt: Date
+    source: "subsidy" | "kegiatan"
+    period?: { month: number; year: number } | null
+  }
+  const expenseRows: ExpenseRow[] = [
+    ...cashSubsidies.map((e) => ({
+      id: e.id,
+      description: e.description,
+      amount: e.amount,
+      spentAt: e.spentAt,
+      source: "subsidy" as const,
+      period: e.period,
+    })),
+    ...expenses.map((e) => ({
+      id: e.id,
+      description: e.description,
+      amount: e.amount,
+      spentAt: e.spentAt,
+      source: "kegiatan" as const,
+    })),
+  ]
+  const sortedExpenseRows = expenseRows.sort((a, b) => {
+    const dir = expenseSortDirection === "asc" ? 1 : -1
+    const tie = a.description.localeCompare(b.description)
+    switch (expenseSortKey) {
+      case "amount":
+        if (a.amount !== b.amount) return (a.amount - b.amount) * dir
+        return tie
+      case "source": {
+        // Subsidi (0) vs Kegiatan (1); asc = Subsidi dulu.
+        const av = a.source === "subsidy" ? 0 : 1
+        const bv = b.source === "subsidy" ? 0 : 1
+        if (av !== bv) return (av - bv) * dir
+        return tie
+      }
+      case "description":
+        return tie * dir
+      case "date":
+      default: {
+        const at = new Date(a.spentAt).getTime()
+        const bt = new Date(b.spentAt).getTime()
+        if (at !== bt) return (at - bt) * dir
+        return tie
+      }
+    }
+  })
 
   // Payload export: satu baris per peserta, termasuk status member
   // (perlu lookup dari list members penuh).
@@ -366,48 +436,75 @@ export default function KegiatanDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead>Deskripsi</TableHead>
-                    <TableHead className="text-center">Sumber</TableHead>
-                    <TableHead className="text-center">Nominal</TableHead>
-                    <TableHead className="text-center">Tanggal</TableHead>
+                    <TableHead>
+                      <SortButton
+                        active={expenseSortKey === "description"}
+                        direction={expenseSortDirection}
+                        onClick={() => toggleExpenseSort("description")}
+                      >
+                        Deskripsi
+                      </SortButton>
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <SortButton
+                        align="center"
+                        active={expenseSortKey === "source"}
+                        direction={expenseSortDirection}
+                        onClick={() => toggleExpenseSort("source")}
+                      >
+                        Sumber
+                      </SortButton>
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <SortButton
+                        align="center"
+                        active={expenseSortKey === "amount"}
+                        direction={expenseSortDirection}
+                        onClick={() => toggleExpenseSort("amount")}
+                      >
+                        Nominal
+                      </SortButton>
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <SortButton
+                        align="center"
+                        active={expenseSortKey === "date"}
+                        direction={expenseSortDirection}
+                        onClick={() => toggleExpenseSort("date")}
+                      >
+                        Tanggal
+                      </SortButton>
+                    </TableHead>
                     <TableHead className="text-right">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {expenses.length === 0 && cashSubsidies.length === 0 && (
+                  {sortedExpenseRows.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
                         Belum ada pengeluaran. Tautkan subsidi kas dari menu Kas, atau tambah pengeluaran kegiatan.
                       </TableCell>
                     </TableRow>
                   )}
-                  {cashSubsidies.map((e) => (
-                    <TableRow key={e.id} className="bg-muted/30">
+                  {sortedExpenseRows.map((e) => (
+                    <TableRow
+                      key={e.id}
+                      className={e.source === "subsidy" ? "bg-muted/30" : undefined}
+                    >
                       <TableCell>
                         {e.description}
-                        <span className="block text-xs text-muted-foreground">
-                          Periode kas: {e.period ? `${e.period.month}/${e.period.year}` : "–"}
-                        </span>
+                        {e.source === "subsidy" && e.period && (
+                          <span className="block text-xs text-muted-foreground">
+                            Periode kas: {e.period.month}/{e.period.year}
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="secondary">Subsidi Kas</Badge>
-                      </TableCell>
-                      <TableCell className="text-center tabular-nums text-sm">
-                        {formatCurrency(e.amount)}
-                      </TableCell>
-                      <TableCell className="text-center text-sm">
-                        {formatDate(e.spentAt)}
-                      </TableCell>
-                      <TableCell className="text-right text-xs text-muted-foreground">
-                        kelola di menu Kas
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {expenses.map((e) => (
-                    <TableRow key={e.id}>
-                      <TableCell className="font-medium">{e.description}</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline">Kegiatan</Badge>
+                        {e.source === "subsidy" ? (
+                          <Badge variant="secondary">Subsidi Kas</Badge>
+                        ) : (
+                          <Badge variant="outline">Kegiatan</Badge>
+                        )}
                       </TableCell>
                       <TableCell className="text-center tabular-nums text-sm">
                         {formatCurrency(e.amount)}
@@ -416,20 +513,26 @@ export default function KegiatanDetailPage({
                         {formatDate(e.spentAt)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          aria-label="Hapus pengeluaran"
-                          onClick={() =>
-                            setDeletingExpense({
-                              id: e.id,
-                              description: e.description,
-                              amount: e.amount,
-                            })
-                          }
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {e.source === "subsidy" ? (
+                          <span className="text-right text-xs text-muted-foreground">
+                            kelola di menu Kas
+                          </span>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            aria-label="Hapus pengeluaran"
+                            onClick={() =>
+                              setDeletingExpense({
+                                id: e.id,
+                                description: e.description,
+                                amount: e.amount,
+                              })
+                            }
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

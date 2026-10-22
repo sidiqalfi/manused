@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { SortButton, type SortDirection } from "@/components/ui/sort-button"
 import {
   Table,
   TableBody,
@@ -53,6 +54,8 @@ type Props = {
   allMembers: { id: string; name: string; fullName: string; status: string }[]
 }
 
+type SortKey = "name" | "attending" | "iuran" | "status" | "joined"
+
 export function KegiatanParticipantsTable({
   kegiatanId,
   feePerPerson,
@@ -62,9 +65,57 @@ export function KegiatanParticipantsTable({
   const [error, setError] = useState<string | null>(null)
   const [removing, setRemoving] = useState<Participant | null>(null)
   const [editing, setEditing] = useState<Participant | null>(null)
+  const [sortKey, setSortKey] = useState<SortKey>("name")
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
   const queryClient = useQueryClient()
 
   const existingIds = new Set(participants.map((p) => p.memberId))
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDirection((d) => (d === "asc" ? "desc" : "asc"))
+    } else {
+      setSortKey(key)
+      // Default: nama/status/kehadiran naik; nilai & tanggal turun (besar/terbaru dulu).
+      setSortDirection(key === "iuran" || key === "joined" ? "desc" : "asc")
+    }
+  }
+
+  const sortedParticipants = [...participants].sort((a, b) => {
+    const dir = sortDirection === "asc" ? 1 : -1
+    const nameTie = a.member.name.localeCompare(b.member.name)
+    switch (sortKey) {
+      case "attending": {
+        // Hadir = 1, Patungan = 0. asc: Patungan dulu; desc: Hadir dulu.
+        const av = a.attending ? 1 : 0
+        const bv = b.attending ? 1 : 0
+        if (av !== bv) return (av - bv) * dir
+        return nameTie
+      }
+      case "iuran": {
+        const ae = a.expectedAmount ?? feePerPerson
+        const be = b.expectedAmount ?? feePerPerson
+        if (ae !== be) return (ae - be) * dir
+        return nameTie
+      }
+      case "status": {
+        // Aktif = 1, Nonaktif = 0. desc: Aktif dulu.
+        const av = a.member.status === "ACTIVE" ? 1 : 0
+        const bv = b.member.status === "ACTIVE" ? 1 : 0
+        if (av !== bv) return (av - bv) * dir
+        return nameTie
+      }
+      case "joined": {
+        const at = new Date(a.joinedAt).getTime()
+        const bt = new Date(b.joinedAt).getTime()
+        if (at !== bt) return (at - bt) * dir
+        return nameTie
+      }
+      case "name":
+      default:
+        return nameTie * dir
+    }
+  })
 
   async function handleRemove() {
     if (!removing) return
@@ -100,11 +151,55 @@ export function KegiatanParticipantsTable({
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead>Nama</TableHead>
-              <TableHead className="text-center">Kehadiran</TableHead>
-              <TableHead className="text-center">Iuran</TableHead>
-              <TableHead className="text-center">Status</TableHead>
-              <TableHead className="text-center">Terdaftar</TableHead>
+              <TableHead>
+                <SortButton
+                  active={sortKey === "name"}
+                  direction={sortDirection}
+                  onClick={() => toggleSort("name")}
+                >
+                  Nama
+                </SortButton>
+              </TableHead>
+              <TableHead className="text-center">
+                <SortButton
+                  align="center"
+                  active={sortKey === "attending"}
+                  direction={sortDirection}
+                  onClick={() => toggleSort("attending")}
+                >
+                  Kehadiran
+                </SortButton>
+              </TableHead>
+              <TableHead className="text-center">
+                <SortButton
+                  align="center"
+                  active={sortKey === "iuran"}
+                  direction={sortDirection}
+                  onClick={() => toggleSort("iuran")}
+                >
+                  Iuran
+                </SortButton>
+              </TableHead>
+              <TableHead className="text-center">
+                <SortButton
+                  align="center"
+                  active={sortKey === "status"}
+                  direction={sortDirection}
+                  onClick={() => toggleSort("status")}
+                >
+                  Status
+                </SortButton>
+              </TableHead>
+              <TableHead className="text-center">
+                <SortButton
+                  align="center"
+                  active={sortKey === "joined"}
+                  direction={sortDirection}
+                  onClick={() => toggleSort("joined")}
+                >
+                  Terdaftar
+                </SortButton>
+              </TableHead>
               <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
@@ -116,7 +211,7 @@ export function KegiatanParticipantsTable({
                 </TableCell>
               </TableRow>
             )}
-            {participants.map((p) => {
+            {sortedParticipants.map((p) => {
               const expected = p.expectedAmount ?? feePerPerson
               return (
                 <TableRow key={p.id}>

@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Trash2 } from "lucide-react"
+import { SortButton, type SortDirection } from "@/components/ui/sort-button"
 import { RecordKegiatanPaymentDialog } from "./record-kegiatan-payment-dialog"
 import { deleteKegiatanPayment } from "../actions/delete-kegiatan-payment"
 import { kegiatanKeys } from "../queries"
@@ -50,6 +51,8 @@ type Props = {
   payments: Payment[]
 }
 
+type SortKey = "name" | "paid" | "remaining" | "status"
+
 export function KegiatanPaymentsTable({
   kegiatanId,
   feePerPerson,
@@ -58,6 +61,8 @@ export function KegiatanPaymentsTable({
 }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<Payment | null>(null)
+  const [sortKey, setSortKey] = useState<SortKey>("name")
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
   const queryClient = useQueryClient()
 
   const paidBy = useMemo(() => {
@@ -77,6 +82,16 @@ export function KegiatanPaymentsTable({
     return map
   }, [participants, feePerPerson])
 
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDirection((d) => (d === "asc" ? "desc" : "asc"))
+    } else {
+      setSortKey(key)
+      // Default: nama naik (A→Z), angka turun (besar dulu), status turun (Kurang dulu).
+      setSortDirection(key === "name" ? "asc" : "desc")
+    }
+  }
+
   const rows = participants
     .map((p) => {
       const expected = expectedByMember[p.memberId] ?? feePerPerson
@@ -84,7 +99,27 @@ export function KegiatanPaymentsTable({
       const remaining = Math.max(expected - paid, 0)
       return { ...p, expected, paid, remaining }
     })
-    .sort((a, b) => a.member.name.localeCompare(b.member.name))
+    .sort((a, b) => {
+      const dir = sortDirection === "asc" ? 1 : -1
+      switch (sortKey) {
+        case "paid":
+          if (a.paid !== b.paid) return (a.paid - b.paid) * dir
+          return a.member.name.localeCompare(b.member.name)
+        case "remaining":
+          if (a.remaining !== b.remaining) return (a.remaining - b.remaining) * dir
+          return a.member.name.localeCompare(b.member.name)
+        case "status": {
+          // Kurang = 1, Lunas = 0. Dengan desc, "Kurang" muncul lebih dulu.
+          const sa = a.remaining > 0 ? 1 : 0
+          const sb = b.remaining > 0 ? 1 : 0
+          if (sa !== sb) return (sa - sb) * dir
+          return a.member.name.localeCompare(b.member.name)
+        }
+        case "name":
+        default:
+          return a.member.name.localeCompare(b.member.name) * dir
+      }
+    })
 
   const totalExpected = participants.reduce(
     (s, p) => s + (p.expectedAmount ?? feePerPerson),
@@ -127,10 +162,45 @@ export function KegiatanPaymentsTable({
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead>Peserta</TableHead>
-              <TableHead className="text-center">Bayar</TableHead>
-              <TableHead className="text-center">Sisa</TableHead>
-              <TableHead className="text-center">Status</TableHead>
+              <TableHead>
+                <SortButton
+                  active={sortKey === "name"}
+                  direction={sortDirection}
+                  onClick={() => toggleSort("name")}
+                >
+                  Peserta
+                </SortButton>
+              </TableHead>
+              <TableHead className="text-center">
+                <SortButton
+                  align="center"
+                  active={sortKey === "paid"}
+                  direction={sortDirection}
+                  onClick={() => toggleSort("paid")}
+                >
+                  Bayar
+                </SortButton>
+              </TableHead>
+              <TableHead className="text-center">
+                <SortButton
+                  align="center"
+                  active={sortKey === "remaining"}
+                  direction={sortDirection}
+                  onClick={() => toggleSort("remaining")}
+                >
+                  Sisa
+                </SortButton>
+              </TableHead>
+              <TableHead className="text-center">
+                <SortButton
+                  align="center"
+                  active={sortKey === "status"}
+                  direction={sortDirection}
+                  onClick={() => toggleSort("status")}
+                >
+                  Status
+                </SortButton>
+              </TableHead>
               <TableHead className="text-right">Riwayat</TableHead>
             </TableRow>
           </TableHeader>
@@ -217,3 +287,4 @@ export function KegiatanPaymentsTable({
     </div>
   )
 }
+
