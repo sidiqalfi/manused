@@ -59,6 +59,20 @@ export function ProfileInfoCard() {
         <p className="text-sm text-muted-foreground">
           Terdaftar sejak {formatDate(profile.createdAt)}
         </p>
+        {profile.role !== "guest" && profile.email && (
+          <p className="text-xs text-muted-foreground">
+            Foto profil diambil dari{" "}
+            <a
+              href="https://gravatar.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              Gravatar
+            </a>{" "}
+            dengan email akun ini.
+          </p>
+        )}
       </CardContent>
     </Card>
   )
