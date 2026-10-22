@@ -10,6 +10,7 @@ import {
   HandCoins,
   Shuffle,
   CalendarDays,
+  CircleUser,
   ScrollText,
   Settings,
 } from "lucide-react"
@@ -61,6 +62,12 @@ export const sidebarData = {
     },
   ],
   navSecondary: [
+    {
+      title: "Profile",
+      url: "/dashboard/profile",
+      icon: <CircleUser />,
+      guestHidden: true,
+    },
     {
       title: "Settings",
       url: "/dashboard/settings",
