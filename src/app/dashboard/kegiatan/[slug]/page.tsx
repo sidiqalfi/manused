@@ -317,7 +317,13 @@ export default function KegiatanDetailPage({
       </div>
 
       {/* Ringkasan */}
-      <div className="grid gap-4 md:grid-cols-5">
+      <div
+        className={
+          patunganCount > 0
+            ? "grid gap-4 md:grid-cols-3"
+            : "grid gap-4 md:grid-cols-4"
+        }
+      >
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
             <Users className="h-5 w-5 text-muted-foreground" />
