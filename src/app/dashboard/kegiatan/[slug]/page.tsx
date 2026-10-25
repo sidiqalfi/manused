@@ -37,6 +37,7 @@ import {
 import {
   ArrowLeft,
   CalendarDays,
+  HandCoins,
   MapPin,
   Plus,
   Trash2,
@@ -158,6 +159,17 @@ export default function KegiatanDetailPage({
   const attendingCount = participants.filter((p) => p.attending).length
   const patunganCount = participants.length - attendingCount
   const diff = totalCollected - totalExpense
+
+  // Pisahkan terkumpul + target: peserta hadir vs patungan (tidak ikut
+  // tapi tetap menyetor).
+  const collectedRegular = participants
+    .filter((p) => p.attending)
+    .reduce((s, p) => s + (paidBy[p.memberId] ?? 0), 0)
+  const collectedPatungan = totalCollected - collectedRegular
+  const expectedRegular = participants
+    .filter((p) => p.attending)
+    .reduce((s, p) => s + (p.expectedAmount ?? kegiatan.feePerPerson), 0)
+  const expectedPatungan = expected - expectedRegular
 
   const participantPayload = participants.map((p) => ({
     memberId: p.memberId,
@@ -305,7 +317,7 @@ export default function KegiatanDetailPage({
       </div>
 
       {/* Ringkasan */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
             <Users className="h-5 w-5 text-muted-foreground" />
@@ -326,15 +338,52 @@ export default function KegiatanDetailPage({
           <CardContent className="flex items-center gap-3 p-4">
             <Wallet className="h-5 w-5 text-muted-foreground" />
             <div>
-              <p className="text-xs text-muted-foreground">
-                Terkumpul (target {formatCurrency(expected)})
-              </p>
+              <p className="text-xs text-muted-foreground">Terkumpul</p>
               <p className="text-lg font-semibold tabular-nums">
                 {formatCurrency(totalCollected)}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                target {formatCurrency(expected)}
               </p>
             </div>
           </CardContent>
         </Card>
+        {patunganCount > 0 && (
+          <>
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <Users className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Terkumpul Peserta Hadir
+                  </p>
+                  <p className="text-lg font-semibold tabular-nums">
+                    {formatCurrency(collectedRegular)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    target {formatCurrency(expectedRegular)}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <HandCoins className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Terkumpul Patungan
+                  </p>
+                  <p className="text-lg font-semibold tabular-nums">
+                    {formatCurrency(collectedPatungan)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    target {formatCurrency(expectedPatungan)}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
             <TrendingDown className="h-5 w-5 text-muted-foreground" />
