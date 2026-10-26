@@ -4,6 +4,14 @@ import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { ACTIVITY_ACTIONS, type ActivityAction } from "../activity-log"
 import { activityLogsQuery, activityLogActorsQuery } from "../queries"
 import { logsToCsv, logsToJson } from "../log-export"
@@ -166,32 +174,32 @@ export function ActivityLogTable() {
       </div>
 
       <div className="overflow-x-auto rounded-md border">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="p-3 text-left text-sm font-medium">Waktu</th>
-              <th className="p-3 text-left text-sm font-medium">Aktor</th>
-              <th className="p-3 text-left text-sm font-medium">Aksi</th>
-              <th className="p-3 text-left text-sm font-medium">Entitas</th>
-              <th className="p-3 text-left text-sm font-medium">Keterangan</th>
-              <th className="p-3 text-left text-sm font-medium">Sebelum</th>
-              <th className="p-3 text-left text-sm font-medium">Sesudah</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50">
+              <TableHead>Waktu</TableHead>
+              <TableHead>Aktor</TableHead>
+              <TableHead>Aksi</TableHead>
+              <TableHead>Entitas</TableHead>
+              <TableHead>Keterangan</TableHead>
+              <TableHead>Sebelum</TableHead>
+              <TableHead>Sesudah</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {logs.length === 0 && (
-              <tr>
-                <td colSpan={7} className="p-4 text-center text-sm text-muted-foreground">
+              <TableRow>
+                <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
                   Belum ada log aktivitas
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {logs.map((log) => (
-              <tr key={log.id} className="border-b align-top">
-                <td className="p-3 text-sm whitespace-nowrap tabular-nums">
+              <TableRow key={log.id} className="align-top">
+                <TableCell className="text-sm whitespace-nowrap tabular-nums">
                   {formatLogTimestamp(log.createdAt)}
-                </td>
-                <td className="p-3 text-sm">
+                </TableCell>
+                <TableCell className="text-sm">
                   <span className="block font-medium">
                     {log.actorName ?? "Tidak diketahui"}
                   </span>
@@ -200,24 +208,24 @@ export function ActivityLogTable() {
                       {log.actorEmail}
                     </span>
                   )}
-                </td>
-                <td className="p-3 text-sm">
+                </TableCell>
+                <TableCell className="text-sm">
                   <Badge variant={log.action === "LOGIN_FAILED" ? "destructive" : "outline"}>
                     {ACTION_LABELS[log.action as ActivityAction] ?? log.action}
                   </Badge>
-                </td>
-                <td className="p-3 text-sm">{log.entity}</td>
-                <td className="p-3 text-sm">{log.summary}</td>
-                <td className="p-3 text-xs font-mono text-muted-foreground max-w-64 break-all">
+                </TableCell>
+                <TableCell className="text-sm">{log.entity}</TableCell>
+                <TableCell className="text-sm whitespace-normal">{log.summary}</TableCell>
+                <TableCell className="text-xs font-mono text-muted-foreground max-w-64 break-all whitespace-normal">
                   {jsonPreview(log.before)}
-                </td>
-                <td className="p-3 text-xs font-mono text-muted-foreground max-w-64 break-all">
+                </TableCell>
+                <TableCell className="text-xs font-mono text-muted-foreground max-w-64 break-all whitespace-normal">
                   {jsonPreview(log.after)}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

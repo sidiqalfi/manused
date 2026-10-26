@@ -1,9 +1,8 @@
 "use client"
 
-import { Wallet, HandCoins, Users, Shuffle, type LucideIcon } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Wallet, HandCoins, Users, Shuffle } from "lucide-react"
+import { SummaryStatCards, type SummaryStat } from "@/components/summary-stat-cards"
 import { formatCurrency } from "@/lib/format"
-import { cn } from "@/lib/utils"
 
 type Props = {
   cashBalance: number | null
@@ -20,37 +19,6 @@ function money(value: number | null) {
   return value == null ? "-" : formatCurrency(value)
 }
 
-function OverviewItem({
-  label,
-  value,
-  caption,
-  icon: Icon,
-  valueClassName,
-}: {
-  label: string
-  value: string
-  caption?: string | null
-  icon: LucideIcon
-  valueClassName?: string
-}) {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{label}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className={cn("text-2xl font-bold tabular-nums", valueClassName)}>
-          {value}
-        </div>
-        {caption ? (
-          <p className="text-xs text-muted-foreground">{caption}</p>
-        ) : null}
-      </CardContent>
-    </Card>
-  )
-}
-
 export function OverviewCards({
   cashBalance,
   cashCaption,
@@ -61,33 +29,33 @@ export function OverviewCards({
   activeMembers,
   totalMembers,
 }: Props) {
-  return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <OverviewItem
-        label="Saldo Kas"
-        value={money(cashBalance)}
-        caption={cashCaption ?? "Belum ada data kas"}
-        icon={Wallet}
-      />
-      <OverviewItem
-        label="Saldo Sosial"
-        value={money(sosialBalance)}
-        caption={sosialCaption ?? "Belum ada data sosial"}
-        icon={HandCoins}
-      />
-      <OverviewItem
-        label="Dana Save Arisan"
-        value={money(arisanSavings)}
-        caption={arisanCaption ?? "Belum ada data arisan"}
-        icon={Shuffle}
-        valueClassName="text-primary"
-      />
-      <OverviewItem
-        label="Anggota"
-        value={activeMembers == null ? "-" : `${activeMembers} aktif`}
-        caption={totalMembers == null ? null : `dari ${totalMembers} anggota`}
-        icon={Users}
-      />
-    </div>
-  )
+  const stats: SummaryStat[] = [
+    {
+      label: "Saldo Kas",
+      value: money(cashBalance),
+      caption: cashCaption ?? "Belum ada data kas",
+      icon: Wallet,
+    },
+    {
+      label: "Saldo Sosial",
+      value: money(sosialBalance),
+      caption: sosialCaption ?? "Belum ada data sosial",
+      icon: HandCoins,
+    },
+    {
+      label: "Dana Save Arisan",
+      value: money(arisanSavings),
+      caption: arisanCaption ?? "Belum ada data arisan",
+      icon: Shuffle,
+      valueClassName: "text-primary",
+    },
+    {
+      label: "Anggota",
+      value: activeMembers == null ? "-" : `${activeMembers} aktif`,
+      caption: totalMembers == null ? null : `dari ${totalMembers} anggota`,
+      icon: Users,
+    },
+  ]
+
+  return <SummaryStatCards stats={stats} columns={4} />
 }

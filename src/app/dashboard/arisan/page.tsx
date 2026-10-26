@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { PeriodSelector, type PeriodOption } from "@/components/period-selector"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { SummaryStatCards } from "@/components/summary-stat-cards"
 import {
   YearlyIncomeExpenseChart,
   type YearlyFlowPoint,
@@ -29,40 +29,8 @@ import {
 } from "@/features/arisan/queries"
 import { membersQuery } from "@/features/members/queries"
 import { formatCurrency } from "@/lib/format"
-import { cn } from "@/lib/utils"
 import { computeArrears, type MemberArrears } from "@/lib/payments/arrears"
-import { Coins, Target, PiggyBank, Trophy, TrendingUp, TrendingDown, type LucideIcon } from "lucide-react"
-
-function StatCard({
-  label,
-  value,
-  caption,
-  icon: Icon,
-  valueClassName,
-}: {
-  label: string
-  value: string
-  caption?: string | null
-  icon: LucideIcon
-  valueClassName?: string
-}) {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{label}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className={cn("text-2xl font-bold tabular-nums", valueClassName)}>
-          {value}
-        </div>
-        {caption ? (
-          <p className="text-xs text-muted-foreground">{caption}</p>
-        ) : null}
-      </CardContent>
-    </Card>
-  )
-}
+import { Coins, Target, PiggyBank, Trophy, TrendingUp, TrendingDown } from "lucide-react"
 
 export default function ArisanPage() {
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null)
@@ -164,33 +132,35 @@ export default function ArisanPage() {
 
       {selectedPeriodId ? (
         <>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <StatCard
-              label="Terkumpul"
-              value={summary ? formatCurrency(summary.collected) : "-"}
-              caption={collectedCaption}
-              icon={Coins}
-            />
-            <StatCard
-              label="Target"
-              value={summary ? formatCurrency(summary.target) : "-"}
-              icon={Target}
-            />
-            <StatCard
-              label="Dana Save"
-              value={
-                summary ? formatCurrency(summary.collected - summary.target) : "-"
-              }
-              icon={PiggyBank}
-              valueClassName="text-primary"
-            />
-            <StatCard
-              label="Pemenang Terakhir"
-              value={lastWinner ?? "-"}
-              caption={hasActiveDraw ? "Sudah di-kocok" : "Belum di-kocok"}
-              icon={Trophy}
-            />
-          </div>
+          <SummaryStatCards
+            columns={4}
+            stats={[
+              {
+                label: "Terkumpul",
+                value: summary ? formatCurrency(summary.collected) : "-",
+                caption: collectedCaption,
+                icon: Coins,
+              },
+              {
+                label: "Target",
+                value: summary ? formatCurrency(summary.target) : "-",
+                icon: Target,
+              },
+              {
+                label: "Dana Save",
+                value:
+                  summary ? formatCurrency(summary.collected - summary.target) : "-",
+                icon: PiggyBank,
+                valueClassName: "text-primary",
+              },
+              {
+                label: "Pemenang Terakhir",
+                value: lastWinner ?? "-",
+                caption: hasActiveDraw ? "Sudah di-kocok" : "Belum di-kocok",
+                icon: Trophy,
+              },
+            ]}
+          />
 
           {!hasActiveDraw && summary ? (
             <div className="flex items-center gap-2">
@@ -222,31 +192,32 @@ export default function ArisanPage() {
         </div>
       ) : activeYear !== null && yearSummary ? (
         <>
-          <div className="grid gap-4 md:grid-cols-3">
-            <StatCard
-              label="Total Iuran"
-              value={formatCurrency(yearSummary.totalIncome)}
-              caption={`${yearSummary.incomeCount} iuran`}
-              icon={TrendingUp}
-            />
-            <StatCard
-              label="Total Dibayarkan"
-              value={formatCurrency(yearSummary.totalPayout)}
-              caption={`${yearSummary.drawCount} kocokan`}
-              icon={TrendingDown}
-            />
-            <StatCard
-              label="Dana Save"
-              value={
-                arisanOverview
-                  ? formatCurrency(arisanOverview.savings)
-                  : "-"
-              }
-              caption={`Gabungan semua periode ${yearSummary.year}`}
-              icon={PiggyBank}
-              valueClassName="text-primary"
-            />
-          </div>
+          <SummaryStatCards
+            stats={[
+              {
+                label: "Total Iuran",
+                value: formatCurrency(yearSummary.totalIncome),
+                caption: `${yearSummary.incomeCount} iuran`,
+                icon: TrendingUp,
+              },
+              {
+                label: "Total Dibayarkan",
+                value: formatCurrency(yearSummary.totalPayout),
+                caption: `${yearSummary.drawCount} kocokan`,
+                icon: TrendingDown,
+              },
+              {
+                label: "Dana Save",
+                value:
+                  arisanOverview
+                    ? formatCurrency(arisanOverview.savings)
+                    : "-",
+                caption: `Gabungan semua periode ${yearSummary.year}`,
+                icon: PiggyBank,
+                valueClassName: "text-primary",
+              },
+            ]}
+          />
           <YearlyIncomeExpenseChart
             year={activeYear}
             data={yearChart}

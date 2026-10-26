@@ -1,6 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -110,37 +118,37 @@ export function SosialIncomeTable({ periodId, period, summary, members, arrears 
       </div>
 
       <div className="overflow-x-auto rounded-md border">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="p-3 text-left text-sm font-medium">Nama</th>
-              <th className="p-3 text-left text-sm font-medium">Status</th>
-              <th className="p-3 text-left text-sm font-medium">Nominal</th>
-              <th className="p-3 text-left text-sm font-medium">Tanggal</th>
-              <th className="p-3 text-left text-sm font-medium">Catatan</th>
-              <th className="p-3 text-right text-sm font-medium">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50 hover:bg-muted/50">
+              <TableHead>Nama</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Nominal</TableHead>
+              <TableHead>Tanggal</TableHead>
+              <TableHead>Catatan</TableHead>
+              <TableHead className="text-right">Aksi</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {incomes.length === 0 && (
-              <tr>
-                <td colSpan={6} className="p-4 text-center text-sm text-muted-foreground">
+              <TableRow>
+                <TableCell colSpan={6} className="p-4 text-center text-muted-foreground">
                   Belum ada iuran tercatat
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {incomes.map((income) => (
-              <tr key={income.id} className="border-b">
-                <td className="p-3 text-sm">{income.member.name}</td>
-                <td className="p-3">
+              <TableRow key={income.id}>
+                <TableCell className="text-sm">{income.member.name}</TableCell>
+                <TableCell>
                   <Badge variant="default">Sudah Iuran</Badge>
-                </td>
-                <td className="p-3 text-sm">{formatCurrency(income.amount)}</td>
-                <td className="p-3 text-sm">{formatDate(income.paidAt)}</td>
-                <td className="p-3 text-sm text-muted-foreground">
+                </TableCell>
+                <TableCell className="text-sm">{formatCurrency(income.amount)}</TableCell>
+                <TableCell className="text-sm">{formatDate(income.paidAt)}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
                   {income.note ?? "-"}
-                </td>
-                <td className="p-3 text-right">
+                </TableCell>
+                <TableCell className="text-right">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -150,11 +158,11 @@ export function SosialIncomeTable({ periodId, period, summary, members, arrears 
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {unpaidMembers.length > 0 && (

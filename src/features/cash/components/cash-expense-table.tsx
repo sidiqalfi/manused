@@ -1,6 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -109,26 +117,26 @@ export function CashExpenseTable({ periodId, period }: Props) {
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <div className="overflow-x-auto rounded-md border">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="p-3 text-left text-sm font-medium">Deskripsi</th>
-              <th className="p-3 text-left text-sm font-medium">Nominal</th>
-              <th className="p-3 text-left text-sm font-medium">Tanggal</th>
-              <th className="p-3 text-right text-sm font-medium">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50 hover:bg-muted/50">
+              <TableHead>Deskripsi</TableHead>
+              <TableHead>Nominal</TableHead>
+              <TableHead>Tanggal</TableHead>
+              <TableHead className="text-right">Aksi</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {expenses.length === 0 && (
-              <tr>
-                <td colSpan={4} className="p-4 text-center text-sm text-muted-foreground">
+              <TableRow>
+                <TableCell colSpan={4} className="p-4 text-center text-muted-foreground">
                   Belum ada pengeluaran tercatat
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {expenses.map((expense) => (
-              <tr key={expense.id} className="border-b">
-                <td className="p-3 text-sm">
+              <TableRow key={expense.id}>
+                <TableCell className="text-sm">
                   {expense.description}
                   {expense.relatedEvent && (
                     <span className="mt-0.5 flex items-center gap-1">
@@ -149,10 +157,10 @@ export function CashExpenseTable({ periodId, period }: Props) {
                       </button>
                     </span>
                   )}
-                </td>
-                <td className="p-3 text-sm">{formatCurrency(expense.amount)}</td>
-                <td className="p-3 text-sm">{formatDate(expense.spentAt)}</td>
-                <td className="p-3 text-right">
+                </TableCell>
+                <TableCell className="text-sm">{formatCurrency(expense.amount)}</TableCell>
+                <TableCell className="text-sm">{formatDate(expense.spentAt)}</TableCell>
+                <TableCell className="text-right">
                   <div className="inline-flex items-center gap-1">
                     {!expense.relatedEvent && (
                       <Button
@@ -176,11 +184,11 @@ export function CashExpenseTable({ periodId, period }: Props) {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <Dialog
