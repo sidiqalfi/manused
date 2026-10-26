@@ -539,9 +539,11 @@ export default function KegiatanDetailPage({
                     >
                       <TableCell>
                         {e.description}
-                        {e.source === "subsidy" && e.period && (
+                        {e.source === "subsidy" && (
                           <span className="block text-xs text-muted-foreground">
-                            Periode kas: {e.period.month}/{e.period.year}
+                            {e.period
+                              ? `Periode kas: ${e.period.month}/${e.period.year}`
+                              : "Periode kas sudah tidak tertaut"}
                           </span>
                         )}
                       </TableCell>
