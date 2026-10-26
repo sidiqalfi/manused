@@ -75,6 +75,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name ?? null,
+          tokenVersion: user.tokenVersion,
         }
       },
     }),
@@ -102,12 +103,37 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.email = user.email
         token.name = user.name
         token.role = user.role ?? "user"
+        token.tokenVersion = user.tokenVersion ?? 0
+        return token
       }
+
+      // Setelah login: validasi tokenVersion tiap request supaya ganti
+      // password (yang menaikkan versi di DB) langsung me-revoke semua
+      // JWT lama di device manapun. Tamu dilewati — id-nya pseudo.
+      if (token.role !== "guest" && typeof token.id === "string") {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id },
+          select: { tokenVersion: true },
+        })
+
+        // Token lama (sebelum fitur ini ada) tidak punya tokenVersion;
+        // anggap 0 supaya sesi yang masih aktif tidak ikut ter-revoke
+        // saat deploy.
+        const tokenVersion = token.tokenVersion ?? 0
+
+        if (!dbUser || dbUser.tokenVersion !== tokenVersion) {
+          // Versi tidak cocok (atau user terhapus): buang klaim utama —
+          // session callback tidak akan mengisi user id dan action
+          // guards akan menolaknya.
+          return {} as typeof token
+        }
+      }
+
       return token
     },
     async session({ session, token }) {
-      session.user.id = token.id as string
-      session.user.email = token.email as string
+      session.user.id = (token.id ?? null) as string
+      session.user.email = (token.email ?? null) as string
       session.user.name = (token.name ?? null) as string
       session.user.role = (token.role ?? "user") as "user" | "guest"
       return session

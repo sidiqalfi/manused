@@ -18,6 +18,9 @@ model User {
   email    String  @unique
   name     String?
   password String
+  // Naikkan untuk me-revoke semua JWT aktif milik user ini
+  // (dipakai saat ganti password). Lihat jwt callback di auth.ts.
+  tokenVersion Int @default(0)
 
   createdMembers Member[]
   createdCashPeriods CashPeriod[]

@@ -10,6 +10,7 @@ declare module "next-auth" {
 
   interface User {
     role?: "user" | "guest"
+    tokenVersion?: number
   }
 }
 
@@ -17,5 +18,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string
     role?: "user" | "guest"
+    tokenVersion?: number
   }
 }
