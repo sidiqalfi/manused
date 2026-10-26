@@ -10,6 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { todayLocalISO } from "@/lib/format"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus } from "lucide-react"
@@ -49,7 +50,7 @@ export function RecordKegiatanPaymentDialog({
   const [amount, setAmount] = useState<number>(feePerPerson)
   const queryClient = useQueryClient()
 
-  const today = new Date().toISOString().split("T")[0]
+  const today = todayLocalISO()
 
   // Iuran yang disepakati untuk satu peserta (override patungan bila ada).
   const expectedOf = (id: string) => expectedByMember[id] ?? feePerPerson

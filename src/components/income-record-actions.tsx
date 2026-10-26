@@ -22,6 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { todayLocalISO } from "@/lib/format"
 import { CheckCheck, Layers } from "lucide-react"
 
 type Member = {
@@ -77,7 +78,7 @@ export function IncomeRecordActions({
   const [confirmAllOpen, setConfirmAllOpen] = useState(false)
   const queryClient = useQueryClient()
 
-  const today = new Date().toISOString().split("T")[0]
+  const today = todayLocalISO()
 
   function resetSelection() {
     setSelected(new Set(unpaidMembers.map((m) => m.id)))

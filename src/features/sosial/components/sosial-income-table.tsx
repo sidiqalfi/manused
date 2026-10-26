@@ -53,20 +53,28 @@ type Props = {
 }
 
 export function SosialIncomeTable({ periodId, period, summary, members, arrears }: Props) {
-  const [error, setError] = useState<string | null>(null)
   const [deletingIncome, setDeletingIncome] = useState<Income | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
   const incomes = period?.success ? period.data?.incomes ?? [] : []
 
   async function handleDelete(incomeId: string) {
+    setDeleting(true)
+    setDeleteError(null)
+
     const result = await deleteSosialIncome(incomeId)
+
     if (result.error) {
-      setError(result.error)
-    } else {
-      setError(null)
-      await queryClient.invalidateQueries({ queryKey: sosialKeys.all })
+      setDeleteError(result.error)
+      setDeleting(false)
+      return
     }
+
+    await queryClient.invalidateQueries({ queryKey: sosialKeys.all })
+    setDeleting(false)
+    setDeletingIncome(null)
   }
 
   const membersData = members?.success ? members.data ?? [] : []
@@ -100,8 +108,6 @@ export function SosialIncomeTable({ periodId, period, summary, members, arrears 
           batchAction={createSosialIncomesBatch}
         />
       </div>
-
-      {error && <p className="text-sm text-destructive">{error}</p>}
 
       <div className="overflow-x-auto rounded-md border">
         <table className="w-full">
@@ -137,7 +143,8 @@ export function SosialIncomeTable({ periodId, period, summary, members, arrears 
                 <td className="p-3 text-right">
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
                     aria-label="Hapus"
                     onClick={() => setDeletingIncome(income)}
                   >
@@ -175,7 +182,7 @@ export function SosialIncomeTable({ periodId, period, summary, members, arrears 
 
       <AlertDialog
         open={deletingIncome !== null}
-        onOpenChange={(open) => !open && setDeletingIncome(null)}
+        onOpenChange={(open) => !open && !deleting && setDeletingIncome(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -186,17 +193,20 @@ export function SosialIncomeTable({ periodId, period, summary, members, arrears 
               akan dihapus permanen.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          {deleteError && <p className="text-sm text-destructive" role="alert">{deleteError}</p>}
+
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>Batal</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
-              onClick={async () => {
+              disabled={deleting}
+              onClick={() => {
                 if (!deletingIncome) return
-                setDeletingIncome(null)
-                await handleDelete(deletingIncome.id)
+                void handleDelete(deletingIncome.id)
               }}
             >
-              Hapus
+              {deleting ? "Menghapus..." : "Hapus"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

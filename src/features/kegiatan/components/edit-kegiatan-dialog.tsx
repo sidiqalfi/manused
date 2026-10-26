@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { todayLocalISO } from "@/lib/format"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Pencil } from "lucide-react"
@@ -35,7 +36,7 @@ export function EditKegiatanDialog({ kegiatan }: { kegiatan: Kegiatan }) {
 
   // eventDate tersimpan sebagai Date UTC tengah malam — tampilkan
   // bagian YYYY-MM-DD saja agar cocok dengan <input type="date">.
-  const dateValue = new Date(kegiatan.eventDate).toISOString().split("T")[0]
+  const dateValue = todayLocalISO(new Date(kegiatan.eventDate))
 
   async function handleSubmit(formData: FormData) {
     setError(null)

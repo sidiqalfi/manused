@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { todayLocalISO } from "@/lib/format"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { UserCheck } from "lucide-react"
@@ -37,7 +38,7 @@ export function ManualDrawDialog({
   const [error, setError] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
-  const today = new Date().toISOString().split("T")[0]
+  const today = todayLocalISO()
 
   async function handleSubmit(formData: FormData) {
     setError(null)

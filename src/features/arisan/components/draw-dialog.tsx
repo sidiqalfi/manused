@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { todayLocalISO } from "@/lib/format"
 import { Shuffle } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { previewArisanDraw } from "../actions/preview-arisan-draw"
@@ -61,7 +62,7 @@ export function DrawDialog({ periodId, payoutTarget, triggerVariant = "default" 
     const formData = new FormData()
     formData.set("periodId", periodId)
     formData.set("winnerMemberId", preview.winnerMemberId)
-    formData.set("drawnAt", new Date().toISOString().split("T")[0])
+    formData.set("drawnAt", todayLocalISO())
 
     const result = await performArisanDraw(formData)
     if (result.error) {

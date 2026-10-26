@@ -54,8 +54,9 @@ type Props = {
 }
 
 export function ArisanIncomeTable({ periodId, period, members, arrears }: Props) {
-  const [error, setError] = useState<string | null>(null)
   const [deletingIncome, setDeletingIncome] = useState<Income | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
   const incomes = period?.success ? period.data?.incomes ?? [] : []
@@ -65,13 +66,20 @@ export function ArisanIncomeTable({ periodId, period, members, arrears }: Props)
     : false
 
   async function handleDelete(incomeId: string) {
+    setDeleting(true)
+    setDeleteError(null)
+
     const result = await deleteArisanIncome(incomeId)
+
     if (result.error) {
-      setError(result.error)
-    } else {
-      setError(null)
-      await queryClient.invalidateQueries({ queryKey: arisanKeys.all })
+      setDeleteError(result.error)
+      setDeleting(false)
+      return
     }
+
+    await queryClient.invalidateQueries({ queryKey: arisanKeys.all })
+    setDeleting(false)
+    setDeletingIncome(null)
   }
 
   const membersData = members?.success ? members.data ?? [] : []
@@ -104,8 +112,6 @@ export function ArisanIncomeTable({ periodId, period, members, arrears }: Props)
           batchAction={createArisanIncomesBatch}
         />
       </div>
-
-      {error && <p className="text-sm text-destructive">{error}</p>}
 
       <div className="overflow-x-auto rounded-md border">
         <table className="w-full">
@@ -191,7 +197,7 @@ export function ArisanIncomeTable({ periodId, period, members, arrears }: Props)
 
       <AlertDialog
         open={deletingIncome !== null}
-        onOpenChange={(open) => !open && setDeletingIncome(null)}
+        onOpenChange={(open) => !open && !deleting && setDeletingIncome(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -202,17 +208,20 @@ export function ArisanIncomeTable({ periodId, period, members, arrears }: Props)
               akan dihapus permanen.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          {deleteError && <p className="text-sm text-destructive" role="alert">{deleteError}</p>}
+
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>Batal</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
-              onClick={async () => {
+              disabled={deleting}
+              onClick={() => {
                 if (!deletingIncome) return
-                setDeletingIncome(null)
-                await handleDelete(deletingIncome.id)
+                void handleDelete(deletingIncome.id)
               }}
             >
-              Hapus
+              {deleting ? "Menghapus..." : "Hapus"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

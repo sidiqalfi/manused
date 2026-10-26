@@ -46,6 +46,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react"
+import { todayLocalISO } from "@/lib/format"
 import { kegiatanDetailQuery, kegiatanKeys } from "@/features/kegiatan/queries"
 import { membersQuery } from "@features/members/queries"
 import { KegiatanParticipantsTable } from "@/features/kegiatan/components/kegiatan-participants-table"
@@ -484,7 +485,7 @@ export default function KegiatanDetailPage({
                           type="date"
                           name="spentAt"
                           id="spentAt"
-                          defaultValue={new Date().toISOString().split("T")[0]}
+                          defaultValue={todayLocalISO()}
                           required
                         />
                       </div>
