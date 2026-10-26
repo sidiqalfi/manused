@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/card"
 import {
   Field,
-  FieldDescription,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
@@ -34,16 +33,16 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle>Masuk ke Akun</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Masukkan email kamu untuk masuk ke akun
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form action={formAction}>
             <FieldGroup>
               {error && (
-                <p className="text-sm text-red-500">{error}</p>
+                <p className="text-sm text-red-500" role="alert">{error}</p>
               )}
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -51,20 +50,12 @@ export function LoginForm({
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="nama@email.com"
                   required
                 />
               </Field>
               <Field>
-                <div className="flex items-center">
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
-                </div>
+                <FieldLabel htmlFor="password">Kata Sandi</FieldLabel>
                 <Input
                   id="password"
                   name="password"
@@ -75,16 +66,13 @@ export function LoginForm({
               </Field>
               <Field>
                 <Button type="submit" disabled={isPending}>
-                  {isPending ? "Loading..." : "Login"}
+                  {isPending ? "Memproses..." : "Masuk"}
                 </Button>
-                <FieldDescription className="text-center">
-                  Don&apos;t have an account? <a href="#">Sign up</a>
-                </FieldDescription>
               </Field>
             </FieldGroup>
           </form>
           {guestError && (
-            <p className="mt-2 text-sm text-red-500">{guestError}</p>
+            <p className="mt-2 text-sm text-red-500" role="alert">{guestError}</p>
           )}
           <form action={guestFormAction} className="mt-4">
             <Button
