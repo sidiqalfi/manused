@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma"
 import { ARISAN_INITIAL_SAVE_KEY } from "../arisan-schemas"
 import { netSavings } from "../draw-logic"
+import { auth } from "@features/auth/lib/auth"
 
 export interface ArisanOverviewData {
   savings: number
@@ -17,6 +18,12 @@ export interface GetArisanOverviewResult {
 }
 
 export async function getArisanOverview(): Promise<GetArisanOverviewResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   try {
     const [draws, setting, lastDraw, incomeAgg] = await Promise.all([
       prisma.arisanDraw.findMany({

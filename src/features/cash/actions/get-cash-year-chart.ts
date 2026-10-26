@@ -2,6 +2,7 @@
 
 import { z } from "zod"
 import prisma from "@/lib/prisma"
+import { auth } from "@features/auth/lib/auth"
 
 export interface CashYearChartDataPoint {
   month: number
@@ -20,6 +21,12 @@ const yearSchema = z.number().int().min(2020).max(2100)
 export async function getCashYearChart(
   year: number
 ): Promise<GetCashYearChartResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   const validation = yearSchema.safeParse(year)
   if (!validation.success) {
     return { success: false, error: "Tahun tidak valid" }

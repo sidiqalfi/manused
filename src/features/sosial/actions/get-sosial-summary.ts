@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { SOSIAL_INITIAL_BALANCE_KEY, sosialPeriodIdSchema } from "../sosial-schemas"
+import { auth } from "@features/auth/lib/auth"
 
 export interface SosialSummaryData {
   totalIncome: number
@@ -22,6 +23,12 @@ export interface GetSosialSummaryResult {
 export async function getSosialSummary(
   periodId: string
 ): Promise<GetSosialSummaryResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   const validation = sosialPeriodIdSchema.safeParse(periodId)
   if (!validation.success) {
     return { success: false, error: "ID periode tidak valid" }

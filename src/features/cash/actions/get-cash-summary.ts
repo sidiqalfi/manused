@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { CASH_INITIAL_BALANCE_KEY, cashPeriodIdSchema } from "../cash-schemas"
+import { auth } from "@features/auth/lib/auth"
 
 export interface CashSummaryData {
   totalIncome: number
@@ -23,6 +24,12 @@ export interface GetCashSummaryResult {
 export async function getCashSummary(
   periodId: string
 ): Promise<GetCashSummaryResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   const validation = cashPeriodIdSchema.safeParse(periodId)
   if (!validation.success) {
     return { success: false, error: "ID periode tidak valid" }

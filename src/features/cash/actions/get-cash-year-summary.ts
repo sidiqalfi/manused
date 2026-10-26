@@ -3,6 +3,7 @@
 import { z } from "zod"
 import prisma from "@/lib/prisma"
 import { CASH_INITIAL_BALANCE_KEY } from "../cash-schemas"
+import { auth } from "@features/auth/lib/auth"
 
 export interface CashYearSummaryData {
   year: number
@@ -25,6 +26,12 @@ const yearSchema = z.number().int().min(2020).max(2100)
 export async function getCashYearSummary(
   year: number
 ): Promise<GetCashYearSummaryResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   const validation = yearSchema.safeParse(year)
   if (!validation.success) {
     return { success: false, error: "Tahun tidak valid" }

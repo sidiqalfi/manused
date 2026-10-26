@@ -3,6 +3,7 @@
 import { Prisma } from "@/generated/prisma/client"
 import prisma from "@/lib/prisma"
 import { arisanPeriodIdSchema } from "../arisan-schemas"
+import { auth } from "@features/auth/lib/auth"
 
 const periodDetailsInclude = {
   incomes: {
@@ -35,6 +36,12 @@ export interface GetArisanPeriodResult {
 }
 
 export async function getArisanPeriods() {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   try {
     const periods = await prisma.arisanPeriod.findMany({
       orderBy: [{ year: "desc" }, { month: "desc" }],
@@ -49,6 +56,12 @@ export async function getArisanPeriods() {
 export async function getArisanPeriod(
   periodId: string
 ): Promise<GetArisanPeriodResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   const validation = arisanPeriodIdSchema.safeParse(periodId)
   if (!validation.success) {
     return { success: false, error: "ID periode tidak valid" }

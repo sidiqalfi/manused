@@ -3,6 +3,7 @@
 import { Prisma } from "@/generated/prisma/client"
 import prisma from "@/lib/prisma"
 import { kegiatanIdSchema } from "../kegiatan-schemas"
+import { auth } from "@features/auth/lib/auth"
 
 const kegiatanDetailsInclude = {
   participants: {
@@ -45,6 +46,12 @@ export interface GetKegiatanDetailResult {
 export async function getKegiatanDetail(
   slugOrId: string
 ): Promise<GetKegiatanDetailResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   // Terima slug URL maupun uuid lama (link lama tetap hidup).
   const isUuid = kegiatanIdSchema.safeParse(slugOrId).success
   if (!isUuid && !/^[a-z0-9](-?[a-z0-9])*$/.test(slugOrId)) {

@@ -3,6 +3,7 @@
 import { Prisma } from "@/generated/prisma/client"
 import prisma from "@/lib/prisma"
 import { cashPeriodIdSchema } from "../cash-schemas"
+import { auth } from "@features/auth/lib/auth"
 
 const periodDetailsInclude = {
   incomes: {
@@ -28,6 +29,12 @@ export interface GetCashPeriodResult {
 }
 
 export async function getCashPeriods() {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   try {
     const periods = await prisma.cashPeriod.findMany({
       orderBy: [{ year: "desc" }, { month: "desc" }],
@@ -42,6 +49,12 @@ export async function getCashPeriods() {
 export async function getCashPeriod(
   periodId: string
 ): Promise<GetCashPeriodResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   const validation = cashPeriodIdSchema.safeParse(periodId)
   if (!validation.success) {
     return { success: false, error: "ID periode tidak valid" }

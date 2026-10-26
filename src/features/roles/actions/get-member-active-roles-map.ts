@@ -1,6 +1,7 @@
 "use server"
 
 import prisma from "@/lib/prisma"
+import { auth } from "@features/auth/lib/auth"
 
 export interface ActiveRole {
   id: string
@@ -17,6 +18,12 @@ export interface GetMemberActiveRolesMapResult {
 }
 
 export async function getMemberActiveRolesMap(): Promise<GetMemberActiveRolesMapResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   try {
     const assignments = await prisma.memberRoleAssignment.findMany({
       where: { endDate: null },

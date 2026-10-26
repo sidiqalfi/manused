@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { arisanPeriodIdSchema } from "../arisan-schemas"
+import { auth } from "@features/auth/lib/auth"
 
 export interface ArisanDrawItem {
   id: string
@@ -24,6 +25,12 @@ export interface GetArisanDrawsResult {
 export async function getArisanDraws(
   periodId: string
 ): Promise<GetArisanDrawsResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   const validation = arisanPeriodIdSchema.safeParse(periodId)
   if (!validation.success) {
     return { success: false, error: "ID periode tidak valid" }

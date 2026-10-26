@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { SOSIAL_INITIAL_BALANCE_KEY } from "../sosial-schemas"
+import { auth } from "@features/auth/lib/auth"
 
 export interface InitialBalanceData {
   initialBalance: number
@@ -14,6 +15,12 @@ export interface GetInitialBalanceResult {
 }
 
 export async function getSosialInitialBalance(): Promise<GetInitialBalanceResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   try {
     const setting = await prisma.appSetting.findUnique({
       where: { key: SOSIAL_INITIAL_BALANCE_KEY },

@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { ARISAN_INITIAL_SAVE_KEY } from "../arisan-schemas"
+import { auth } from "@features/auth/lib/auth"
 
 export interface InitialSaveData {
   initialSave: number
@@ -14,6 +15,12 @@ export interface GetInitialSaveResult {
 }
 
 export async function getInitialSave(): Promise<GetInitialSaveResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   try {
     const setting = await prisma.appSetting.findUnique({
       where: { key: ARISAN_INITIAL_SAVE_KEY },

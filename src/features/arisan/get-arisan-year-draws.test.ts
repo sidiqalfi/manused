@@ -22,6 +22,12 @@ function mockModule(
   mock.module(specifier, options as never)
 }
 
+mockModule("@/features/auth/lib/auth", {
+  exports: {
+    auth: mock.fn(async () => ({ user: { id: "test-user" } })),
+  },
+})
+
 mockModule("@/lib/prisma", {
   exports: {
     default: {

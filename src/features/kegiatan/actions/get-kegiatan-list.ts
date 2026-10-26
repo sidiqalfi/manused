@@ -2,6 +2,7 @@
 
 import { Prisma } from "@/generated/prisma/client"
 import prisma from "@/lib/prisma"
+import { auth } from "@features/auth/lib/auth"
 
 const kegiatanListInclude = {
   _count: { select: { participants: true } },
@@ -20,6 +21,12 @@ export interface GetKegiatanListResult {
 }
 
 export async function getKegiatanList(): Promise<GetKegiatanListResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   try {
     const kegiatan = await prisma.kegiatan.findMany({
       orderBy: { eventDate: "desc" },

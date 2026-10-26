@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma"
 import { ARISAN_INITIAL_SAVE_KEY, arisanPeriodIdSchema } from "../arisan-schemas"
 import { netSavings } from "../draw-logic"
+import { auth } from "@features/auth/lib/auth"
 
 export interface ArisanSummaryData {
   collected: number
@@ -21,6 +22,12 @@ export interface GetArisanSummaryResult {
 export async function getArisanSummary(
   periodId: string
 ): Promise<GetArisanSummaryResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   const validation = arisanPeriodIdSchema.safeParse(periodId)
   if (!validation.success) {
     return { success: false, error: "ID periode tidak valid" }

@@ -3,6 +3,7 @@
 import { Prisma } from "@/generated/prisma/client"
 import prisma from "@/lib/prisma"
 import { sosialPeriodIdSchema } from "../sosial-schemas"
+import { auth } from "@features/auth/lib/auth"
 
 const periodDetailsInclude = {
   incomes: {
@@ -25,6 +26,12 @@ export interface GetSosialPeriodResult {
 }
 
 export async function getSosialPeriods() {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   try {
     const periods = await prisma.sosialPeriod.findMany({
       orderBy: [{ year: "desc" }, { month: "desc" }],
@@ -39,6 +46,12 @@ export async function getSosialPeriods() {
 export async function getSosialPeriod(
   periodId: string
 ): Promise<GetSosialPeriodResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   const validation = sosialPeriodIdSchema.safeParse(periodId)
   if (!validation.success) {
     return { success: false, error: "ID periode tidak valid" }

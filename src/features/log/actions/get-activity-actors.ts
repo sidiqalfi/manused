@@ -1,6 +1,7 @@
 "use server"
 
 import prisma from "@/lib/prisma"
+import { auth } from "@features/auth/lib/auth"
 
 export interface ActivityLogActorOption {
   id: string | null
@@ -15,6 +16,12 @@ export interface GetActivityLogActorsResult {
 }
 
 export async function getActivityLogActors(): Promise<GetActivityLogActorsResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   try {
     const groups = await prisma.activityLog.groupBy({
       by: ["actorId", "actorName", "actorEmail"],

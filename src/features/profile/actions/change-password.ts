@@ -67,9 +67,15 @@ export async function changePassword(
     const hashed = await bcrypt.hash(parsed.data.newPassword, 10)
 
     await prisma.$transaction(async (tx) => {
-      await tx.user.update({
+      // Naikkan tokenVersion: jwt callback akan menolak semua JWT lama
+      // (device lain pun) karena versinya sudah tidak cocok.
+      const updated = await tx.user.update({
         where: { id: userId },
-        data: { password: hashed },
+        data: {
+          password: hashed,
+          tokenVersion: { increment: 1 },
+        },
+        select: { tokenVersion: true },
       })
 
       await logActivity(tx, {
@@ -78,16 +84,13 @@ export async function changePassword(
         entity: "user.password",
         entityId: userId,
         summary: "Mengubah password",
+        after: { tokenVersion: updated.tokenVersion },
       })
     })
 
     // Paksa sign-out supaya session cookie saat ini ter-clear.
-    // redirect: false agar signOut tidak melempar NEXT_REDIRECT
-    // (yang tadinya tertelan catch dan tampil sebagai gagal) —
-    // redirect ke /login dilakukan di client setelah action sukses.
-    // Catatan: JWT di device lain tetap valid sampai kedaluwarsa
-    // (24 jam) — strategi jwt tidak punya mekanisme revoke tanpa
-    // kolom tokenVersion.
+    // Device lain: JWT-nya otomatis invalid karena tokenVersion sudah
+    // tidak cocok dengan DB (lihat jwt callback).
     await signOut({ redirect: false })
 
     return { success: true }

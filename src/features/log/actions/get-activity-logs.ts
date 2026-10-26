@@ -4,6 +4,7 @@ import { z } from "zod"
 import prisma from "@/lib/prisma"
 import { Prisma } from "@/generated/prisma/client"
 import { ACTIVITY_ACTIONS } from "../activity-log"
+import { auth } from "@features/auth/lib/auth"
 
 export interface ActivityLogItem {
   id: string
@@ -50,6 +51,12 @@ export async function getActivityLogs(input: {
   from?: Date | null
   to?: Date | null
 }): Promise<GetActivityLogsResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   const validation = querySchema.safeParse(input)
   if (!validation.success) {
     return { success: false, error: "Data filter tidak valid" }

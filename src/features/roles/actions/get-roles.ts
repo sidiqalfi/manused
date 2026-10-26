@@ -1,6 +1,7 @@
 "use server"
 
 import prisma from "@/lib/prisma"
+import { auth } from "@features/auth/lib/auth"
 
 export interface GetRolesResult {
   success: boolean
@@ -9,6 +10,12 @@ export interface GetRolesResult {
 }
 
 export async function getRoles(): Promise<GetRolesResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   try {
     const roles = await prisma.role.findMany({
       orderBy: { rank: "asc" },

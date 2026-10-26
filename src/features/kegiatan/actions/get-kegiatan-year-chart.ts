@@ -3,6 +3,7 @@
 import { z } from "zod"
 import prisma from "@/lib/prisma"
 import type { YearlyFlowPoint } from "@/components/yearly-income-expense-chart"
+import { auth } from "@features/auth/lib/auth"
 
 const yearSchema = z.number().int().min(2020).max(2100)
 
@@ -15,6 +16,12 @@ export interface GetKegiatanYearChartResult {
 export async function getKegiatanYearChart(
   year: number
 ): Promise<GetKegiatanYearChartResult> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   const validation = yearSchema.safeParse(year)
   if (!validation.success) {
     return { success: false, error: "Tahun tidak valid" }
