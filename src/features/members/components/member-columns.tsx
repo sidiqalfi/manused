@@ -149,7 +149,7 @@ export function memberColumns(
     },
     {
       id: "actions",
-      header: () => <span className="sr-only">Aksi</span>,
+      header: "Aksi",
       cell: ({ row }) => {
         const member = row.original
         const currentRoleIds = (rolesMap[member.id] ?? []).map((r) => r.id)

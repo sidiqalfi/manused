@@ -24,7 +24,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
     <GuestProvider isGuest={session.user?.role === "guest"}>
     <SidebarProvider defaultOpen={true}>
       <AppSidebar user={session.user} avatarUrl={avatarUrl} />
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-8">
             <SidebarTrigger className="-ml-1" />
