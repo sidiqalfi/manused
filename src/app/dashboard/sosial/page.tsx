@@ -51,9 +51,9 @@ function buildSummaryStats(
 
   if (!data) {
     return [
-      { label: "Total Pemasukan", value: "-", caption: "0 iuran", icon: TrendingUp },
-      { label: "Total Pengeluaran", value: "-", caption: "0 pengeluaran", icon: TrendingDown },
-      { label: "Saldo", value: "-", icon: Wallet },
+      { label: "Total Pemasukan", value: "-", caption: "0 iuran", icon: TrendingUp, iconClassName: "text-green-600" },
+      { label: "Total Pengeluaran", value: "-", caption: "0 pengeluaran", icon: TrendingDown, iconClassName: "text-red-600" },
+      { label: "Saldo", value: "-", icon: Wallet, iconClassName: "text-blue-600" },
     ];
   }
 
@@ -63,18 +63,21 @@ function buildSummaryStats(
       value: formatCurrency(data.totalIncome),
       caption: `${data.incomeCount} iuran`,
       icon: TrendingUp,
+      iconClassName: "text-green-600",
     },
     {
       label: "Total Pengeluaran",
       value: formatCurrency(data.totalExpense),
       caption: `${data.expenseCount} pengeluaran`,
       icon: TrendingDown,
+      iconClassName: "text-red-600",
     },
     {
       label: "Saldo",
       value: formatCurrency(data.balance),
       caption: balanceCaption ?? null,
       icon: Wallet,
+      iconClassName: "text-blue-600",
       valueClassName: "text-primary tabular-nums",
     },
   ];

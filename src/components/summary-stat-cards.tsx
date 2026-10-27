@@ -8,6 +8,7 @@ export type SummaryStat = {
   value: string
   caption?: string | null
   icon?: LucideIcon
+  iconClassName?: string
   valueClassName?: string
 }
 
@@ -31,7 +32,12 @@ export function SummaryStatCards({ stats, columns = 3 }: Props) {
               <Skeleton className="h-4 w-24" />
             )}
             {stat?.icon ? (
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
+              <stat.icon
+                className={cn(
+                  "h-4 w-4",
+                  stat.iconClassName ?? "text-muted-foreground"
+                )}
+              />
             ) : null}
           </CardHeader>
           <CardContent>

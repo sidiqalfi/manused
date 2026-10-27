@@ -327,7 +327,7 @@ export default function KegiatanDetailPage({
       >
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
-            <Users className="h-5 w-5 text-muted-foreground" />
+            <Users className="h-5 w-5 text-violet-600" />
             <div>
               <p className="text-xs text-muted-foreground">Peserta Hadir</p>
               <p className="text-lg font-semibold tabular-nums">
@@ -343,7 +343,7 @@ export default function KegiatanDetailPage({
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
-            <Wallet className="h-5 w-5 text-muted-foreground" />
+            <Wallet className="h-5 w-5 text-blue-600" />
             <div>
               <p className="text-xs text-muted-foreground">Terkumpul</p>
               <p className="text-lg font-semibold tabular-nums">
@@ -359,7 +359,7 @@ export default function KegiatanDetailPage({
           <>
             <Card>
               <CardContent className="flex items-center gap-3 p-4">
-                <Users className="h-5 w-5 text-muted-foreground" />
+                <Users className="h-5 w-5 text-green-600" />
                 <div>
                   <p className="text-xs text-muted-foreground">
                     Terkumpul Peserta Hadir
@@ -375,7 +375,7 @@ export default function KegiatanDetailPage({
             </Card>
             <Card>
               <CardContent className="flex items-center gap-3 p-4">
-                <HandCoins className="h-5 w-5 text-muted-foreground" />
+                <HandCoins className="h-5 w-5 text-amber-600" />
                 <div>
                   <p className="text-xs text-muted-foreground">
                     Terkumpul Patungan
@@ -393,7 +393,7 @@ export default function KegiatanDetailPage({
         )}
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
-            <TrendingDown className="h-5 w-5 text-muted-foreground" />
+            <TrendingDown className="h-5 w-5 text-red-600" />
             <div>
               <p className="text-xs text-muted-foreground">Total Keluar</p>
               <p className="text-lg font-semibold tabular-nums">
@@ -404,7 +404,7 @@ export default function KegiatanDetailPage({
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
-            <TrendingUp className={`h-5 w-5 ${diff < 0 ? "text-destructive" : "text-muted-foreground"}`} />
+            <TrendingUp className={`h-5 w-5 ${diff < 0 ? "text-destructive" : "text-green-600"}`} />
             <div>
               <p className="text-xs text-muted-foreground">Selisih</p>
               <p className={`text-lg font-semibold tabular-nums ${diff < 0 ? "text-destructive" : ""}`}>

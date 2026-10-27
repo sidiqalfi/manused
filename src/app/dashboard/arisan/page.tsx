@@ -140,17 +140,20 @@ export default function ArisanPage() {
                 value: summary ? formatCurrency(summary.collected) : "-",
                 caption: collectedCaption,
                 icon: Coins,
+                iconClassName: "text-green-600",
               },
               {
                 label: "Target",
                 value: summary ? formatCurrency(summary.target) : "-",
                 icon: Target,
+                iconClassName: "text-muted-foreground",
               },
               {
                 label: "Dana Save",
                 value:
                   summary ? formatCurrency(summary.collected - summary.target) : "-",
                 icon: PiggyBank,
+                iconClassName: "text-blue-600",
                 valueClassName: "text-primary",
               },
               {
@@ -158,6 +161,7 @@ export default function ArisanPage() {
                 value: lastWinner ?? "-",
                 caption: hasActiveDraw ? "Sudah di-kocok" : "Belum di-kocok",
                 icon: Trophy,
+                iconClassName: "text-amber-600",
               },
             ]}
           />
@@ -199,12 +203,14 @@ export default function ArisanPage() {
                 value: formatCurrency(yearSummary.totalIncome),
                 caption: `${yearSummary.incomeCount} iuran`,
                 icon: TrendingUp,
+                iconClassName: "text-green-600",
               },
               {
                 label: "Total Dibayarkan",
                 value: formatCurrency(yearSummary.totalPayout),
                 caption: `${yearSummary.drawCount} kocokan`,
                 icon: TrendingDown,
+                iconClassName: "text-red-600",
               },
               {
                 label: "Dana Save",
@@ -214,6 +220,7 @@ export default function ArisanPage() {
                     : "-",
                 caption: `Gabungan semua periode ${yearSummary.year}`,
                 icon: PiggyBank,
+                iconClassName: "text-blue-600",
                 valueClassName: "text-primary",
               },
             ]}

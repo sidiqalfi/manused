@@ -210,9 +210,7 @@ export function ActivityLogTable() {
                   )}
                 </TableCell>
                 <TableCell className="text-sm">
-                  <Badge variant={log.action === "LOGIN_FAILED" ? "destructive" : "outline"}>
-                    {ACTION_LABELS[log.action as ActivityAction] ?? log.action}
-                  </Badge>
+                  <ActionBadge action={log.action} />
                 </TableCell>
                 <TableCell className="text-sm">{log.entity}</TableCell>
                 <TableCell className="text-sm whitespace-normal">{log.summary}</TableCell>
@@ -255,5 +253,23 @@ export function ActivityLogTable() {
         </div>
       </div>
     </div>
+  )
+}
+
+const ACTION_STYLES: Record<string, string> = {
+  CREATE: "border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-400",
+  UPDATE: "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-400",
+  DELETE: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-400",
+  LOGIN: "border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-400",
+  LOGIN_FAILED: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-400",
+  LOGOUT: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+}
+
+function ActionBadge({ action }: { action: string }) {
+  const style = ACTION_STYLES[action]
+  return (
+    <Badge variant="outline" className={style}>
+      {ACTION_LABELS[action as ActivityAction] ?? action}
+    </Badge>
   )
 }

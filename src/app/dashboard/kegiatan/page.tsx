@@ -182,7 +182,7 @@ export default function KegiatanPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
-            <CalendarDays className="h-5 w-5 text-muted-foreground" />
+            <CalendarDays className="h-5 w-5 text-blue-600" />
             <div>
               <p className="text-xs text-muted-foreground">Jumlah Kegiatan {currentYear}</p>
               <p className="text-lg font-semibold tabular-nums">
@@ -193,7 +193,7 @@ export default function KegiatanPage() {
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
-            <Users className="h-5 w-5 text-muted-foreground" />
+            <Users className="h-5 w-5 text-violet-600" />
             <div>
               <p className="text-xs text-muted-foreground">Potensi Iuran</p>
               <p className="text-lg font-semibold tabular-nums">
@@ -204,7 +204,7 @@ export default function KegiatanPage() {
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
-            <TrendingUp className="h-5 w-5 text-muted-foreground" />
+            <TrendingUp className="h-5 w-5 text-green-600" />
             <div>
               <p className="text-xs text-muted-foreground">Iuran Terkumpul</p>
               <p className="text-lg font-semibold tabular-nums">
@@ -215,7 +215,7 @@ export default function KegiatanPage() {
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3 p-4">
-            <TrendingDown className="h-5 w-5 text-muted-foreground" />
+            <TrendingDown className="h-5 w-5 text-red-600" />
             <div>
               <p className="text-xs text-muted-foreground">Pengeluaran</p>
               <p className="text-lg font-semibold tabular-nums">

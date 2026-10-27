@@ -35,18 +35,21 @@ export function OverviewCards({
       value: money(cashBalance),
       caption: cashCaption ?? "Belum ada data kas",
       icon: Wallet,
+      iconClassName: "text-blue-600",
     },
     {
       label: "Saldo Sosial",
       value: money(sosialBalance),
       caption: sosialCaption ?? "Belum ada data sosial",
       icon: HandCoins,
+      iconClassName: "text-green-600",
     },
     {
       label: "Dana Save Arisan",
       value: money(arisanSavings),
       caption: arisanCaption ?? "Belum ada data arisan",
       icon: Shuffle,
+      iconClassName: "text-amber-600",
       valueClassName: "text-primary",
     },
     {
@@ -54,6 +57,7 @@ export function OverviewCards({
       value: activeMembers == null ? "-" : `${activeMembers} aktif`,
       caption: totalMembers == null ? null : `dari ${totalMembers} anggota`,
       icon: Users,
+      iconClassName: "text-violet-600",
     },
   ]
 

@@ -51,7 +51,7 @@ export function DeleteMemberDialog({ id, name }: DeleteMemberDialogProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+            className="h-8 w-8 text-red-600 hover:text-red-700"
             aria-label={`Hapus ${name}`}
           >
             <Trash2 className="h-4 w-4" />

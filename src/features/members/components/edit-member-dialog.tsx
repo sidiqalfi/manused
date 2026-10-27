@@ -90,7 +90,7 @@ export function EditMemberDialog({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            className="h-8 w-8 text-blue-600 hover:text-blue-700"
             aria-label={`Edit ${member.name}`}
           >
             <Pencil className="h-4 w-4" />
