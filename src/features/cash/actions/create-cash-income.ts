@@ -34,8 +34,8 @@ export async function createCashIncome(formData: FormData) {
       return { error: "Periode tidak ditemukan atau sudah dihapus" }
     }
 
-    // Validate amount >= minAmount
-    if (validation.data.amount < period.minAmount) {
+    // Validate amount >= minAmount (iuran only; sumbangan/lainnya bebas)
+    if (validation.data.source === "IURAN" && validation.data.amount < period.minAmount) {
       return {
         error: `Nominal minimal adalah Rp ${period.minAmount.toLocaleString("id-ID")}`
       }
@@ -48,7 +48,9 @@ export async function createCashIncome(formData: FormData) {
         data: {
           id: incomeId,
           periodId: validation.data.periodId,
-          memberId: validation.data.memberId,
+          memberId: validation.data.memberId ?? null,
+          source: validation.data.source,
+          sourceName: validation.data.sourceName ?? null,
           amount: validation.data.amount,
           paidAt: validation.data.paidAt,
           note: validation.data.note,
@@ -70,7 +72,12 @@ export async function createCashIncome(formData: FormData) {
           action: "CREATE",
           entity: "cashIncome",
           entityId: incomeId,
-          summary: "Mencatat pembayaran iuran",
+          summary:
+            validation.data.source === "IURAN"
+              ? "Mencatat pembayaran iuran"
+              : validation.data.source === "SUMBANGAN"
+                ? "Mencatat sumbangan"
+                : "Mencatat pemasukan lainnya",
           after: {
             periodId: validation.data.periodId,
             memberId: validation.data.memberId,

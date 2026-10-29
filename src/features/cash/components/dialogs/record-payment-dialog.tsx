@@ -38,6 +38,7 @@ type Props = {
 export function RecordPaymentDialog({ periodId, unpaidMembers, duesAmount, minAmount, arrears, triggerVariant = "default" }: Props) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [source, setSource] = useState("IURAN")
   const [selectedMemberId, setSelectedMemberId] = useState("")
   const selectedArrears = arrears?.get(selectedMemberId)
   const queryClient = useQueryClient()
@@ -71,7 +72,23 @@ export function RecordPaymentDialog({ periodId, unpaidMembers, duesAmount, minAm
         </DialogHeader>
         <form action={handleSubmit} className="space-y-4">
           <input type="hidden" name="periodId" value={periodId} />
-          
+
+          <div className="space-y-2">
+            <Label htmlFor="source">Sumber</Label>
+            <select
+              name="source"
+              id="source"
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="IURAN">Iuran Anggota</option>
+              <option value="SUMBANGAN">Sumbangan</option>
+              <option value="LAINNYA">Lainnya</option>
+            </select>
+          </div>
+
+          {source === "IURAN" ? (
           <div className="space-y-2">
             <Label htmlFor="memberId">Anggota</Label>
             <select
@@ -101,17 +118,30 @@ export function RecordPaymentDialog({ periodId, unpaidMembers, duesAmount, minAm
               </p>
             )}
           </div>
+          ) : (
+          <div className="space-y-2">
+            <Label htmlFor="sourceName">Nama/Asal (opsional)</Label>
+            <Input
+              type="text"
+              name="sourceName"
+              id="sourceName"
+              placeholder="Nama pemberi sumbangan, dll"
+            />
+          </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="amount">
-              Nominal (min: Rp {minAmount.toLocaleString("id-ID")})
+              {source === "IURAN"
+                ? `Nominal (min: Rp ${minAmount.toLocaleString("id-ID")})`
+                : "Nominal"}
             </Label>
             <Input
               type="number"
               name="amount"
               id="amount"
               defaultValue={duesAmount}
-              min={minAmount}
+              min={source === "IURAN" ? minAmount : 1}
               required
             />
           </div>

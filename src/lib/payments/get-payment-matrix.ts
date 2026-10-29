@@ -67,6 +67,8 @@ async function buildPaymentMatrix(
 
     const byMonth = new Map<number, Map<string, number>>()
     for (const income of incomes) {
+      // Sumbangan/lainnya tanpa anggota tidak masuk matrix iuran per-anggota
+      if (income.memberId === null) continue
       const month = periodToMonth.get(income.periodId)
       if (month === undefined) continue
 

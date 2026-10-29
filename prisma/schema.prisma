@@ -57,6 +57,12 @@ enum KegiatanStatus {
   CANCELLED
 }
 
+enum IncomeSource {
+  IURAN
+  SUMBANGAN
+  LAINNYA
+}
+
 model Member {
   id String @id @default(uuid()) @db.Uuid
 
@@ -150,8 +156,11 @@ model CashIncome {
   periodId String     @db.Uuid
   period   CashPeriod @relation(fields: [periodId], references: [id])
 
-  memberId String @db.Uuid
-  member   Member @relation(fields: [memberId], references: [id])
+  memberId String? @db.Uuid
+  member   Member? @relation(fields: [memberId], references: [id])
+
+  source     IncomeSource @default(IURAN)
+  sourceName String? // Nama/asal pemberi sumbangan (opsional)
 
   amount Int      // Nominal yang dibayar
   paidAt DateTime @db.Date
@@ -211,8 +220,11 @@ model SosialIncome {
   periodId String       @db.Uuid
   period   SosialPeriod @relation(fields: [periodId], references: [id])
 
-  memberId String @db.Uuid
-  member   Member @relation(fields: [memberId], references: [id])
+  memberId String? @db.Uuid
+  member   Member? @relation(fields: [memberId], references: [id])
+
+  source     IncomeSource @default(IURAN)
+  sourceName String? // Nama/asal pemberi sumbangan (opsional)
 
   amount Int      // Nominal yang disumbangkan
   paidAt DateTime @db.Date

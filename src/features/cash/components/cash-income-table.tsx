@@ -33,14 +33,28 @@ import type { MemberArrears } from "@/lib/payments/arrears"
 
 type Income = {
   id: string
-  memberId: string
+  memberId: string | null
+  source?: "IURAN" | "SUMBANGAN" | "LAINNYA"
+  sourceName?: string | null
   amount: number
   paidAt: Date
   note?: string | null
   member: {
     name: string
     fullName: string
-  }
+  } | null
+}
+
+const sourceLabels: Record<string, string> = {
+  IURAN: "Iuran",
+  SUMBANGAN: "Sumbangan",
+  LAINNYA: "Lainnya",
+}
+
+function incomeDisplayName(income: Income) {
+  if (income.member) return income.member.name
+  const label = sourceLabels[income.source ?? "IURAN"] ?? "Lainnya"
+  return income.sourceName ? `${label} — ${income.sourceName}` : label
 }
 
 interface MembersData {
@@ -85,7 +99,7 @@ export function CashIncomeTable({ periodId, period, summary, members, arrears }:
   }
 
   const membersData = members?.success ? members.data ?? [] : []
-  const paidMemberIds = new Set(incomes.map((i) => i.memberId))
+  const paidMemberIds = new Set(incomes.map((i) => i.memberId).filter((id): id is string => id !== null))
   const activeMembers = membersData.filter((m) => m.status === "ACTIVE")
   const unpaidMembers = activeMembers.filter((m) => !paidMemberIds.has(m.id))
 
@@ -139,7 +153,7 @@ export function CashIncomeTable({ periodId, period, summary, members, arrears }:
             )}
             {incomes.map((income) => (
               <TableRow key={income.id}>
-                <TableCell className="text-sm">{income.member.name}</TableCell>
+                <TableCell className="text-sm">{incomeDisplayName(income)}</TableCell>
                 <TableCell>
                   <Badge variant="default">Sudah Bayar</Badge>
                 </TableCell>
@@ -196,7 +210,7 @@ export function CashIncomeTable({ periodId, period, summary, members, arrears }:
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus data pembayaran ini?</AlertDialogTitle>
             <AlertDialogDescription>
-              Pembayaran iuran {deletingIncome?.member.name} sebesar{" "}
+              Pembayaran iuran {deletingIncome ? incomeDisplayName(deletingIncome) : ""} sebesar{" "}
               {deletingIncome ? formatCurrency(deletingIncome.amount) : ""}{" "}
               akan dihapus permanen.
             </AlertDialogDescription>

@@ -44,6 +44,7 @@ export function RecordSosialContributionDialog({
 }: Props) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [source, setSource] = useState("IURAN")
   const [selectedMemberId, setSelectedMemberId] = useState("")
   const selectedArrears = arrears?.get(selectedMemberId)
   const queryClient = useQueryClient()
@@ -79,6 +80,22 @@ export function RecordSosialContributionDialog({
           <input type="hidden" name="periodId" value={periodId} />
 
           <div className="space-y-2">
+            <Label htmlFor="source">Sumber</Label>
+            <select
+              name="source"
+              id="source"
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="IURAN">Iuran Anggota</option>
+              <option value="SUMBANGAN">Sumbangan</option>
+              <option value="LAINNYA">Lainnya</option>
+            </select>
+          </div>
+
+          {source === "IURAN" ? (
+          <div className="space-y-2">
             <Label htmlFor="memberId">Anggota</Label>
             <select
               name="memberId"
@@ -107,17 +124,30 @@ export function RecordSosialContributionDialog({
               </p>
             )}
           </div>
+          ) : (
+          <div className="space-y-2">
+            <Label htmlFor="sourceName">Nama/Asal (opsional)</Label>
+            <Input
+              type="text"
+              name="sourceName"
+              id="sourceName"
+              placeholder="Nama pemberi sumbangan, dll"
+            />
+          </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="amount">
-              Nominal (min: Rp {minAmount.toLocaleString("id-ID")})
+              {source === "IURAN"
+                ? `Nominal (min: Rp ${minAmount.toLocaleString("id-ID")})`
+                : "Nominal"}
             </Label>
             <Input
               type="number"
               name="amount"
               id="amount"
               defaultValue={minAmount}
-              min={SOSIAL_MIN_CONTRIBUTION}
+              min={source === "IURAN" ? SOSIAL_MIN_CONTRIBUTION : 1}
               required
             />
           </div>

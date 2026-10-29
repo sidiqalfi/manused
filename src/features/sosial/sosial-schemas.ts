@@ -35,13 +35,26 @@ export const createSosialPeriodSchema = z.object({
 
 export const sosialPeriodIdSchema = z.string().uuid()
 
+const sosialMemberId = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? null : value),
+  z.string().uuid().nullable().optional()
+)
+
 export const createSosialIncomeSchema = z.object({
   periodId: z.string().uuid(),
-  memberId: z.string().uuid(),
+  memberId: sosialMemberId,
+  source: z.enum(["IURAN", "SUMBANGAN", "LAINNYA"]).default("IURAN"),
+  sourceName: z.string().trim().max(100).optional().nullable(),
   amount: positiveInt,
   paidAt: dateOnly,
   note: z.string().trim().optional().nullable(),
-})
+}).refine(
+  (data) =>
+    data.source === "IURAN"
+      ? typeof data.memberId === "string" && data.memberId.length > 0
+      : data.memberId == null,
+  { message: "Sumber iuran wajib memilih anggota", path: ["memberId"] }
+)
 
 export const createSosialIncomesBatchSchema = z
   .object({
@@ -80,6 +93,8 @@ export function getSosialIncomeFormValues(formData: FormData) {
   return {
     periodId: formData.get("periodId"),
     memberId: formData.get("memberId"),
+    source: formData.get("source") ?? undefined,
+    sourceName: formData.get("sourceName"),
     amount: Number(formData.get("amount")),
     paidAt: formData.get("paidAt"),
     note: formData.get("note"),

@@ -34,9 +34,8 @@ export async function createSosialIncome(formData: FormData) {
       return { error: "Periode tidak ditemukan atau sudah dihapus" }
     }
 
-    // Validate amount >= SOSIAL_MIN_CONTRIBUTION (normal dues stay 2000,
-    // but 1000 is accepted for members who insist on paying less)
-    if (validation.data.amount < SOSIAL_MIN_CONTRIBUTION) {
+    // Validate amount >= min (iuran only; sumbangan/lainnya bebas)
+    if (validation.data.source === "IURAN" && validation.data.amount < SOSIAL_MIN_CONTRIBUTION) {
       return {
         error: `Nominal minimal adalah Rp ${SOSIAL_MIN_CONTRIBUTION.toLocaleString("id-ID")}`
       }
@@ -49,7 +48,9 @@ export async function createSosialIncome(formData: FormData) {
         data: {
           id,
           periodId: validation.data.periodId,
-          memberId: validation.data.memberId,
+          memberId: validation.data.memberId ?? null,
+          source: validation.data.source,
+          sourceName: validation.data.sourceName ?? null,
           amount: validation.data.amount,
           paidAt: validation.data.paidAt,
           note: validation.data.note,
@@ -71,7 +72,12 @@ export async function createSosialIncome(formData: FormData) {
           action: "CREATE",
           entity: "sosialIncome",
           entityId: id,
-          summary: "Mencatat iuran sosial",
+          summary:
+            validation.data.source === "IURAN"
+              ? "Mencatat iuran sosial"
+              : validation.data.source === "SUMBANGAN"
+                ? "Mencatat sumbangan"
+                : "Mencatat pemasukan lainnya",
           after: {
             periodId: validation.data.periodId,
             memberId: validation.data.memberId,

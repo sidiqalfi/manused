@@ -32,13 +32,26 @@ export const createCashPeriodSchema = z.object({
 
 export const cashPeriodIdSchema = z.string().uuid()
 
+const cashMemberId = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? null : value),
+  z.string().uuid().nullable().optional()
+)
+
 export const createCashIncomeSchema = z.object({
   periodId: z.string().uuid(),
-  memberId: z.string().uuid(),
+  memberId: cashMemberId,
+  source: z.enum(["IURAN", "SUMBANGAN", "LAINNYA"]).default("IURAN"),
+  sourceName: z.string().trim().max(100).optional().nullable(),
   amount: positiveInt,
   paidAt: dateOnly,
   note: z.string().trim().optional().nullable(),
-})
+}).refine(
+  (data) =>
+    data.source === "IURAN"
+      ? typeof data.memberId === "string" && data.memberId.length > 0
+      : data.memberId == null,
+  { message: "Sumber iuran wajib memilih anggota", path: ["memberId"] }
+)
 
 export const createCashIncomesBatchSchema = z
   .object({
@@ -78,6 +91,8 @@ export function getCashIncomeFormValues(formData: FormData) {
   return {
     periodId: formData.get("periodId"),
     memberId: formData.get("memberId"),
+    source: formData.get("source") ?? undefined,
+    sourceName: formData.get("sourceName"),
     amount: Number(formData.get("amount")),
     paidAt: formData.get("paidAt"),
     note: formData.get("note"),

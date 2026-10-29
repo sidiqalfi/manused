@@ -120,6 +120,49 @@ test("createCashIncome records a CREATE activity log", async () => {
   assert.equal(log.actorId, USER_ID)
 })
 
+test("createCashIncome records a SUMBANGAN without member and skips minAmount", async () => {
+  incomeCreate.mock.resetCalls()
+  activityLogCreate.mock.resetCalls()
+  const { createCashIncome } = await import("./actions/create-cash-income")
+
+  const formData = new FormData()
+  formData.set("periodId", UUID)
+  formData.set("memberId", "")
+  formData.set("source", "SUMBANGAN")
+  formData.set("sourceName", "Budi Santoso")
+  formData.set("amount", "100")
+  formData.set("paidAt", "2026-08-24")
+  formData.set("note", "")
+
+  const result = await createCashIncome(formData)
+
+  assert.deepEqual(result, { success: true })
+  assert.equal(incomeCreate.mock.callCount(), 1)
+  const createArgs = incomeCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  assert.equal(createArgs[0].data.memberId, null)
+  assert.equal(createArgs[0].data.source, "SUMBANGAN")
+  assert.equal(createArgs[0].data.sourceName, "Budi Santoso")
+  const logArgs = activityLogCreate.mock.calls[0]?.arguments as unknown as [
+    { data: Record<string, unknown> },
+  ]
+  assert.equal(logArgs[0].data.summary, "Mencatat sumbangan")
+})
+
+test("createCashIncome rejects IURAN without a member", async () => {
+  incomeCreate.mock.resetCalls()
+  const { createCashIncome } = await import("./actions/create-cash-income")
+
+  const formData = validIncomeFormData()
+  formData.set("memberId", "")
+
+  const result = await createCashIncome(formData)
+
+  assert.equal(result.error, "Data tidak valid")
+  assert.equal(incomeCreate.mock.callCount(), 0)
+})
+
 test("createCashExpense records a CREATE activity log", async () => {
   expenseCreate.mock.resetCalls()
   activityLogCreate.mock.resetCalls()
