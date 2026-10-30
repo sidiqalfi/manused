@@ -149,9 +149,10 @@ export default function KegiatanDetailPage({
   }
 
   const totalCollected = Object.values(paidBy).reduce((s, v) => s + v, 0)
-  const totalExpense =
-    expenses.reduce((s, e) => s + e.amount, 0) +
-    cashSubsidies.reduce((s, e) => s + e.amount, 0)
+  // Keluar & selisih hanya menghitung pengeluaran yang dibiayai iuran —
+  // subsidi kas adalah sumber dana terpisah sehingga tidak ikut dihitung.
+  const subsidyTotal = cashSubsidies.reduce((s, e) => s + e.amount, 0)
+  const totalExpense = expenses.reduce((s, e) => s + e.amount, 0)
   // Iuran yang disepakati per peserta (patungan bisa beda dari feePerPerson).
   const expected = participants.reduce(
     (s, p) => s + (p.expectedAmount ?? kegiatan.feePerPerson),
@@ -399,6 +400,11 @@ export default function KegiatanDetailPage({
               <p className="text-lg font-semibold tabular-nums">
                 {formatCurrency(totalExpense)}
               </p>
+              {subsidyTotal > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  + subsidi kas {formatCurrency(subsidyTotal)}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
