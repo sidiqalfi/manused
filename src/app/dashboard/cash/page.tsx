@@ -13,6 +13,7 @@ import {
 } from "@/components/yearly-income-expense-chart";
 import { CashIncomeTable } from "@/features/cash/components/cash-income-table";
 import { CashExpenseTable } from "@/features/cash/components/cash-expense-table";
+import { ExportCashButton } from "@/features/cash/components/export-cash-button";
 import { CreatePeriodDialog } from "@/features/cash/components/dialogs/create-period-dialog";
 import { cashPeriodsQuery, cashPeriodQuery, cashSummaryQuery, cashYearSummaryQuery, cashYearChartQuery, cashYearPaymentMatrixQuery } from "@/features/cash/queries";
 import { PaymentMatrixTable } from "@/components/payment-matrix-table";
@@ -21,6 +22,7 @@ import { membersQuery } from "@features/members/queries";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/format";
+import { MONTHS } from "@/lib/months";
 import { TrendingUp, TrendingDown, Wallet } from "lucide-react";
 
 type SummaryLike = {
@@ -121,6 +123,22 @@ export default function CashPage() {
     Boolean(selectedPeriodId) &&
     (periodQuery.isPending || summaryQuery.isPending);
 
+  const periodData = periodResult?.success ? periodResult.data ?? null : null;
+  const periodLabel = periodData ? `${MONTHS[periodData.month - 1]} ${periodData.year}` : "";
+  const exportIncomes = (periodData?.incomes ?? []).map((i) => ({
+    memberName: i.member?.name ?? i.sourceName ?? "—",
+    amount: i.amount,
+    paidAt: i.paidAt,
+    note: i.note,
+    sourceLabel: i.source === "IURAN" ? "Iuran" : (i.sourceName ?? "Sumbangan"),
+  }));
+  const exportExpenses = (periodData?.expenses ?? []).map((e) => ({
+    description: e.description,
+    amount: e.amount,
+    spentAt: e.spentAt,
+    source: e.relatedEvent?.name ?? null,
+  }));
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -139,6 +157,13 @@ export default function CashPage() {
 
       {selectedPeriodId && !loading && (
         <>
+          <div className="flex items-center justify-end">
+            <ExportCashButton
+              periodLabel={periodLabel}
+              incomes={exportIncomes}
+              expenses={exportExpenses}
+            />
+          </div>
           <SummaryStatCards stats={buildSummaryStats(summaryResult)} />
 
           <Tabs defaultValue="income" className="space-y-4">

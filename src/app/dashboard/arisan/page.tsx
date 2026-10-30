@@ -11,6 +11,7 @@ import {
 import { CreateArisanPeriodDialog } from "@/features/arisan/components/create-arisan-period-dialog"
 import { ArisanIncomeTable } from "@/features/arisan/components/arisan-income-table"
 import { ArisanDrawHistory } from "@/features/arisan/components/arisan-draw-history"
+import { ExportArisanButton } from "@/features/arisan/components/export-arisan-button"
 import { ArisanYearDrawHistory } from "@/features/arisan/components/arisan-year-draw-history"
 import { PaymentMatrixTable } from "@/components/payment-matrix-table"
 import { DrawDialog } from "@/features/arisan/components/draw-dialog"
@@ -29,6 +30,7 @@ import {
 } from "@/features/arisan/queries"
 import { membersQuery } from "@/features/members/queries"
 import { formatCurrency } from "@/lib/format"
+import { MONTHS } from "@/lib/months"
 import { computeArrears, type MemberArrears } from "@/lib/payments/arrears"
 import { Coins, Target, PiggyBank, Trophy, TrendingUp, TrendingDown } from "lucide-react"
 
@@ -110,6 +112,24 @@ export default function ArisanPage() {
     ? (periodResult.data?.draws ?? []).some((d) => !d.voided)
     : false
 
+  const periodData = periodResult?.success ? periodResult.data ?? null : null
+  const periodLabel = periodData ? `${MONTHS[periodData.month - 1]} ${periodData.year}` : ""
+  const exportIncomes = (periodData?.incomes ?? []).map((i) => ({
+    memberName: i.member?.name ?? "—",
+    amount: i.amount,
+    paidAt: i.paidAt,
+    note: i.note,
+    arrears: arrears.get(i.memberId)?.amount,
+  }))
+  const exportDraws = (periodData?.draws ?? [])
+    .filter((d) => !d.voided)
+    .map((d) => ({
+      winnerName: d.winnerMember?.name ?? "—",
+      payoutAmount: d.payoutAmount,
+      drawnAt: d.drawnAt,
+      cycleNumber: d.cycleNumber,
+    }))
+
   const lastWinner = periodResult?.success
     ? (periodResult.data?.draws ?? []).find((d) => !d.voided)?.winnerMember?.name ?? null
     : null
@@ -132,6 +152,14 @@ export default function ArisanPage() {
 
       {selectedPeriodId ? (
         <>
+          <div className="flex items-center justify-end">
+            <ExportArisanButton
+              periodLabel={periodLabel}
+              incomes={exportIncomes}
+              draws={exportDraws}
+            />
+          </div>
+
           <SummaryStatCards
             columns={4}
             stats={[

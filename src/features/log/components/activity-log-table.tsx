@@ -4,6 +4,13 @@ import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Table,
   TableBody,
@@ -14,7 +21,7 @@ import {
 } from "@/components/ui/table"
 import { ACTIVITY_ACTIONS, type ActivityAction } from "../activity-log"
 import { activityLogsQuery, activityLogActorsQuery } from "../queries"
-import { logsToCsv, logsToJson } from "../log-export"
+import { logsToCsv, logsToJson, CSV_COLUMNS, type LogColumn } from "../log-export"
 import type { ActivityLogItem } from "../actions/get-activity-logs"
 
 const PAGE_SIZE = 25
@@ -64,12 +71,45 @@ function download(filename: string, content: string, type: string) {
   URL.revokeObjectURL(url)
 }
 
+/** Label Indonesia untuk tiap kolom log. */
+const COLUMN_LABELS: Record<LogColumn, string> = {
+  createdAt: "Waktu",
+  actorName: "Aktor",
+  actorEmail: "Email aktor",
+  action: "Aksi",
+  entity: "Entitas",
+  entityId: "ID Entitas",
+  summary: "Ringkasan",
+  before: "Sebelum",
+  after: "Sesudah",
+}
+
 export function ActivityLogTable() {
   const [page, setPage] = useState(1)
   const [actorId, setActorId] = useState("")
   const [action, setAction] = useState("")
   const [from, setFrom] = useState("")
   const [to, setTo] = useState("")
+  const [columnDialogOpen, setColumnDialogOpen] = useState(false)
+  // Kolom terpilih dibawa antar pembukaan dialog — default semua.
+  const [selected, setSelected] = useState<Set<LogColumn>>(
+    () => new Set(CSV_COLUMNS)
+  )
+
+  function toggle(key: LogColumn) {
+    setSelected((prev) => {
+      // Minimal satu kolom harus tetap terpilih.
+      if (prev.has(key) && prev.size === 1) return prev
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  function selectAll() {
+    setSelected(new Set(CSV_COLUMNS))
+  }
 
   const actorsResult = useQuery(activityLogActorsQuery).data
   const actors = actorsResult?.success ? actorsResult.data ?? [] : []
@@ -93,17 +133,25 @@ export function ActivityLogTable() {
   function handleDownloadCsv() {
     if (logs.length === 0) return
     const stamp = new Date().toISOString().replace(/[:.]/g, "-")
-    download(`log-manused-${stamp}.csv`, logsToCsv(logs), "text/csv;charset=utf-8")
+    const cols = CSV_COLUMNS.filter((c) => selected.has(c))
+    download(
+      `log-manused-${stamp}.csv`,
+      logsToCsv(logs, cols),
+      "text/csv;charset=utf-8"
+    )
+    setColumnDialogOpen(false)
   }
 
   function handleDownloadJson() {
     if (logs.length === 0) return
     const stamp = new Date().toISOString().replace(/[:.]/g, "-")
+    const cols = CSV_COLUMNS.filter((c) => selected.has(c))
     download(
       `log-manused-${stamp}.json`,
-      logsToJson(logs),
+      logsToJson(logs, cols),
       "application/json;charset=utf-8"
     )
+    setColumnDialogOpen(false)
   }
 
   return (
@@ -164,14 +212,74 @@ export function ActivityLogTable() {
         />
 
         <div className="ml-auto flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleDownloadCsv}>
-            Unduh CSV
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleDownloadJson}>
-            Unduh JSON
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button variant="outline" size="sm" disabled={logs.length === 0}>
+                  Unduh
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem onClick={() => setColumnDialogOpen(true)}>
+                <span>Pilih Kolom…</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDownloadCsv}>
+                <span>Unduh CSV (semua)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDownloadJson}>
+                <span>Unduh JSON (semua)</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
+
+      <Dialog open={columnDialogOpen} onOpenChange={setColumnDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Pilih Kolom Export</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                {selected.size} dari {CSV_COLUMNS.length} kolom dipilih
+              </p>
+              <Button variant="outline" size="sm" onClick={selectAll}>
+                Pilih Semua
+              </Button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {CSV_COLUMNS.map((col) => (
+                <label
+                  key={col}
+                  className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/50"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected.has(col)}
+                    onChange={() => toggle(col)}
+                    className="h-4 w-4"
+                  />
+                  {COLUMN_LABELS[col]}
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setColumnDialogOpen(false)}
+              >
+                Batal
+              </Button>
+              <Button variant="outline" onClick={handleDownloadJson}>
+                JSON
+              </Button>
+              <Button onClick={handleDownloadCsv}>CSV</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="overflow-x-auto rounded-md border">
         <Table>

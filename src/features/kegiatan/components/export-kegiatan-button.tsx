@@ -1,6 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +40,31 @@ interface ExportKegiatanButtonProps {
   disabled?: boolean
 }
 
+type ColumnKey =
+  | "Nama"
+  | "Nama Lengkap"
+  | "Status"
+  | "Kehadiran"
+  | "Tanggal Ikut"
+  | "Wajib"
+  | "Total Dibayar"
+  | "Sisa"
+  | "Status Bayar"
+  | "Riwayat"
+
+const ALL_COLUMNS: { key: ColumnKey; label: string }[] = [
+  { key: "Nama", label: "Nama panggilan" },
+  { key: "Nama Lengkap", label: "Nama lengkap" },
+  { key: "Status", label: "Status keanggotaan" },
+  { key: "Kehadiran", label: "Kehadiran (Hadir/Patungan)" },
+  { key: "Tanggal Ikut", label: "Tanggal ikut" },
+  { key: "Wajib", label: "Iuran wajib" },
+  { key: "Total Dibayar", label: "Total dibayar" },
+  { key: "Sisa", label: "Sisa belum bayar" },
+  { key: "Status Bayar", label: "Status bayar (Lunas/Kurang)" },
+  { key: "Riwayat", label: "Riwayat pembayaran" },
+]
+
 function formatDate(value: Date | string | null | undefined): string {
   if (!value) return ""
   return new Date(value).toLocaleDateString("id-ID", {
@@ -42,7 +74,7 @@ function formatDate(value: Date | string | null | undefined): string {
   })
 }
 
-function toRows(data: ExportParticipant[]) {
+function toRows(data: ExportParticipant[]): Record<string, string | number>[] {
   return data.map((p) => ({
     Nama: p.name,
     "Nama Lengkap": p.fullName,
@@ -57,6 +89,19 @@ function toRows(data: ExportParticipant[]) {
       .map((h) => `${formatDate(h.paidAt)}: ${h.amount}${h.note ? ` (${h.note})` : ""}`)
       .join("; "),
   }))
+}
+
+function pickColumns(
+  rows: Record<string, string | number>[],
+  columns: ColumnKey[]
+): Record<string, string | number>[] {
+  return rows.map((row) => {
+    const picked: Record<string, string | number> = {}
+    for (const col of columns) {
+      picked[col] = row[col]
+    }
+    return picked
+  })
 }
 
 function escapeCsv(value: unknown): string {
@@ -114,43 +159,123 @@ export function ExportKegiatanButton({
   disabled,
 }: ExportKegiatanButtonProps) {
   const isGuest = useIsGuest()
+  const [columnDialogOpen, setColumnDialogOpen] = useState(false)
+  // Kolom terpilih dibawa antar pembukaan dialog — default semua.
+  const [selected, setSelected] = useState<Set<ColumnKey>>(
+    () => new Set(ALL_COLUMNS.map((c) => c.key))
+  )
   const base = `kegiatan-${slugify(kegiatanName) || "peserta"}-${todayStamp()}`
 
   // Tamu tidak boleh mengexport data apa pun.
   if (isGuest) return null
 
-  const handleExportCsv = () => {
-    download(toCsv(toRows(data)), `${base}.csv`, "text/csv;charset=utf-8")
+  function toggle(key: ColumnKey) {
+    setSelected((prev) => {
+      // Minimal satu kolom harus tetap terpilih.
+      if (prev.has(key) && prev.size === 1) return prev
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
   }
 
-  const handleExportJson = () => {
+  function selectAll() {
+    setSelected(new Set(ALL_COLUMNS.map((c) => c.key)))
+  }
+
+  function handleExportCsv() {
+    const rows = pickColumns(toRows(data), [...selected])
+    download(toCsv(rows), `${base}.csv`, "text/csv;charset=utf-8")
+    setColumnDialogOpen(false)
+  }
+
+  function handleExportJson() {
+    const rows = pickColumns(toRows(data), [...selected])
     download(
-      JSON.stringify(toRows(data), null, 2),
+      JSON.stringify(rows, null, 2),
       `${base}.json`,
       "application/json;charset=utf-8"
     )
+    setColumnDialogOpen(false)
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button variant="outline" disabled={disabled || data.length === 0}>
-            <DownloadIcon />
-            Export
-          </Button>
-        }
-      />
-      <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuItem onClick={handleExportCsv}>
-          <FileSpreadsheetIcon className="text-muted-foreground" />
-          <span>Export CSV</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleExportJson}>
-          <FileJsonIcon className="text-muted-foreground" />
-          <span>Export JSON</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="outline" disabled={disabled || data.length === 0}>
+              <DownloadIcon />
+              Export
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuItem onClick={() => setColumnDialogOpen(true)}>
+            <DownloadIcon className="text-muted-foreground" />
+            <span>Pilih Kolom…</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleExportCsv}>
+            <FileSpreadsheetIcon className="text-muted-foreground" />
+            <span>Export CSV (semua)</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleExportJson}>
+            <FileJsonIcon className="text-muted-foreground" />
+            <span>Export JSON (semua)</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={columnDialogOpen} onOpenChange={setColumnDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Pilih Kolom Export</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                {selected.size} dari {ALL_COLUMNS.length} kolom dipilih
+              </p>
+              <Button variant="outline" size="sm" onClick={selectAll}>
+                Pilih Semua
+              </Button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {ALL_COLUMNS.map((col) => (
+                <label
+                  key={col.key}
+                  className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/50"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected.has(col.key)}
+                    onChange={() => toggle(col.key)}
+                    className="h-4 w-4"
+                  />
+                  {col.label}
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setColumnDialogOpen(false)}
+              >
+                Batal
+              </Button>
+              <Button variant="outline" onClick={handleExportJson}>
+                <FileJsonIcon className="text-muted-foreground" />
+                JSON
+              </Button>
+              <Button onClick={handleExportCsv}>
+                <FileSpreadsheetIcon />
+                CSV
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
