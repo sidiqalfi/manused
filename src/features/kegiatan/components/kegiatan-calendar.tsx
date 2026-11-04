@@ -78,8 +78,11 @@ export function KegiatanCalendar() {
       </div>
 
       <div className="rounded-md border p-2">
+        {/* Sel kalender proporsional (flex-1 aspect-square) supaya tidak
+            keluar dari kartu sempit di grid dashboard. */}
         <Calendar
           mode="single"
+          navLayout="after"
           selected={selected}
           onSelect={setSelected}
           month={month}
@@ -88,6 +91,17 @@ export function KegiatanCalendar() {
           modifiersClassNames={{
             event:
               "relative after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-primary",
+          }}
+          classNames={{
+            month: "flex w-full flex-col space-y-4",
+            month_caption: "order-first flex justify-center pt-1 items-center",
+            nav: "order-last flex items-center justify-center gap-2 pt-2",
+            month_grid: "order-2 w-full border-collapse space-y-1",
+            weekdays: "flex w-full",
+            weekday: "flex-1 text-muted-foreground font-normal text-[0.8rem] uppercase",
+            week: "flex w-full mt-1",
+            day: "flex-1 aspect-square min-w-0 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+            day_button: "h-full w-full rounded-md font-normal text-sm hover:bg-accent",
           }}
         />
       </div>

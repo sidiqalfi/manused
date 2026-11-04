@@ -35,11 +35,13 @@ test("simple unpaid past month counts as arrears", () => {
     { month: 10, expected: 5000, paidBy: { adit: 5000 } },
   ])
 
-  const result = computeArrears(matrix, 2026, 0)
+  // "Sekarang" dibekukan 1 Nov 2026 agar test hermetic (tidak pecah
+  // saat bulan berjalan berganti).
+  const result = computeArrears(matrix, 2026, 0, new Date(2026, 10, 1))
   // Adit bayar Okt saja, Sep kosong => nunggak Sep
   assert.deepEqual(result.get("adit"), { count: 1, amount: 5000 })
-  // Budi bayar Sep penuh => bersih
-  assert.equal(result.get("budi"), undefined)
+  // Budi bayar Sep penuh tapi Okt kosong => nunggak Okt
+  assert.deepEqual(result.get("budi"), { count: 1, amount: 5000 })
 })
 
 test("partial payment leaves the remainder as arrears", () => {

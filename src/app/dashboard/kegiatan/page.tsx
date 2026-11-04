@@ -226,9 +226,6 @@ export default function KegiatanPage() {
         </Card>
       </div>
 
-      {/* Rekap tahunan */}
-      <KegiatanPaymentMatrixTable matrix={matrix} loading={matrixResult.isPending} />
-
       {/* Daftar kegiatan */}
       {listResult.isPending ? (
         <div className="space-y-2">
@@ -322,6 +319,9 @@ export default function KegiatanPage() {
           </Table>
         </div>
       )}
+
+      {/* Rekap tahunan */}
+      <KegiatanPaymentMatrixTable matrix={matrix} loading={matrixResult.isPending} />
     </div>
   )
 }

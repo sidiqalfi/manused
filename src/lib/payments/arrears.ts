@@ -22,9 +22,10 @@ export type MemberArrears = {
 export function computeArrears(
   matrix: ArisanPaymentMatrix,
   year: number,
-  beforeMonth: number
+  beforeMonth: number,
+  /** Injeksi waktu untuk test — default waktu sekarang. */
+  now: Date = new Date()
 ): Map<string, MemberArrears> {
-  const now = new Date()
   const nowKey = now.getFullYear() * 12 + now.getMonth() // bulan berjalan (0-based)
   const limitKey = year * 12 + (beforeMonth - 1) // bulan periode aktif (0-based)
 
