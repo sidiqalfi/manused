@@ -57,12 +57,6 @@ export const sidebarData = {
   ],
   navSecondary: [
     {
-      title: "Profile",
-      url: "/dashboard/profile",
-      icon: <CircleUser />,
-      guestHidden: true,
-    },
-    {
       title: "Settings",
       url: "/dashboard/settings",
       icon: <Settings />,
