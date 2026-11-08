@@ -32,6 +32,7 @@ export function AppSidebar({ user, avatarUrl, ...props }: AppSidebarProps) {
   }
 
   const isGuest = user?.role === "guest"
+  const isAdministrator = user?.role === "ADMIN"
 
   return (
     <Sidebar
@@ -61,7 +62,8 @@ export function AppSidebar({ user, avatarUrl, ...props }: AppSidebarProps) {
         />
         <NavSecondary
           items={sidebarData.navSecondary.filter(
-            (item) => !(isGuest && "guestHidden" in item && item.guestHidden)
+            (item) => !(isGuest && "guestHidden" in item && item.guestHidden) &&
+              !("adminOnly" in item && item.adminOnly && !isAdministrator)
           )}
           className="mt-auto"
         />

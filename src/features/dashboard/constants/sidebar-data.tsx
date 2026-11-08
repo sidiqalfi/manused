@@ -5,9 +5,9 @@ import {
   HandCoins,
   Shuffle,
   CalendarDays,
-  CircleUser,
   ScrollText,
   Settings,
+  UserCog,
 } from "lucide-react"
 
 export const sidebarData = {
@@ -56,6 +56,12 @@ export const sidebarData = {
     },
   ],
   navSecondary: [
+    {
+      title: "Kelola Pengguna",
+      url: "/dashboard/users",
+      icon: <UserCog />,
+      adminOnly: true,
+    },
     {
       title: "Settings",
       url: "/dashboard/settings",

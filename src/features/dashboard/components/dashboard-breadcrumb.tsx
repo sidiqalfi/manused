@@ -31,7 +31,7 @@ export function DashboardBreadcrumb() {
       <BreadcrumbList>
         {segments.map((segment, index) => {
           // Capitalize: "dashboard" → "Dashboard"
-          const label = segment
+          const label = segment === "users" ? "Kelola Pengguna" : segment
             .replace(/-/g, " ")
             .replace(/\b\w/g, (c) => c.toUpperCase())
 
