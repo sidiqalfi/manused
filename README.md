@@ -15,7 +15,8 @@ Antarmuka menggunakan Bahasa Indonesia dengan format rupiah (`id-ID`). Pengurus 
 | Kegiatan | Jadwal dan status kegiatan, peserta hadir atau hanya patungan, nominal iuran per peserta, pembayaran bertahap, pengeluaran, serta subsidi dari kas. Detail kegiatan memiliki URL berbasis slug. |
 | Anggota | Biodata, status aktif, tanggal bergabung, pengelompokan rumah, jabatan kepengurusan, dan riwayat jabatan. |
 | Log aktivitas | Riwayat perubahan dan aktivitas autentikasi, detail sebelum/sesudah bila tersedia, serta filter pelaku, aksi, entitas, dan tanggal. |
-| Profil dan pengaturan | Pembaruan nama/email, perubahan password, serta saldo awal kas, sosial, dan arisan. |
+| Pengguna | Pembuatan akun, perubahan nama/email dan hak akses, reset password, serta aktivasi/nonaktivasi akun oleh administrator. |
+| Profil dan pengaturan | Pembaruan nama profil, perubahan password, serta saldo awal kas, sosial, dan arisan. |
 
 Halaman kas, sosial, dan arisan menyediakan matriks pembayaran serta perhitungan tunggakan. Ekspor CSV/JSON dengan pilihan kolom tersedia untuk kas, sosial, arisan, anggota, peserta kegiatan, dan log aktivitas.
 
@@ -28,11 +29,19 @@ Halaman kas, sosial, dan arisan menyediakan matriks pembayaran serta perhitungan
 
 ### Akses pengguna
 
-Pengurus masuk melalui `/signin` menggunakan email dan password. Jabatan organisasi seperti Ketua atau Bendahara melekat pada data anggota; jenis sesi aplikasi saat ini adalah `user` dan `guest`.
+Pengurus masuk melalui `/signin` menggunakan email dan password. Hak akses akun disimpan dalam `User.role`:
+
+| Hak akses | Kemampuan |
+| --- | --- |
+| `ADMIN` | Menggunakan fitur pengurus dan mengelola akun di `/dashboard/users`. |
+| `USER` | Menggunakan fitur pengurus sesuai aturan akses dan kepemilikan data yang berlaku. |
+| Tamu | Sesi virtual `guest` untuk akses baca, tanpa akun tersimpan di database. |
+
+Jabatan organisasi seperti Ketua atau Bendahara disimpan melalui `Position` dan `MemberPositionAssignment`, terpisah dari hak akses akun. Administrator dapat menonaktifkan akun sambil mempertahankan riwayat transaksi. Minimal satu administrator aktif harus tetap tersedia.
 
 Pengunjung tanpa sesi yang membuka `/dashboard/...` otomatis masuk sebagai tamu dan kembali ke halaman tujuan. Tamu mendapat tampilan baca dan tidak dapat melakukan perubahan data. Halaman anggota, log, profil, dan pengaturan mengalihkan tamu ke dashboard. Akses tamu ini perlu diperhitungkan saat menentukan data yang akan ditampilkan dalam aplikasi.
 
-Perubahan password mengakhiri sesi saat ini dan membatalkan sesi lama di perangkat lain melalui `tokenVersion`.
+Perubahan password, email, hak akses, atau status akun melalui pengelolaan pengguna membatalkan sesi lama melalui `tokenVersion`. Akun nonaktif ditolak saat login dan validasi sesi. Perubahan password melalui Profil juga mengakhiri sesi aktif.
 
 ## Menjalankan secara lokal
 
@@ -109,9 +118,19 @@ Seed membuat akun pengurus demo, 40 anggota, enam jabatan beserta penugasannya, 
 
 **Gunakan seed hanya untuk database demo.** Script menghapus data anggota, jabatan, kas, sosial, arisan, dan pengaturan sebelum mengisinya kembali, serta mengatur ulang password akun demo. Seed belum membersihkan relasi peserta/pembayaran kegiatan sehingga menjalankannya pada database yang sudah berisi kegiatan dapat gagal setelah sebagian data terhapus.
 
-Untuk mengisi atau memperbarui enam jabatan default saja, tersedia `npm run seed:roles`.
+Untuk mengisi atau memperbarui enam jabatan default saja, tersedia `npm run seed:positions`.
 
-### 4. Jalankan aplikasi
+### 4. Tetapkan administrator pertama
+
+Migrasi mempertahankan akun lama sebagai `USER` aktif. Pilih akun yang sudah ada untuk menjadi administrator:
+
+```bash
+npm run admin:promote -- nama@example.com
+```
+
+Perintah ini mempertahankan password dan data transaksi serta meminta akun tersebut login ulang. Untuk database demo, gunakan email akun demo dari langkah sebelumnya. Akun berikutnya dapat dibuat dari menu **Kelola Pengguna**.
+
+### 5. Jalankan aplikasi
 
 ```bash
 npm run dev
@@ -133,7 +152,8 @@ Docker Compose saat ini menjalankan PostgreSQL dan Adminer saja; aplikasi Next.j
 | `npm run db:up` | Menjalankan PostgreSQL dan Adminer di latar belakang. |
 | `npm run db:down` | Menghentikan dan menghapus container serta network Compose. |
 | `npm run seed` | Mengisi ulang data demo; menghapus data yang disebutkan pada bagian seed. |
-| `npm run seed:roles` | Melakukan upsert jabatan default tanpa menjalankan seed demo penuh. |
+| `npm run seed:positions` | Melakukan upsert jabatan default tanpa menjalankan seed demo penuh. |
+| `npm run admin:promote -- email` | Menetapkan akun aktif yang sudah ada sebagai administrator. |
 | `npx prisma migrate dev` | Menerapkan migrasi lokal dan membuat migrasi untuk perubahan skema. |
 | `npx prisma generate` | Menghasilkan Prisma Client dari skema saat ini. |
 | `npx tsc --noEmit` | Memeriksa tipe TypeScript secara terpisah. |
@@ -165,8 +185,8 @@ prisma/
   schema.prisma            # Model dan relasi database
   migrations/              # Riwayat migrasi PostgreSQL
   seed.ts                  # Data demo
-  seed-roles.ts            # Entry point seed jabatan saja
-  seed/roles.ts            # Definisi dan upsert jabatan default
+  seed-positions.ts        # Entry point seed jabatan saja
+  seed/positions.ts        # Definisi dan upsert jabatan default
 src/
   app/                     # Route, layout, halaman, dan endpoint Auth.js
   features/
@@ -177,9 +197,10 @@ src/
     arisan/                # Iuran, kocokan, dan dana save
     kegiatan/              # Jadwal, peserta, pembayaran, dan pengeluaran
     members/               # Biodata dan pengelompokan rumah
-    roles/                 # Jabatan dan riwayat kepengurusan
+    positions/             # Jabatan dan riwayat kepengurusan
     log/                   # Pencatatan, pencarian, dan ekspor aktivitas
     profile/               # Profil akun dan password
+    users/                 # Pengelolaan akun oleh administrator
   components/              # UI bersama, tabel pembayaran, dan grafik
   lib/                     # Prisma, format, ekspor, rate limit, dan tunggakan
   generated/prisma/        # Prisma Client hasil generate
@@ -189,7 +210,7 @@ src/
 
 Alias impor: `@/*` mengarah ke `src/*`, sedangkan `@features/*` mengarah ke `src/features/*`.
 
-Model utama meliputi `User`, `Member`, `Role`, `MemberRoleAssignment`, kelompok `Cash*`, `Sosial*`, `Arisan*`, dan `Kegiatan*`, serta `AppSetting` dan `ActivityLog`. Transaksi menyimpan pembuat melalui `createdById`; log aktivitas menyimpan pelaku, aksi, entitas, dan snapshot perubahan bila tersedia. Lihat [skema database](prisma/schema.prisma) untuk detail relasi dan batasan data.
+Model utama meliputi `User`, `Member`, `Position`, `MemberPositionAssignment`, kelompok `Cash*`, `Sosial*`, `Arisan*`, dan `Kegiatan*`, serta `AppSetting` dan `ActivityLog`. Transaksi menyimpan pembuat melalui `createdById`; log aktivitas menyimpan pelaku, aksi, entitas, dan snapshot perubahan bila tersedia. Lihat [skema database](prisma/schema.prisma) untuk detail relasi dan batasan data.
 
 ## Menjalankan di produksi
 
@@ -202,12 +223,13 @@ npm run build
 npm start
 ```
 
-`npm run build` sudah menjalankan `prisma generate`, tetapi tidak menerapkan migrasi database. Jalankan lint dan test sebagai langkah pemeriksaan tersendiri. Gunakan akun pengurus yang disiapkan untuk produksi; seed demo menghapus data dan bukan langkah deployment.
+`npm run build` sudah menjalankan `prisma generate`, tetapi tidak menerapkan migrasi database. Jalankan lint dan test sebagai langkah pemeriksaan tersendiri. Pada instalasi yang sudah memiliki akun, tetapkan administrator pertama dengan `npm run admin:promote -- nama@example.com`. Gunakan akun pengurus yang disiapkan untuk produksi; seed demo menghapus data dan bukan langkah deployment.
 
 Panduan runtime tersedia pada [dokumentasi deployment Next.js](https://nextjs.org/docs/app/getting-started/deploying).
 
 ## Dokumen terkait
 
+- [docs/administrator-access.md](docs/administrator-access.md) — rancangan akses akun, migrasi jabatan, dan penyiapan administrator.
 - [PRODUCT.md](PRODUCT.md) — konteks produk dan kebutuhan awal.
 - [DESIGN.md](DESIGN.md) — arah visual dan panduan antarmuka.
 - [AGENTS.md](AGENTS.md) — instruksi repository dan rujukan dokumentasi Next.js yang terpasang.
