@@ -1,25 +1,25 @@
 "use client"
 
-import type { Member, Role } from "@/generated/prisma/client"
+import type { Member, Position } from "@/generated/prisma/client"
 import { DataTable } from "@/components/ui/data-table"
 import {
   memberColumns,
   memberGlobalFilterFn,
 } from "@features/members/components/member-columns"
-import type { MemberActiveRolesMap } from "@/features/roles/actions/get-member-active-roles-map"
+import type { MemberActivePositionsMap } from "@/features/positions/actions/get-member-active-positions-map"
 
 interface MembersTableProps {
   data: Member[]
-  roles: Role[]
-  rolesMap: MemberActiveRolesMap
+  positions: Position[]
+  positionsMap: MemberActivePositionsMap
 }
 
-export function MembersTable({ data, roles, rolesMap }: MembersTableProps) {
+export function MembersTable({ data, positions, positionsMap }: MembersTableProps) {
   const dusunOptions = Array.from(new Set(data.map((m) => m.address))).sort()
 
   return (
     <DataTable
-      columns={memberColumns(rolesMap, roles, data)}
+      columns={memberColumns(positionsMap, positions, data)}
       data={data}
       search={{
         placeholder: "Cari nama atau no. HP…",

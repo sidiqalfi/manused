@@ -1,9 +1,9 @@
 import prisma from "../src/lib/prisma"
-import { seedRoles } from "./seed/roles"
+import { seedPositions } from "./seed/positions"
 
 async function main() {
-  const count = await seedRoles()
-  console.log(`SUCCESS_ROLES_SEEDED: ${count} roles`)
+  const count = await seedPositions()
+  console.log(`SUCCESS_POSITIONS_SEEDED: ${count} positions`)
 }
 
 main()

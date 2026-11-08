@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs"
 import prisma from "../src/lib/prisma"
-import { seedRoles } from "./seed/roles"
+import { seedPositions } from "./seed/positions"
 
 async function main() {
   const hashedPassword = await bcrypt.hash("12345678", 10)
@@ -433,15 +433,15 @@ async function main() {
   await prisma.arisanIncome.deleteMany()
   await prisma.arisanPeriod.deleteMany()
   await prisma.appSetting.deleteMany()
-  await prisma.memberRoleAssignment.deleteMany()
-  await prisma.role.deleteMany()
+  await prisma.memberPositionAssignment.deleteMany()
+  await prisma.position.deleteMany()
   await prisma.member.deleteMany()
 
-  // Seed Roles (kepengurusan pemuda-pemudi)
-  await seedRoles()
-  const dbRoles = await prisma.role.findMany({ orderBy: { rank: "asc" } })
-  const roleByName = new Map(dbRoles.map((r) => [r.name, r]))
-  console.log(`SUCCESS_ROLES_SEEDED: ${dbRoles.length} roles`)
+  // Seed Positions (kepengurusan pemuda-pemudi)
+  await seedPositions()
+  const dbPositions = await prisma.position.findMany({ orderBy: { rank: "asc" } })
+  const positionByName = new Map(dbPositions.map((r) => [r.name, r]))
+  console.log(`SUCCESS_POSITIONS_SEEDED: ${dbPositions.length} positions`)
 
   await prisma.member.createMany({
     data: members.map((member) => ({
@@ -453,7 +453,7 @@ async function main() {
   const memberCount = await prisma.member.count()
   console.log(`SUCCESS_MEMBERS_SEEDED: ${memberCount} members total`)
 
-  // Assign roles: 4 anggota pertama jadi Ketua/Wakil/Bendahara/Sekretaris,
+  // Assign positions: 4 anggota pertama jadi Ketua/Wakil/Bendahara/Sekretaris,
   // anggota kelima jadi Humas, sisanya jadi Anggota.
   const seededMembers = await prisma.member.findMany({
     orderBy: { createdAt: "asc" },
@@ -466,17 +466,17 @@ async function main() {
     "Sekretaris",
     "Humas",
   ]
-  const roleAssignments = seededMembers.map((m, idx) => {
-    const roleName = pengurusNames[idx] ?? "Anggota"
-    const role = roleByName.get(roleName)!
+  const positionAssignments = seededMembers.map((m, idx) => {
+    const positionName = pengurusNames[idx] ?? "Anggota"
+    const position = positionByName.get(positionName)!
     return {
       memberId: m.id,
-      roleId: role.id,
+      positionId: position.id,
     }
   })
-  await prisma.memberRoleAssignment.createMany({ data: roleAssignments })
+  await prisma.memberPositionAssignment.createMany({ data: positionAssignments })
   console.log(
-    `SUCCESS_ROLE_ASSIGNMENTS_SEEDED: ${roleAssignments.length} assignments`,
+    `SUCCESS_POSITION_ASSIGNMENTS_SEEDED: ${positionAssignments.length} assignments`,
   )
 
   // Seed Cash Periods (12 bulan tahun berjalan)

@@ -1,11 +1,11 @@
 "use client"
 
 import type { ColumnDef, Row } from "@tanstack/react-table"
-import type { Member, Role } from "@/generated/prisma/client"
+import type { Member, Position } from "@/generated/prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { DeleteMemberDialog } from "@features/members/components/delete-member-dialog"
 import { EditMemberDialog } from "@features/members/components/edit-member-dialog"
-import type { MemberActiveRolesMap } from "@/features/roles/actions/get-member-active-roles-map"
+import type { MemberActivePositionsMap } from "@/features/positions/actions/get-member-active-positions-map"
 
 export function memberGlobalFilterFn(
   row: Row<Member>,
@@ -22,8 +22,8 @@ export function memberGlobalFilterFn(
 }
 
 export function memberColumns(
-  rolesMap: MemberActiveRolesMap,
-  allRoles: Role[],
+  positionsMap: MemberActivePositionsMap,
+  allPositions: Position[],
   members: Member[],
 ): ColumnDef<Member>[] {
   const headNameById = new Map(
@@ -113,17 +113,17 @@ export function memberColumns(
       },
     },
     {
-      id: "roles",
-      header: "Role",
+      id: "positions",
+      header: "Jabatan",
       cell: ({ row }) => {
         const member = row.original
-        const roles = rolesMap[member.id] ?? []
-        if (roles.length === 0) {
+        const positions = positionsMap[member.id] ?? []
+        if (positions.length === 0) {
           return <span className="text-muted-foreground">-</span>
         }
         return (
           <div className="flex flex-wrap gap-1">
-            {roles.map((r) => (
+            {positions.map((r) => (
               <Badge
                 key={r.id}
                 variant={r.rank <= 5 ? "default" : "outline"}
@@ -152,13 +152,13 @@ export function memberColumns(
       header: "Aksi",
       cell: ({ row }) => {
         const member = row.original
-        const currentRoleIds = (rolesMap[member.id] ?? []).map((r) => r.id)
+        const currentPositionIds = (positionsMap[member.id] ?? []).map((r) => r.id)
         return (
           <div className="flex justify-end gap-1">
             <EditMemberDialog
               member={member}
-              allRoles={allRoles}
-              currentRoleIds={currentRoleIds}
+              allPositions={allPositions}
+              currentPositionIds={currentPositionIds}
               allMembers={members}
             />
             <DeleteMemberDialog id={member.id} name={member.name} />

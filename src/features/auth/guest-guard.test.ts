@@ -4,18 +4,18 @@ import { mock, test } from "node:test"
 const memberCreate = mock.fn(
   async () => ({ id: "9dfac38b-7e4c-4a6c-b296-068995e89cb9" })
 )
-const roleFindUnique = mock.fn(async () => ({
+const positionFindUnique = mock.fn(async () => ({
   id: "1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e",
   name: "Anggota",
 }))
-const memberRoleAssignmentCreate = mock.fn(async () => ({}))
+const memberPositionAssignmentCreate = mock.fn(async () => ({}))
 const activityLogCreate = mock.fn(async () => ({}))
 const transaction = mock.fn(
   async (cb: (tx: Record<string, unknown>) => Promise<unknown>) =>
     cb({
       member: { create: memberCreate },
-      role: { findUnique: roleFindUnique },
-      memberRoleAssignment: { create: memberRoleAssignmentCreate },
+      position: { findUnique: positionFindUnique },
+      memberPositionAssignment: { create: memberPositionAssignmentCreate },
       activityLog: { create: activityLogCreate },
     }),
 )
@@ -33,8 +33,8 @@ mockModule("@/lib/prisma", {
     default: {
       $transaction: transaction,
       member: { create: memberCreate },
-      role: { findUnique: roleFindUnique },
-      memberRoleAssignment: { create: memberRoleAssignmentCreate },
+      position: { findUnique: positionFindUnique },
+      memberPositionAssignment: { create: memberPositionAssignmentCreate },
       activityLog: { create: activityLogCreate },
     },
   },

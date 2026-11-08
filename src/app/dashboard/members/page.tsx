@@ -5,24 +5,24 @@ import { membersQuery } from "@features/members/queries"
 import { MembersTable } from "@features/members/components/members-table"
 import { CreateMemberDialog } from "@features/members/components/create-member-dialog"
 import { ExportMembersButton } from "@features/members/components/export-members-button"
-import { rolesQuery, memberRolesMapQuery } from "@/features/roles/queries"
+import { positionsQuery, memberPositionsMapQuery } from "@/features/positions/queries"
 
 export default function Page() {
   const { data: result, isPending } = useQuery(membersQuery)
-  const { data: rolesResult, isPending: rolesPending } = useQuery(rolesQuery)
-  const { data: rolesMapResult, isPending: rolesMapPending } = useQuery(
-    memberRolesMapQuery,
+  const { data: positionsResult, isPending: positionsPending } = useQuery(positionsQuery)
+  const { data: positionsMapResult, isPending: positionsMapPending } = useQuery(
+    memberPositionsMapQuery,
   )
 
   const members = result?.success ? result.data ?? [] : []
-  const roles = rolesResult?.success ? rolesResult.data ?? [] : []
-  const rolesMap = rolesMapResult?.success ? rolesMapResult.data ?? {} : {}
+  const positions = positionsResult?.success ? positionsResult.data ?? [] : []
+  const positionsMap = positionsMapResult?.success ? positionsMapResult.data ?? {} : {}
 
   if (!result?.success && result?.error) {
     console.error(result.error)
   }
 
-  const loading = isPending || rolesPending || rolesMapPending
+  const loading = isPending || positionsPending || positionsMapPending
 
   return (
     <div className="space-y-4">
@@ -36,7 +36,7 @@ export default function Page() {
         <div className="flex items-center gap-2">
           <ExportMembersButton
             data={members}
-            rolesMap={rolesMap}
+            positionsMap={positionsMap}
             disabled={loading}
           />
           <CreateMemberDialog members={members} />
@@ -47,7 +47,7 @@ export default function Page() {
           <p className="text-muted-foreground">Memuat data...</p>
         </div>
       ) : (
-        <MembersTable data={members} roles={roles} rolesMap={rolesMap} />
+        <MembersTable data={members} positions={positions} positionsMap={positionsMap} />
       )}
     </div>
   )

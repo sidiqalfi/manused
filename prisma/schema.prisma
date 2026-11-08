@@ -21,6 +21,8 @@ model User {
   // Naikkan untuk me-revoke semua JWT aktif milik user ini
   // (dipakai saat ganti password). Lihat jwt callback di auth.ts.
   tokenVersion Int @default(0)
+  role UserRole @default(USER)
+  isActive Boolean @default(true)
 
   createdMembers Member[]
   createdCashPeriods CashPeriod[]
@@ -39,6 +41,11 @@ model User {
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
+}
+
+enum UserRole {
+  ADMIN
+  USER
 }
 
 enum Gender {
@@ -94,31 +101,31 @@ model Member {
   kegiatanParticipations KegiatanParticipant[]
   kegiatanPayments       KegiatanPayment[]
 
-  roles MemberRoleAssignment[]
+  positions MemberPositionAssignment[]
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
 }
 
-model Role {
+model Position {
   id   String @id @default(uuid()) @db.Uuid
   name String @unique
   rank Int    @unique
 
-  memberships MemberRoleAssignment[]
+  memberships MemberPositionAssignment[]
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
 }
 
-model MemberRoleAssignment {
+model MemberPositionAssignment {
   id        String    @id @default(uuid()) @db.Uuid
 
   memberId  String    @db.Uuid
   member    Member    @relation(fields: [memberId], references: [id])
 
-  roleId    String    @db.Uuid
-  role      Role      @relation(fields: [roleId], references: [id])
+  positionId    String    @db.Uuid
+  position      Position      @relation(fields: [positionId], references: [id])
 
   startDate DateTime  @default(now()) @db.Date
   endDate   DateTime? @db.Date
@@ -127,7 +134,7 @@ model MemberRoleAssignment {
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
 
   @@index([memberId, endDate])
-  @@index([roleId, endDate])
+  @@index([positionId, endDate])
 }
 
 model CashPeriod {

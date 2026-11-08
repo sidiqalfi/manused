@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { DownloadIcon, FileJsonIcon, FileSpreadsheetIcon } from "lucide-react"
 import type { Member } from "@/generated/prisma/client"
-import type { MemberActiveRolesMap } from "@/features/roles/actions/get-member-active-roles-map"
+import type { MemberActivePositionsMap } from "@/features/positions/actions/get-member-active-positions-map"
 import {
   download,
   formatDate,
@@ -27,7 +27,7 @@ import {
 
 interface ExportMembersButtonProps {
   data: Member[]
-  rolesMap: MemberActiveRolesMap
+  positionsMap: MemberActivePositionsMap
   disabled?: boolean
 }
 
@@ -41,8 +41,8 @@ const STATUS_LABEL: Record<string, string> = {
   INACTIVE: "Tidak Aktif",
 }
 
-function roleNames(memberId: string, rolesMap: MemberActiveRolesMap): string {
-  return (rolesMap[memberId] ?? []).map((role) => role.name).join(", ")
+function positionNames(memberId: string, positionsMap: MemberActivePositionsMap): string {
+  return (positionsMap[memberId] ?? []).map((position) => position.name).join(", ")
 }
 
 type ColumnKey =
@@ -74,7 +74,7 @@ const ALL_COLUMNS: { key: ColumnKey; label: string }[] = [
 
 function toRows(
   data: Member[],
-  rolesMap: MemberActiveRolesMap
+  positionsMap: MemberActivePositionsMap
 ): Record<string, string | number>[] {
   return data.map((member) => ({
     Nama: member.name,
@@ -86,14 +86,14 @@ function toRows(
     RW: member.rw,
     "No. HP": member.phone ?? "",
     Status: STATUS_LABEL[member.status] ?? member.status,
-    Jabatan: roleNames(member.id, rolesMap),
+    Jabatan: positionNames(member.id, positionsMap),
     "Tanggal Bergabung": formatDate(member.joinDate),
   }))
 }
 
 export function ExportMembersButton({
   data,
-  rolesMap,
+  positionsMap,
   disabled,
 }: ExportMembersButtonProps) {
   const [columnDialogOpen, setColumnDialogOpen] = useState(false)
@@ -119,13 +119,13 @@ export function ExportMembersButton({
   }
 
   function handleExportCsv() {
-    const rows = pickColumns(toRows(data, rolesMap), [...selected])
+    const rows = pickColumns(toRows(data, positionsMap), [...selected])
     download(toCsv(rows), `${base}.csv`, "text/csv;charset=utf-8")
     setColumnDialogOpen(false)
   }
 
   function handleExportJson() {
-    const rows = pickColumns(toRows(data, rolesMap), [...selected])
+    const rows = pickColumns(toRows(data, positionsMap), [...selected])
     download(
       JSON.stringify(rows, null, 2),
       `${base}.json`,

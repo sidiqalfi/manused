@@ -10,7 +10,7 @@ import {
 import { revalidatePath } from "next/cache"
 import { logActivity } from "@/features/log/activity-log"
 
-const DEFAULT_ROLE_NAME = "Anggota"
+const DEFAULT_POSITION_NAME = "Anggota"
 
 export async function createMember(formData: FormData) {
   const session = await auth()
@@ -55,21 +55,21 @@ export async function createMember(formData: FormData) {
         after: { name: member.name, fullName: member.fullName },
       })
 
-      const anggotaRole = await tx.role.findUnique({
-        where: { name: DEFAULT_ROLE_NAME },
+      const anggotaPosition = await tx.position.findUnique({
+        where: { name: DEFAULT_POSITION_NAME },
       })
 
-      if (!anggotaRole) {
+      if (!anggotaPosition) {
         console.warn(
-          `Role "${DEFAULT_ROLE_NAME}" tidak ditemukan saat menambah anggota`,
+          `Jabatan "${DEFAULT_POSITION_NAME}" tidak ditemukan saat menambah anggota`,
         )
         return
       }
 
-      await tx.memberRoleAssignment.create({
+      await tx.memberPositionAssignment.create({
         data: {
           memberId: member.id,
-          roleId: anggotaRole.id,
+          positionId: anggotaPosition.id,
         },
       })
     })

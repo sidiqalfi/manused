@@ -23,24 +23,24 @@ import {
 } from "@/components/ui/select"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
-import type { Member, Role } from "@/generated/prisma/client"
+import type { Member, Position } from "@/generated/prisma/client"
 import { updateMember } from "@features/members/actions/update-member"
 import { membersKeys } from "@features/members/queries"
-import { updateMemberRoles } from "@/features/roles/actions/update-member-roles"
-import { rolesKeys } from "@/features/roles/queries"
+import { updateMemberPositions } from "@/features/positions/actions/update-member-positions"
+import { positionsKeys } from "@/features/positions/queries"
 import { householdHeads } from "@features/members/household"
 
 interface EditMemberDialogProps {
   member: Member
-  allRoles: Role[]
-  currentRoleIds: string[]
+  allPositions: Position[]
+  currentPositionIds: string[]
   allMembers?: Member[]
 }
 
 export function EditMemberDialog({
   member,
-  allRoles,
-  currentRoleIds,
+  allPositions,
+  currentPositionIds,
   allMembers = [],
 }: EditMemberDialogProps) {
   const [open, setOpen] = useState(false)
@@ -58,7 +58,7 @@ export function EditMemberDialog({
     setError(null)
 
     const formData = new FormData(e.currentTarget)
-    const roleIds = formData.getAll("roleIds").map((v) => String(v))
+    const positionIds = formData.getAll("positionIds").map((v) => String(v))
 
     const result = await updateMember(member.id, formData)
 
@@ -68,16 +68,16 @@ export function EditMemberDialog({
       return
     }
 
-    const rolesResult = await updateMemberRoles(member.id, roleIds)
-    if (rolesResult.error) {
-      setError(rolesResult.error)
+    const positionsResult = await updateMemberPositions(member.id, positionIds)
+    if (positionsResult.error) {
+      setError(positionsResult.error)
       setLoading(false)
       return
     }
 
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: membersKeys.all }),
-      queryClient.invalidateQueries({ queryKey: rolesKeys.all }),
+      queryClient.invalidateQueries({ queryKey: positionsKeys.all }),
     ])
     setLoading(false)
     setOpen(false)
@@ -257,22 +257,22 @@ export function EditMemberDialog({
 
           <Field>
             <FieldLabel>
-              <Label>Role Kepengurusan</Label>
+              <Label>Jabatan Kepengurusan</Label>
             </FieldLabel>
             <div className="flex flex-wrap gap-3">
-              {allRoles.map((role) => (
+              {allPositions.map((position) => (
                 <label
-                  key={role.id}
+                  key={position.id}
                   className="flex items-center gap-2 text-sm cursor-pointer"
                 >
                   <input
                     type="checkbox"
-                    name="roleIds"
-                    value={role.id}
-                    defaultChecked={currentRoleIds.includes(role.id)}
+                    name="positionIds"
+                    value={position.id}
+                    defaultChecked={currentPositionIds.includes(position.id)}
                     className="h-4 w-4 rounded border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
-                  <span>{role.name}</span>
+                  <span>{position.name}</span>
                 </label>
               ))}
             </div>

@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import { mock, test } from "node:test"
 
 const MEMBER_ID = "9dfac38b-7e4c-4a6c-b296-068995e89cb9"
-const ROLE_ID = "1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e"
+const POSITION_ID = "1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e"
 
 const memberCreate = mock.fn(async () => ({ id: MEMBER_ID }))
 const memberUpdate = mock.fn(async () => ({}))
@@ -14,18 +14,18 @@ const memberFindUnique = mock.fn(async () => ({
   status: "ACTIVE",
   headOfHouseholdId: null,
 }))
-const roleFindUnique = mock.fn(async () => ({
-  id: ROLE_ID,
+const positionFindUnique = mock.fn(async () => ({
+  id: POSITION_ID,
   name: "Anggota",
 }))
-const memberRoleAssignmentCreate = mock.fn(async () => ({}))
+const memberPositionAssignmentCreate = mock.fn(async () => ({}))
 const activityLogCreate = mock.fn(async () => ({}))
 const transaction = mock.fn(
   async (cb: (tx: Record<string, unknown>) => Promise<unknown>) =>
     cb({
       member: { create: memberCreate },
-      role: { findUnique: roleFindUnique },
-      memberRoleAssignment: { create: memberRoleAssignmentCreate },
+      position: { findUnique: positionFindUnique },
+      memberPositionAssignment: { create: memberPositionAssignmentCreate },
       activityLog: { create: activityLogCreate },
     }),
 )
@@ -51,11 +51,11 @@ mockModule("@/lib/prisma", {
         delete: memberDelete,
         findUnique: memberFindUnique,
       },
-      role: {
-        findUnique: roleFindUnique,
+      position: {
+        findUnique: positionFindUnique,
       },
-      memberRoleAssignment: {
-        create: memberRoleAssignmentCreate,
+      memberPositionAssignment: {
+        create: memberPositionAssignmentCreate,
       },
       activityLog: {
         create: activityLogCreate,
@@ -123,18 +123,18 @@ test("createMember rejects an invalid RT before creating a member", async () => 
   assert.equal(memberCreate.mock.callCount(), 0)
 })
 
-test("createMember assigns the default Anggota role to a new member", async () => {
+test("createMember assigns the default Anggota position to a new member", async () => {
   const { createMember } = await import("./actions/create-member")
 
   const result = await createMember(validMemberFormData())
 
   assert.deepEqual(result, { success: true })
-  assert.equal(memberRoleAssignmentCreate.mock.callCount(), 1)
-  assert.deepEqual(memberRoleAssignmentCreate.mock.calls[0]?.arguments, [
+  assert.equal(memberPositionAssignmentCreate.mock.callCount(), 1)
+  assert.deepEqual(memberPositionAssignmentCreate.mock.calls[0]?.arguments, [
     {
       data: {
         memberId: MEMBER_ID,
-        roleId: ROLE_ID,
+        positionId: POSITION_ID,
       },
     },
   ])
