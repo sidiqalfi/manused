@@ -9,7 +9,7 @@ export interface ProfileData {
   id: string
   name: string | null
   email: string
-  role: "user" | "guest"
+  role: "ADMIN" | "USER" | "guest"
   createdAt: Date
   avatarUrl: string | null
 }
@@ -45,7 +45,7 @@ export async function getProfile(): Promise<GetProfileResult> {
   try {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { id: true, name: true, email: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, createdAt: true },
     })
 
     if (!user) {
@@ -54,7 +54,7 @@ export async function getProfile(): Promise<GetProfileResult> {
 
     return {
       success: true,
-      data: { ...user, role: "user", avatarUrl: gravatarUrl(user.email) },
+      data: { ...user, avatarUrl: gravatarUrl(user.email) },
     }
   } catch {
     return { success: false, error: "Gagal memuat profil" }

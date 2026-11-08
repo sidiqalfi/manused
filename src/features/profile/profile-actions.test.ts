@@ -6,7 +6,7 @@ const USER_ID = "8a010ca6-4e5a-4d91-8490-6a6a5f4b1357"
 type Session = { user?: { id?: string; role?: string } } | null
 
 let currentSession: Session = {
-  user: { id: USER_ID, role: "user" },
+  user: { id: USER_ID, role: "USER" },
 }
 
 const userFindUnique = mock.fn(async (): Promise<unknown> => null)
@@ -58,6 +58,7 @@ function profileRow() {
     id: USER_ID,
     name: "Sidiq",
     email: "sidiq@example.com",
+    role: "USER",
     createdAt: new Date("2026-01-15T00:00:00Z"),
   }
 }
@@ -90,13 +91,13 @@ test("getProfile: mengembalikan profil + role user", async () => {
   signOut.mock.resetCalls()
   bcryptCompare.mock.resetCalls()
   bcryptHash.mock.resetCalls()
-  currentSession = { user: { id: USER_ID, role: "user" } }
+  currentSession = { user: { id: USER_ID, role: "USER" } }
   userFindUnique.mock.mockImplementation(async () => profileRow())
 
   const result = await getProfile()
   assert.equal(result.success, true)
   assert.equal(result.data?.name, "Sidiq")
-  assert.equal(result.data?.role, "user")
+  assert.equal(result.data?.role, "USER")
 })
 
 test("updateProfile: tamu ditolak", async () => {
@@ -131,7 +132,7 @@ test("updateProfile: nama kosong ditolak validasi", async () => {
   signOut.mock.resetCalls()
   bcryptCompare.mock.resetCalls()
   bcryptHash.mock.resetCalls()
-  currentSession = { user: { id: USER_ID, role: "user" } }
+  currentSession = { user: { id: USER_ID, role: "USER" } }
   const fd = new FormData()
   fd.set("name", "   ")
 
@@ -151,7 +152,7 @@ test("updateProfile: happy path menulis + log + revalidate", async () => {
   signOut.mock.resetCalls()
   bcryptCompare.mock.resetCalls()
   bcryptHash.mock.resetCalls()
-  currentSession = { user: { id: USER_ID, role: "user" } }
+  currentSession = { user: { id: USER_ID, role: "USER" } }
   userFindUnique.mock.mockImplementation(async () => ({ name: "Lama" }))
   const fd = new FormData()
   fd.set("name", "Baru")
@@ -196,7 +197,7 @@ test("changePassword: konfirmasi tidak cocok ditolak", async () => {
   signOut.mock.resetCalls()
   bcryptCompare.mock.resetCalls()
   bcryptHash.mock.resetCalls()
-  currentSession = { user: { id: USER_ID, role: "user" } }
+  currentSession = { user: { id: USER_ID, role: "USER" } }
   const fd = new FormData()
   fd.set("currentPassword", "oldpass123")
   fd.set("newPassword", "newpass123")
@@ -218,7 +219,7 @@ test("changePassword: sama dengan password lama ditolak", async () => {
   signOut.mock.resetCalls()
   bcryptCompare.mock.resetCalls()
   bcryptHash.mock.resetCalls()
-  currentSession = { user: { id: USER_ID, role: "user" } }
+  currentSession = { user: { id: USER_ID, role: "USER" } }
   const fd = new FormData()
   fd.set("currentPassword", "oldpass123")
   fd.set("newPassword", "oldpass123")
@@ -240,7 +241,7 @@ test("changePassword: password lama salah ditolak", async () => {
   signOut.mock.resetCalls()
   bcryptCompare.mock.resetCalls()
   bcryptHash.mock.resetCalls()
-  currentSession = { user: { id: USER_ID, role: "user" } }
+  currentSession = { user: { id: USER_ID, role: "USER" } }
   userFindUnique.mock.mockImplementation(async () => ({
     password: "stored-hash",
   }))
@@ -268,7 +269,7 @@ test("changePassword: happy path hash + tokenVersion increment + signOut", async
   signOut.mock.resetCalls()
   bcryptCompare.mock.resetCalls()
   bcryptHash.mock.resetCalls()
-  currentSession = { user: { id: USER_ID, role: "user" } }
+  currentSession = { user: { id: USER_ID, role: "USER" } }
   userFindUnique.mock.mockImplementation(async () => ({
     password: "stored-hash",
   }))
@@ -308,7 +309,7 @@ test("changePassword: password baru terlalu pendek ditolak", async () => {
   signOut.mock.resetCalls()
   bcryptCompare.mock.resetCalls()
   bcryptHash.mock.resetCalls()
-  currentSession = { user: { id: USER_ID, role: "user" } }
+  currentSession = { user: { id: USER_ID, role: "USER" } }
   const fd = new FormData()
   fd.set("currentPassword", "oldpass123")
   fd.set("newPassword", "pendek")

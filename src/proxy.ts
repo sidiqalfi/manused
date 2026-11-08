@@ -8,7 +8,7 @@ export default async function proxy(req: NextRequest) {
 
   const session = await auth()
 
-  if (session) return NextResponse.next()
+  if (session?.user?.id) return NextResponse.next()
 
   // Belum login: otomatis masuk sebagai tamu, lalu kembali ke URL tujuan —
   // link /dashboard/... yang dibagikan terbuka tanpa langkah login manual.

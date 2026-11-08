@@ -4,7 +4,7 @@ import { DashboardView } from "@/features/dashboard/components/dashboard-view"
 
 export default async function Page() {
   const session = await auth()
-  if (!session) {
+  if (!session?.user?.id) {
     redirect("/signin")
   }
 

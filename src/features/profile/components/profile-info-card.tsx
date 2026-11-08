@@ -53,7 +53,7 @@ export function ProfileInfoCard() {
             </span>
           </div>
           <Badge variant={profile.role === "guest" ? "outline" : "default"}>
-            {profile.role === "guest" ? "Tamu" : "Pengguna"}
+            {profile.role === "guest" ? "Tamu" : profile.role === "ADMIN" ? "Administrator" : "Pengguna"}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground">

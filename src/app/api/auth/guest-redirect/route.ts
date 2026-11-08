@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
   // Sudah ada sesi (mis. tab lain baru login) → balik ke tujuan saja.
   const session = await auth()
-  if (session) {
+  if (session?.user?.id) {
     return redirectToTarget(req)
   }
 

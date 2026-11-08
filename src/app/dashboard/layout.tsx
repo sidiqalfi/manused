@@ -10,7 +10,7 @@ import { gravatarUrl } from "@/lib/gravatar"
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const session = await auth()
-  if (!session) {
+  if (!session?.user?.id) {
     redirect("/signin")
   }
 

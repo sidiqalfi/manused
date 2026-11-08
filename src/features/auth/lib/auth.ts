@@ -3,6 +3,8 @@ import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
 import { logActivity } from "@/features/log/activity-log"
+import { validateAccountToken } from "./session-validation"
+import { z } from "zod"
 
 const GUEST_ID = "00000000-0000-0000-0000-000000000000"
 const GUEST_USER = {
@@ -43,12 +45,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
       },
       async authorize(credentials) {
-        const email = credentials.email as string
+        const parsed = z.object({ email: z.email(), password: z.string().min(1) }).safeParse(credentials)
+        if (!parsed.success) return null
+        const { email, password } = parsed.data
         const user = await prisma.user.findUnique({
           where: { email },
         })
 
-        if (!user) {
+        if (!user || !user.isActive) {
           await recordAuthLog({
             actor: { id: null, name: null, email },
             action: "LOGIN_FAILED",
@@ -56,7 +60,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null
         }
 
-        const isPasswordValid = await bcrypt.compare(credentials.password as string, user.password)
+        const isPasswordValid = await bcrypt.compare(password, user.password)
 
         if (!isPasswordValid) {
           await recordAuthLog({
@@ -75,6 +79,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name ?? null,
+          role: user.role,
           tokenVersion: user.tokenVersion,
         }
       },
@@ -102,7 +107,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.id = user.id
         token.email = user.email
         token.name = user.name
-        token.role = user.role ?? "user"
+        token.role = user.role ?? "USER"
         token.tokenVersion = user.tokenVersion ?? 0
         return token
       }
@@ -113,29 +118,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token.role !== "guest" && typeof token.id === "string") {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id },
-          select: { tokenVersion: true },
+          select: { tokenVersion: true, isActive: true, role: true, email: true, name: true },
         })
 
-        // Token lama (sebelum fitur ini ada) tidak punya tokenVersion;
-        // anggap 0 supaya sesi yang masih aktif tidak ikut ter-revoke
-        // saat deploy.
-        const tokenVersion = token.tokenVersion ?? 0
-
-        if (!dbUser || dbUser.tokenVersion !== tokenVersion) {
-          // Versi tidak cocok (atau user terhapus): buang klaim utama —
-          // session callback tidak akan mengisi user id dan action
-          // guards akan menolaknya.
-          return {} as typeof token
-        }
+        return validateAccountToken(token, dbUser)
       }
 
       return token
     },
     async session({ session, token }) {
-      session.user.id = (token.id ?? null) as string
+      session.user.id = token.id ?? ""
       session.user.email = (token.email ?? null) as string
       session.user.name = (token.name ?? null) as string
-      session.user.role = (token.role ?? "user") as "user" | "guest"
+      session.user.role = token.role ?? "USER"
+      session.user.tokenVersion = token.tokenVersion ?? 0
       return session
     },
   },
