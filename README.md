@@ -1,83 +1,144 @@
-# Manused (Manunggal Sedyo)
+# Manused
 
-Buku kas digital untuk organisasi pemuda-pemudi desa. Mencatat iuran anggota, pengeluaran, iuran sosial bulanan, dan arisan (kocokan) dengan cepat — satu sumber data yang akurat, transparan, dan terlacak.
+**Manunggal Sedyo** — aplikasi pengelolaan keuangan dan kegiatan organisasi pemuda-pemudi desa. Manused menyatukan buku kas, dana sosial, arisan per rumah, data anggota, dan administrasi kegiatan dalam satu dashboard.
+
+Antarmuka menggunakan Bahasa Indonesia dengan format rupiah (`id-ID`). Pengurus mencatat transaksi melalui akun mereka, sementara tamu dapat melihat dashboard dan laporan melalui akses baca.
 
 ## Fitur
 
-- **Kas bulanan** — periode kas (iuran + batas bawah per bulan), pencatatan & penghapusan pembayaran iuran anggota, pencatatan & penghapusan pengeluaran, ringkasan kas (total masuk/keluar/saldo, termasuk saldo awal), serta rekap tahunan per bulan (grafik).
-- **Sosial** — iuran sukarela per anggota dengan nominal minimal, pengeluaran sosial, ringkasan dan rekap tahunan, plus saldo awal. Mirip kas, dengan catatan tambahan per anggota.
-- **Arisan** — iuran arisan flat per periode, kocokan bulanan dengan preview kandidat (eligible = aktif & belum pernah menang), riwayat kocokan (termasuk void/batal), dana save berjalan dengan saldo awal, dan payout ke pemenang. Dihitung **per rumah (1 rumah = 1 slot)**: yang membayar & di-kocok adalah kepala rumah, anggota serumah ikut lewat kepalanya. Tampilan tanpa pilih periode menampilkan rekap tahunan + riwayat kocokan tahun berjalan.
-- **Anggota** — CRUD anggota pemuda (nama, nama lengkap, gender, tanggal lahir, dusun, RT/RW, telepon, status aktif, kepala rumah opsional) plus role kepengurusan (Ketua, Wakil, Bendahara, Sekretaris, Humas, Anggota) dengan riwayat jabatan. Kolom "Rumah" menampilkan kepala rumah tiap anggota.
-- **Pengaturan** — saldo awal dana kas, sosial, dan dana save arisan (tersimpan sebagai AppSetting key-value).
-- **Dashboard pengurus** — ringkasan saldo kas/sosial/arisan + total anggota, grafik arus tahunan per buku (Kas, Sosial, Arisan), caption saldo awal, aksi cepat per buku, sidebar navigasi.
-- Semua copy antarmuka dalam **Bahasa Indonesia**; angka uang selalu berformat `Rp` (locale `id-ID`).
+| Modul | Kemampuan |
+| --- | --- |
+| Dashboard | Ringkasan saldo kas, sosial, dana save arisan, jumlah anggota, grafik tahunan, dan kalender kegiatan. |
+| Kas | Periode bulanan, nominal iuran dan batas minimal, pembayaran per anggota atau sekaligus, sumbangan dan pemasukan lain, pengeluaran, saldo awal, serta rekap tahunan. |
+| Sosial | Iuran sukarela dengan nominal minimal, pencatatan sekaligus untuk beberapa anggota, sumbangan dan pemasukan lain, pengeluaran, saldo awal, serta rekap tahunan. |
+| Arisan | Iuran per rumah, kocokan acak dengan pratinjau atau pencatatan pemenang manual, siklus pemenang, pembatalan kocokan, riwayat, dan dana save. |
+| Kegiatan | Jadwal dan status kegiatan, peserta hadir atau hanya patungan, nominal iuran per peserta, pembayaran bertahap, pengeluaran, serta subsidi dari kas. Detail kegiatan memiliki URL berbasis slug. |
+| Anggota | Biodata, status aktif, tanggal bergabung, pengelompokan rumah, jabatan kepengurusan, dan riwayat jabatan. |
+| Log aktivitas | Riwayat perubahan dan aktivitas autentikasi, detail sebelum/sesudah bila tersedia, serta filter pelaku, aksi, entitas, dan tanggal. |
+| Profil dan pengaturan | Pembaruan nama/email, perubahan password, serta saldo awal kas, sosial, dan arisan. |
 
-## Tech Stack
+Halaman kas, sosial, dan arisan menyediakan matriks pembayaran serta perhitungan tunggakan. Ekspor CSV/JSON dengan pilihan kolom tersedia untuk kas, sosial, arisan, anggota, peserta kegiatan, dan log aktivitas.
 
-- [Next.js 16](https://nextjs.org) App Router + React 19, TypeScript (strict)
-- Tailwind CSS v4 + [shadcn/ui](https://ui.shadcn.com) (Base UI primitives — **bukan** Radix)
-- [Prisma 7](https://www.prisma.io) + PostgreSQL (driver adapter `@prisma/adapter-pg`)
-- [NextAuth v5](https://authjs.dev) (credentials, bcryptjs)
-- [TanStack Query v5](https://tanstack.com/query) untuk client-side fetching
-- [Recharts 3](https://recharts.org) untuk grafik rekap tahunan
-- Zod v4 untuk validasi input
+### Aturan arisan
 
-## Persiapan Awal
+- **Satu rumah = satu slot.** Pembayaran dan kemenangan dicatat atas nama kepala rumah; anggota serumah mengikuti slot tersebut.
+- Rumah yang masih memiliki anggota aktif dapat ikut kocokan, termasuk bila kepala rumah berstatus nonaktif.
+- Kandidat kocokan acak harus sudah membayar pada periode terkait dan belum menang pada siklus berjalan. Siklus berikutnya dibuka ketika kandidat pada siklus tersebut habis.
+- Dana save dihitung dari saldo awal + seluruh iuran masuk − pembayaran kepada pemenang dari kocokan yang tidak dibatalkan, termasuk iuran terlambat setelah kocokan.
 
-Prasyarat: Node.js, dan PostgreSQL (bisa via Docker).
+### Akses pengguna
 
-1. **Salin environment variables**
+Pengurus masuk melalui `/signin` menggunakan email dan password. Jabatan organisasi seperti Ketua atau Bendahara melekat pada data anggota; jenis sesi aplikasi saat ini adalah `user` dan `guest`.
 
-   ```bash
-   cp .env.example .env
-   ```
+Pengunjung tanpa sesi yang membuka `/dashboard/...` otomatis masuk sebagai tamu dan kembali ke halaman tujuan. Tamu mendapat tampilan baca dan tidak dapat melakukan perubahan data. Halaman anggota, log, profil, dan pengaturan mengalihkan tamu ke dashboard. Akses tamu ini perlu diperhitungkan saat menentukan data yang akan ditampilkan dalam aplikasi.
 
-   Isi `.env`:
-   - `POSTGRES_PASSWORD` — password database (dipakai docker compose)
-   - `DATABASE_URL` — koneksi PostgreSQL, format `postgresql://user:password@localhost:5432/db?schema=public`
-   - `AUTH_SECRET` — secret NextAuth; generate dengan `npx auth secret`
+Perubahan password mengakhiri sesi saat ini dan membatalkan sesi lama di perangkat lain melalui `tokenVersion`.
 
-2. **Jalankan database** (Postgres + Adminer)
+## Menjalankan secara lokal
 
-   ```bash
-   npm run db:up
-   ```
+### Prasyarat
 
-3. **Terapkan skema & generate Prisma client**
+- **Node.js 24 LTS** dan npm. Prisma yang digunakan mendukung Node.js `^20.19`, `^22.12`, atau `>=24.0`; test memerlukan dukungan `--experimental-test-module-mocks`.
+- **PostgreSQL**, baik instance sendiri maupun melalui Docker Compose yang tersedia.
+- **Docker dengan Compose** jika menggunakan database bawaan repository.
 
-   ```bash
-   npx prisma migrate dev
-   npx prisma generate
-   ```
+Jalankan perintah berikut dari direktori repository.
 
-   > Prisma client di-generate ke `src/generated/prisma` — impor dari `@/lib/prisma`, jangan pernah dari `@prisma/client`.
+### 1. Instal dependensi dan siapkan environment
 
-4. **Isi data seed (opsional)**
+```bash
+npm ci
+cp .env.example .env
+```
 
-   ```bash
-   npx prisma db seed
-   ```
+Sesuaikan `.env`. Untuk konfigurasi Docker Compose bawaan, gunakan user dan database `postgres`:
 
-   Seed berisi: 1 akun pengurus, 40 anggota lengkap dengan role kepengurusan, 6 role default (Ketua, Wakil Ketua, Bendahara, Sekretaris, Humas, Anggota), periode kas/sosial/arisan 12 bulan tahun berjalan beserta iuran, pengeluaran, dan riwayat kocokan arisan.
+```dotenv
+POSTGRES_PASSWORD=ganti_password_lokal
+DATABASE_URL="postgresql://postgres:ganti_password_lokal@localhost:5432/postgres?schema=public"
+AUTH_SECRET=isi_dengan_secret_acak
+```
 
-5. **Jalankan dev server**
+Contoh `DATABASE_URL` di `.env.example` masih memakai user/database placeholder. Ganti sesuai database yang digunakan dan pastikan password pada URL cocok dengan `POSTGRES_PASSWORD`. Karakter khusus dalam password harus di-URL-encode pada connection string.
 
-   ```bash
-   npm run dev
-   ```
+Buat nilai `AUTH_SECRET`, lalu salin hasilnya ke `.env`:
 
-   Buka [http://localhost:3000](http://localhost:3000).
+```bash
+node -e "console.log(require('node:crypto').randomBytes(32).toString('base64'))"
+```
 
-## Script
+| Variabel | Penggunaan |
+| --- | --- |
+| `DATABASE_URL` | Wajib untuk koneksi PostgreSQL oleh aplikasi dan Prisma CLI. |
+| `AUTH_SECRET` | Wajib untuk autentikasi dan sesi Auth.js/NextAuth. |
+| `POSTGRES_PASSWORD` | Wajib saat menjalankan PostgreSQL melalui Docker Compose bawaan; tidak diperlukan untuk instance eksternal. |
 
-| Command | Keterangan |
-|---|---|
-| `npm run dev` | Next.js dev server |
-| `npm run build` | Production build |
-| `npm run lint` | ESLint (flat config, `eslint-config-next`) |
-| `npm test` | Semua test (`node:test` via `tsx`) |
-| `npm run db:up` / `npm run db:down` | Start/stop docker compose (Postgres + Adminer) |
-| `npx tsc --noEmit` | Type check (build tidak menjalankan tsc) |
+### 2. Jalankan database dan terapkan migrasi
+
+Jika menggunakan Docker Compose:
+
+```bash
+npm run db:up
+```
+
+PostgreSQL tersedia di `localhost:5432` dan Adminer di [localhost:8080](http://localhost:8080). Pada Adminer, gunakan server `db`, user `postgres`, database `postgres`, serta password dari `.env`.
+
+Setelah PostgreSQL siap menerima koneksi:
+
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
+
+Prisma Client dihasilkan ke `src/generated/prisma/` dan tidak disimpan di Git. Kode aplikasi menggunakan singleton dari `@/lib/prisma`; tipe model tersedia melalui `@/generated/prisma/client`.
+
+### 3. Isi data demo
+
+Untuk mencoba aplikasi dengan database pengembangan kosong:
+
+```bash
+npm run seed
+```
+
+Seed membuat akun pengurus demo, 40 anggota, enam jabatan beserta penugasannya, serta periode kas/sosial/arisan selama 12 bulan pada tahun berjalan dengan contoh transaksi dan kocokan. Seed belum menyediakan contoh kegiatan.
+
+| Akun demo | Nilai |
+| --- | --- |
+| Email | `johndoe@gmail.com` |
+| Password | `12345678` |
+
+**Gunakan seed hanya untuk database demo.** Script menghapus data anggota, jabatan, kas, sosial, arisan, dan pengaturan sebelum mengisinya kembali, serta mengatur ulang password akun demo. Seed belum membersihkan relasi peserta/pembayaran kegiatan sehingga menjalankannya pada database yang sudah berisi kegiatan dapat gagal setelah sebagian data terhapus.
+
+Untuk mengisi atau memperbarui enam jabatan default saja, tersedia `npm run seed:roles`.
+
+### 4. Jalankan aplikasi
+
+```bash
+npm run dev
+```
+
+Buka [localhost:3000](http://localhost:3000), lalu masuk dengan akun demo atau pilih akses tamu.
+
+Docker Compose saat ini menjalankan PostgreSQL dan Adminer saja; aplikasi Next.js dijalankan melalui npm. Compose belum mendefinisikan volume database secara eksplisit, jadi siapkan penyimpanan persisten dan backup jika dipakai untuk data yang perlu dipertahankan.
+
+## Perintah pengembangan
+
+| Perintah | Fungsi |
+| --- | --- |
+| `npm run dev` | Menjalankan server pengembangan Next.js. |
+| `npm run build` | Menghasilkan Prisma Client, lalu membuat build produksi Next.js. |
+| `npm start` | Menjalankan server produksi dari hasil build. |
+| `npm run lint` | Memeriksa kode dengan ESLint dan konfigurasi Next.js. |
+| `npm test` | Menjalankan test dengan `node:test` melalui `tsx`. |
+| `npm run db:up` | Menjalankan PostgreSQL dan Adminer di latar belakang. |
+| `npm run db:down` | Menghentikan dan menghapus container serta network Compose. |
+| `npm run seed` | Mengisi ulang data demo; menghapus data yang disebutkan pada bagian seed. |
+| `npm run seed:roles` | Melakukan upsert jabatan default tanpa menjalankan seed demo penuh. |
+| `npx prisma migrate dev` | Menerapkan migrasi lokal dan membuat migrasi untuk perubahan skema. |
+| `npx prisma generate` | Menghasilkan Prisma Client dari skema saat ini. |
+| `npx tsc --noEmit` | Memeriksa tipe TypeScript secara terpisah. |
+
+Test menggunakan `node:assert/strict` dengan mock modul untuk dependensi seperti Prisma dan autentikasi. File test ditempatkan di dekat kode yang diuji, termasuk validasi input, server actions, logika kocokan, rumah tangga, tunggakan, akses tamu, profil, dan ekspor log.
 
 Menjalankan satu file test:
 
@@ -85,51 +146,71 @@ Menjalankan satu file test:
 npx tsx --experimental-test-module-mocks --test src/features/members/member-schemas.test.ts
 ```
 
-## Struktur Proyek
+## Stack dan struktur kode
 
-Feature-sliced layout — `src/features/<feature>/{actions,components,dialogs}` dengan route tipis di `src/app/` yang merangkai feature.
+| Lapisan | Teknologi |
+| --- | --- |
+| Framework | Next.js 16.2.12 App Router, React 19.2.4, TypeScript strict |
+| Antarmuka | Tailwind CSS 4, shadcn/ui berbasis Base UI, Lucide |
+| Data di client | TanStack Query 5 dan TanStack Table 8 |
+| Grafik | Recharts 3 |
+| Database | PostgreSQL, Prisma ORM 7, adapter `@prisma/adapter-pg` |
+| Autentikasi | NextAuth 5 beta, credentials, bcryptjs, sesi JWT |
+| Validasi dan test | Zod 4, `node:test`, `tsx` |
 
-```
+Kode dikelompokkan per fitur. Route di `src/app/` merangkai komponen dan aksi dari `src/features/`; server actions mengakses database melalui Prisma, sedangkan query options dan invalidasi cache client dikelola dengan TanStack Query.
+
+```text
+prisma/
+  schema.prisma            # Model dan relasi database
+  migrations/              # Riwayat migrasi PostgreSQL
+  seed.ts                  # Data demo
+  seed-roles.ts            # Entry point seed jabatan saja
+  seed/roles.ts            # Definisi dan upsert jabatan default
 src/
-  app/                     # route App Router (dashboard, dashboard/cash|sosial|arisan|members|settings, signin)
+  app/                     # Route, layout, halaman, dan endpoint Auth.js
   features/
-    auth/                  # konfigurasi NextAuth (lib/auth.ts), aksi & form login
-    cash/                  # periode kas, pembayaran iuran, pengeluaran, saldo awal, ringkasan & rekap tahunan
-    sosial/                # iuran sukarela (min. nominal), pengeluaran, saldo awal, ringkasan & rekap tahunan
-    arisan/                # iuran arisan, kocokan (draw-logic), dana save, riwayat & rekap tahunan
-    members/               # CRUD anggota
-    roles/                 # role kepengurusan + assignment (riwayat jabatan)
-    dashboard/             # shell dashboard (sidebar, breadcrumb, QueryProvider)
-  components/              # komponen UI global (ui/, period-selector, summary-stat-cards, grafik tahunan)
-  generated/prisma/        # Prisma client (hasil generate)
-  lib/                     # prisma singleton, format (formatCurrency/formatDate), months
+    auth/                  # Login, logout, sesi, dan akses tamu
+    dashboard/             # Sidebar, ringkasan, dan provider query
+    cash/                  # Buku kas
+    sosial/                # Dana sosial
+    arisan/                # Iuran, kocokan, dan dana save
+    kegiatan/              # Jadwal, peserta, pembayaran, dan pengeluaran
+    members/               # Biodata dan pengelompokan rumah
+    roles/                 # Jabatan dan riwayat kepengurusan
+    log/                   # Pencatatan, pencarian, dan ekspor aktivitas
+    profile/               # Profil akun dan password
+  components/              # UI bersama, tabel pembayaran, dan grafik
+  lib/                     # Prisma, format, ekspor, rate limit, dan tunggakan
+  generated/prisma/        # Prisma Client hasil generate
+  types/                   # Tipe tambahan sesi NextAuth
+  proxy.ts                 # Penanganan sesi untuk route dashboard
 ```
 
-Path alias: `@/*` → `src/*` dan `@features/*` → `src/features/*`.
+Alias impor: `@/*` mengarah ke `src/*`, sedangkan `@features/*` mengarah ke `src/features/*`.
 
-## Database
+Model utama meliputi `User`, `Member`, `Role`, `MemberRoleAssignment`, kelompok `Cash*`, `Sosial*`, `Arisan*`, dan `Kegiatan*`, serta `AppSetting` dan `ActivityLog`. Transaksi menyimpan pembuat melalui `createdById`; log aktivitas menyimpan pelaku, aksi, entitas, dan snapshot perubahan bila tersedia. Lihat [skema database](prisma/schema.prisma) untuk detail relasi dan batasan data.
 
-Model inti di `prisma/schema.prisma`:
+## Menjalankan di produksi
 
-- `User` — akun pengurus (NextAuth credentials)
-- `Member` — anggota pemuda (gender, dusun, RT/RW, status aktif) dengan self-relation `headOfHouseholdId` untuk pengelompokan rumah (1 rumah = 1 slot arisan)
-- `Role` — role kepengurusan (nama + urutan rank, unik)
-- `MemberRoleAssignment` — jabatan anggota dengan `startDate`/`endDate` (null = masih menjabat) sehingga riwayat kepengurusan tersimpan
-- `CashPeriod` / `CashIncome` / `CashExpense` — kas bulanan (iuran + batas bawah, pembayaran unik per anggota per periode, pengeluaran)
-- `SosialPeriod` / `SosialIncome` / `SosialExpense` — iuran sosial sukarela dengan nominal minimal, kontribusi unik per anggota per periode, pengeluaran
-- `ArisanPeriod` / `ArisanIncome` / `ArisanDraw` — arisan: iuran flat per periode, pembayaran unik per anggota per periode, kocokan dengan pemenang, jumlah terkumpul, payout, saldo save, dan status void
-- `AppSetting` — key-value store untuk saldo awal (`cash.initialBalance`, `sosial.initialBalance`, `arisan.initialSave`)
-
-Setiap catatan menyimpan `createdById` (siapa yang mencatat) untuk jejak audit.
-
-## Testing
-
-`node:test` + `node:assert/strict` via `tsx` dengan `--experimental-test-module-mocks`. Dependensi (Prisma, auth) di-mock menggunakan `mock.module()` di awal file test sebelum mengimpor aksi yang diuji. Test ditempatkan di samping feature-nya (mis. `src/features/members/member-actions.test.ts`).
+Aplikasi memerlukan runtime server Next.js untuk autentikasi, server actions, dan akses database. Siapkan PostgreSQL serta `DATABASE_URL` dan `AUTH_SECRET` pada environment deployment, lalu jalankan:
 
 ```bash
-npm test
+npm ci
+npx prisma migrate deploy
+npm run build
+npm start
 ```
 
-## Konvensi Commit
+`npm run build` sudah menjalankan `prisma generate`, tetapi tidak menerapkan migrasi database. Jalankan lint dan test sebagai langkah pemeriksaan tersendiri. Gunakan akun pengurus yang disiapkan untuk produksi; seed demo menghapus data dan bukan langkah deployment.
 
-Proyek ini memakai [Conventional Commits](https://www.conventionalcommits.org) dalam Bahasa Inggris — lihat `CLAUDE.md` untuk detailnya.
+Panduan runtime tersedia pada [dokumentasi deployment Next.js](https://nextjs.org/docs/app/getting-started/deploying).
+
+## Dokumen terkait
+
+- [PRODUCT.md](PRODUCT.md) — konteks produk dan kebutuhan awal.
+- [DESIGN.md](DESIGN.md) — arah visual dan panduan antarmuka.
+- [AGENTS.md](AGENTS.md) — instruksi repository dan rujukan dokumentasi Next.js yang terpasang.
+- [CLAUDE.md](CLAUDE.md) — panduan pengembangan tambahan dan konvensi commit.
+
+Gunakan Conventional Commits dalam Bahasa Inggris, misalnya `docs(readme): update project setup guide`. Untuk perilaku dan konfigurasi terkini, cocokkan dokumentasi dengan kode sumber, [package.json](package.json), serta [prisma.config.ts](prisma.config.ts).
