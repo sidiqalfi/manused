@@ -14,6 +14,7 @@ const accountFields = {
 }
 
 export const createUserSchema = z.object({ ...accountFields, password: accountPasswordSchema })
+export const deleteUserSchema = z.object({ id: z.uuid("ID pengguna tidak valid") })
 export const updateUserSchema = z.object({
   ...accountFields,
   id: z.uuid("ID pengguna tidak valid"),

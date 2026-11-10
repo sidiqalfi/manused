@@ -12,10 +12,11 @@ let managed: typeof target | null
 const findUnique = mock.fn(async (args: { where: { id: string } }): Promise<unknown> => args.where.id === ADMIN_ID ? actor : managed)
 const create = mock.fn(async (): Promise<unknown> => target)
 const update = mock.fn(async (args: { data: Record<string, unknown> }): Promise<unknown> => ({ ...managed, ...args.data }))
+const remove = mock.fn(async (_args: { where: { id: string }; select: { id: boolean } }): Promise<unknown> => { void _args; return { id: TARGET_ID } })
 const count = mock.fn(async () => 2)
 const findMany = mock.fn(async () => [target])
 const logCreate = mock.fn(async () => ({}))
-const tx = { user: { findUnique, create, update, count, findMany }, activityLog: { create: logCreate } }
+const tx = { user: { findUnique, create, update, delete: remove, count, findMany }, activityLog: { create: logCreate } }
 const transaction = mock.fn(async (callback: (client: typeof tx) => Promise<unknown>, _options?: unknown) => { void _options; return callback(tx) })
 const hash = mock.fn(async () => "password-hash")
 const revalidatePath = mock.fn()
@@ -30,21 +31,24 @@ let createUser: typeof import("./actions/create-user").createUser
 let updateUser: typeof import("./actions/update-user").updateUser
 let resetUserPassword: typeof import("./actions/reset-user-password").resetUserPassword
 let getUsers: typeof import("./actions/get-users").getUsers
+let deleteUser: typeof import("./actions/delete-user").deleteUser
 before(async () => {
   ;({ createUser } = await import("./actions/create-user"))
   ;({ updateUser } = await import("./actions/update-user"))
   ;({ resetUserPassword } = await import("./actions/reset-user-password"))
   ;({ getUsers } = await import("./actions/get-users"))
+  ;({ deleteUser } = await import("./actions/delete-user"))
 })
 
 beforeEach(() => {
   session = { user: { ...admin } }
   actor = { ...admin }
   managed = { ...target }
-  for (const fn of [findUnique, create, update, count, findMany, logCreate, transaction, hash, revalidatePath, auth]) fn.mock.resetCalls()
+  for (const fn of [findUnique, create, update, remove, count, findMany, logCreate, transaction, hash, revalidatePath, auth]) fn.mock.resetCalls()
   findUnique.mock.mockImplementation(async (args) => args.where.id === ADMIN_ID ? actor : managed)
   create.mock.mockImplementation(async () => target)
   update.mock.mockImplementation(async (args) => ({ ...managed, ...args.data }))
+  remove.mock.mockImplementation(async () => ({ id: TARGET_ID }))
   count.mock.mockImplementation(async () => 2)
   logCreate.mock.mockImplementation(async () => ({}))
 })
@@ -62,6 +66,7 @@ test("all user-management actions reject unauthenticated, guest, and regular ses
     assert.equal((await createUser(form())).success, false)
     assert.equal((await updateUser(form())).success, false)
     assert.equal((await resetUserPassword(form())).success, false)
+    assert.equal((await deleteUser(form())).success, false)
   }
   assert.equal(transaction.mock.callCount(), 0)
   assert.equal(hash.mock.callCount(), 0)
@@ -75,6 +80,7 @@ test("administrator claims are rejected if persisted account is inactive, demote
     assert.equal((await updateUser(form())).success, false)
     assert.equal((await resetUserPassword(form())).success, false)
     assert.equal((await getUsers()).success, false)
+    assert.equal((await deleteUser(form())).success, false)
   }
   assert.equal(transaction.mock.callCount(), 0)
 })
@@ -86,6 +92,7 @@ test("malformed IDs, invalid access roles, status, and oversized bcrypt input ar
   assert.equal((await updateUser(form({ id: "invalid" }))).success, false)
   assert.equal((await updateUser(form({ isActive: "invalid" }))).success, false)
   assert.equal((await resetUserPassword(form({ id: "invalid" }))).success, false)
+  assert.equal((await deleteUser(form({ id: "invalid" }))).success, false)
   assert.equal(transaction.mock.callCount(), 0)
 })
 
@@ -159,4 +166,58 @@ test("user list selects safe fields without password or token version", async ()
   const select = (findMany.mock.calls[0]?.arguments as unknown as [{ select: Record<string, unknown> }])[0].select
   assert.equal(select.password, undefined)
   assert.equal(select.tokenVersion, undefined)
+})
+
+test("delete removes another account and audits only safe fields", async () => {
+  assert.equal((await deleteUser(form())).success, true)
+  assert.deepEqual(remove.mock.calls[0]?.arguments[0], { where: { id: TARGET_ID }, select: { id: true } })
+  const log = JSON.stringify(logCreate.mock.calls)
+  assert.ok(log.includes('"action":"DELETE"'))
+  assert.ok(log.includes(target.email))
+  assert.ok(!log.includes("password"))
+  assert.deepEqual(transaction.mock.calls[0]?.arguments[1], { isolationLevel: "Serializable" })
+  assert.deepEqual(revalidatePath.mock.calls[0]?.arguments, ["/dashboard/users"])
+})
+
+test("delete rejects own account, missing target, and the last active administrator", async () => {
+  assert.match((await deleteUser(form({ id: ADMIN_ID }))).error ?? "", /akun sendiri/)
+  managed = null
+  assert.match((await deleteUser(form())).error ?? "", /tidak ditemukan/)
+  managed = { ...target, role: "ADMIN" }
+  count.mock.mockImplementation(async () => 1)
+  assert.match((await deleteUser(form())).error ?? "", /satu administrator aktif/)
+  assert.equal(remove.mock.callCount(), 0)
+  assert.equal(logCreate.mock.callCount(), 0)
+})
+
+test("delete rechecks administrator permissions within the transaction", async () => {
+  let calls = 0
+  findUnique.mock.mockImplementation(async () => ++calls === 1 ? admin : null)
+  assert.equal((await deleteUser(form())).success, false)
+  assert.equal(remove.mock.callCount(), 0)
+})
+
+test("delete allows other administrators and inactive accounts", async () => {
+  for (const changes of [{ role: "ADMIN" }, { isActive: false }]) {
+    managed = { ...target, ...changes }
+    assert.equal((await deleteUser(form())).success, true)
+  }
+  assert.equal(remove.mock.callCount(), 2)
+})
+
+test("delete explains linked-data and concurrency failures without recording success", async () => {
+  for (const [code, message] of [["P2003", /Nonaktifkan akun/], ["P2025", /tidak ditemukan/], ["P2034", /Muat ulang/]] as const) {
+    remove.mock.mockImplementation(async () => { throw { code } })
+    assert.match((await deleteUser(form())).error ?? "", message)
+  }
+  assert.equal(logCreate.mock.callCount(), 0)
+  assert.equal(revalidatePath.mock.callCount(), 0)
+})
+
+test("delete explains PostgreSQL RESTRICT errors surfaced by the driver adapter", async () => {
+  remove.mock.mockImplementation(async () => {
+    throw { code: "P2039", meta: { driverAdapterError: { cause: { originalCode: "23001" } } } }
+  })
+  assert.match((await deleteUser(form())).error ?? "", /Nonaktifkan akun/)
+  assert.equal(logCreate.mock.callCount(), 0)
 })

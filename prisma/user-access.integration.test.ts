@@ -50,6 +50,7 @@ test("administrator access and position migration on PostgreSQL", { skip: !testU
     mock.module("next/cache", { exports: { revalidatePath: () => {} } } as never)
     const { updateUser } = await import("../src/features/users/actions/update-user")
     const { resetUserPassword } = await import("../src/features/users/actions/reset-user-password")
+    const { deleteUser } = await import("../src/features/users/actions/delete-user")
     function form(id: string, changes: Record<string, string> = {}) {
       const data = new FormData()
       for (const [key, value] of Object.entries({ id, name: "Administrator", email: id === adminId ? "admin@example.com" : "second@example.com", role: "USER", isActive: "true", ...changes })) data.set(key, value)
@@ -89,6 +90,66 @@ test("administrator access and position migration on PostgreSQL", { skip: !testU
       assert.equal(result.success, false)
       assert.equal((await db.user.findUniqueOrThrow({ where: { id: targetId } })).name, before.name)
       await sql.query('ALTER TABLE "ActivityLog" DROP CONSTRAINT "test_reject_audit"')
+    })
+
+    await t.test("deletion removes the account, invalidates its token, and preserves historical logs", async () => {
+      const target = await db.user.create({ data: { email: "delete@example.com", password: passwordHash } })
+      const historical = await db.activityLog.create({ data: {
+        actorId: target.id, actorEmail: target.email, action: "LOGIN", entity: "auth", summary: "Historical login",
+      } })
+      assert.equal((await deleteUser(form(target.id))).success, true)
+      assert.equal(await db.user.findUnique({ where: { id: target.id } }), null)
+      const { validateAccountToken } = await import("../src/features/auth/lib/session-validation")
+      assert.deepEqual(validateAccountToken({ id: target.id, tokenVersion: 0 }, null), {})
+      assert.equal((await db.activityLog.findUniqueOrThrow({ where: { id: historical.id } })).actorEmail, target.email)
+      const log = await db.activityLog.findFirstOrThrow({ where: { action: "DELETE", entity: "user", entityId: target.id } })
+      assert.equal(log.actorId, actorId)
+      assert.ok(JSON.stringify(log.before).includes(target.email))
+      assert.ok(!JSON.stringify(log).includes(passwordHash))
+    })
+
+    await t.test("required creator relations prevent deletion without changing recorded data", async () => {
+      const target = await db.user.create({ data: { email: "linked@example.com", password: passwordHash } })
+      const period = await db.cashPeriod.create({ data: { month: 1, year: 2026, duesAmount: 10000, minAmount: 5000, createdById: target.id } })
+      const result = await deleteUser(form(target.id))
+      assert.equal(result.success, false)
+      assert.match(result.error ?? "", /Nonaktifkan akun/)
+      assert.ok(await db.user.findUnique({ where: { id: target.id } }))
+      assert.equal((await db.cashPeriod.findUniqueOrThrow({ where: { id: period.id } })).createdById, target.id)
+      assert.equal(await db.activityLog.count({ where: { action: "DELETE", entityId: target.id } }), 0)
+      const constraints = await sql.query("SELECT confdeltype FROM pg_constraint WHERE contype = 'f' AND confrelid = '\"User\"'::regclass")
+      assert.equal(constraints.rows.length, 14)
+      assert.ok(constraints.rows.every((row) => row.confdeltype === "r"))
+    })
+
+    await t.test("failed audit rolls back account deletion", async () => {
+      const target = await db.user.create({ data: { email: "rollback-delete@example.com", password: passwordHash } })
+      await sql.query('ALTER TABLE "ActivityLog" ADD CONSTRAINT "test_reject_delete_audit" CHECK (false) NOT VALID')
+      try {
+        assert.equal((await deleteUser(form(target.id))).success, false)
+        assert.ok(await db.user.findUnique({ where: { id: target.id } }))
+      } finally {
+        await sql.query('ALTER TABLE "ActivityLog" DROP CONSTRAINT "test_reject_delete_audit"')
+      }
+    })
+
+    await t.test("administrators cannot delete themselves, including the last active administrator", async () => {
+      assert.match((await deleteUser(form(actorId))).error ?? "", /akun sendiri/)
+      assert.equal(await db.user.count({ where: { role: "ADMIN", isActive: true } }), 1)
+    })
+
+    await t.test("concurrent attempts to delete each other preserve one active administrator", async () => {
+      const originalActorId = actorId
+      await db.user.update({ where: { id: originalActorId }, data: { role: "USER" } })
+      const first = await db.user.create({ data: { email: "delete-admin-a@example.com", password: passwordHash, role: "ADMIN" } })
+      const second = await db.user.create({ data: { email: "delete-admin-b@example.com", password: passwordHash, role: "ADMIN" } })
+      actorId = first.id
+      const firstAttempt = deleteUser(form(second.id))
+      actorId = second.id
+      const results = await Promise.all([firstAttempt, deleteUser(form(first.id))])
+      assert.equal(results.filter((result) => result.success).length, 1)
+      assert.equal(await db.user.count({ where: { role: "ADMIN", isActive: true } }), 1)
+      actorId = (await db.user.findFirstOrThrow({ where: { role: "ADMIN", isActive: true } })).id
     })
   } finally {
     await db.$disconnect()
