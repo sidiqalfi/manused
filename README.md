@@ -15,7 +15,7 @@ Antarmuka menggunakan Bahasa Indonesia dengan format rupiah (`id-ID`). Pengurus 
 | Kegiatan | Jadwal dan status kegiatan, peserta hadir atau hanya patungan, nominal iuran per peserta, pembayaran bertahap, pengeluaran, serta subsidi dari kas. Detail kegiatan memiliki URL berbasis slug. |
 | Anggota | Biodata, status aktif, tanggal bergabung, pengelompokan rumah, jabatan kepengurusan, dan riwayat jabatan. |
 | Log aktivitas | Riwayat perubahan dan aktivitas autentikasi, detail sebelum/sesudah bila tersedia, serta filter pelaku, aksi, entitas, dan tanggal. |
-| Pengguna | Pembuatan akun, perubahan nama/email dan hak akses, reset password, serta aktivasi/nonaktivasi akun oleh administrator. |
+| Pengguna | Pembuatan akun, perubahan nama/email dan hak akses, reset password, aktivasi/nonaktivasi, serta penghapusan akun lain oleh administrator. |
 | Profil dan pengaturan | Pembaruan nama profil, perubahan password, serta saldo awal kas, sosial, dan arisan. |
 
 Halaman kas, sosial, dan arisan menyediakan matriks pembayaran serta perhitungan tunggakan. Ekspor CSV/JSON dengan pilihan kolom tersedia untuk kas, sosial, arisan, anggota, peserta kegiatan, dan log aktivitas.
@@ -37,7 +37,7 @@ Pengurus masuk melalui `/signin` menggunakan email dan password. Hak akses akun 
 | `USER` | Menggunakan fitur pengurus sesuai aturan akses dan kepemilikan data yang berlaku. |
 | Tamu | Sesi virtual `guest` untuk akses baca, tanpa akun tersimpan di database. |
 
-Jabatan organisasi seperti Ketua atau Bendahara disimpan melalui `Position` dan `MemberPositionAssignment`, terpisah dari hak akses akun. Administrator dapat menonaktifkan akun sambil mempertahankan riwayat transaksi. Minimal satu administrator aktif harus tetap tersedia.
+Jabatan organisasi seperti Ketua atau Bendahara disimpan melalui `Position` dan `MemberPositionAssignment`, terpisah dari hak akses akun. Administrator dapat menghapus akun lain setelah konfirmasi jika akun tersebut tidak lagi digunakan sebagai pembuat data anggota atau transaksi. Akun sendiri tidak dapat dihapus. Untuk akun yang masih terkait data, gunakan nonaktivasi agar riwayat tetap tersimpan. Minimal satu administrator aktif harus tetap tersedia.
 
 Pengunjung tanpa sesi yang membuka `/dashboard/...` otomatis masuk sebagai tamu dan kembali ke halaman tujuan. Tamu mendapat tampilan baca dan tidak dapat melakukan perubahan data. Halaman anggota, log, profil, dan pengaturan mengalihkan tamu ke dashboard. Akses tamu ini perlu diperhitungkan saat menentukan data yang akan ditampilkan dalam aplikasi.
 

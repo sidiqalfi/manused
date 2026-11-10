@@ -11,7 +11,13 @@ disimpan terpisah melalui `Position` dan `MemberPositionAssignment`.
 - Halaman `/dashboard/users` tersedia untuk administrator aktif. Setiap read
   dan mutation memeriksa izin dari database, termasuk versi sesi.
 - Administrator dapat membuat akun, mengubah nama/email/hak akses, mengganti
-  password, dan mengaktifkan/menonaktifkan akun. Tidak ada penghapusan akun.
+  password, mengaktifkan/menonaktifkan akun, dan menghapus akun lain.
+- Penghapusan permanen membutuhkan konfirmasi. Akun sendiri dan administrator
+  aktif terakhir dilindungi. Relasi pembuat data menolak penghapusan akun yang
+  masih digunakan oleh anggota, periode, atau transaksi; nonaktifkan akun tersebut
+  untuk menghentikan aksesnya. Data terkait tidak dihapus atau dipindahkan.
+- Penghapusan akun membatalkan sesi pada validasi berikutnya. Log aktivitas lama
+  tetap tersimpan dengan identitas pelaku, dan penghapusan dicatat sebagai `DELETE`.
 - Perubahan hak akses, email, status, atau password menaikkan `tokenVersion`.
   Login menolak akun nonaktif; validasi sesi menolak versi token lama.
 - Transaksi serializable melindungi administrator aktif terakhir dan
@@ -39,7 +45,8 @@ ulang. Akun baru berikutnya dibuat dari halaman Kelola Pengguna.
 
 Uji mencakup penolakan akses user/tamu, akun nonaktif dan sesi kedaluwarsa,
 payload tidak valid, email duplikat, pencabutan sesi, snapshot audit aman,
-perlindungan administrator terakhir, serta migrasi jabatan tanpa kehilangan data.
+perlindungan administrator terakhir, penghapusan akun, penolakan akun yang masih
+dipakai data lain, rollback bila audit gagal, serta migrasi jabatan tanpa kehilangan data.
 
 Jalankan test biasa dengan `npm test`. Pengujian integrasi dilewati sampai
 `TEST_DATABASE_URL` diisi dengan koneksi PostgreSQL khusus pengujian:
