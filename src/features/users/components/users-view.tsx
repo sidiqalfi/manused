@@ -13,6 +13,7 @@ import type { ManagedUser } from "../user-select"
 import { USER_ACCESS_LABELS } from "../user-schemas"
 import { UserFormDialog } from "./user-form-dialog"
 import { ResetPasswordDialog } from "./reset-password-dialog"
+import { DeleteUserDialog } from "./delete-user-dialog"
 
 export function UsersView({ currentUserId }: { currentUserId: string }) {
   const query = useQuery(usersQuery)
@@ -34,6 +35,7 @@ export function UsersView({ currentUserId }: { currentUserId: string }) {
       <div className="flex items-center justify-end gap-1">
         <UserFormDialog user={row.original} isCurrentUser={row.original.id === currentUserId} onSaved={setMessage} />
         <ResetPasswordDialog user={row.original} onSaved={setMessage} />
+        {row.original.id !== currentUserId ? <DeleteUserDialog user={row.original} onSaved={setMessage} /> : null}
       </div>
     ) },
   ]
