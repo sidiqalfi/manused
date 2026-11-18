@@ -1,7 +1,7 @@
 import type { ArisanPaymentMatrix } from "@/features/arisan/actions/get-arisan-payment-matrix"
 
 export type MemberArrears = {
-  /** jumlah bulan lewat yang masih belum tertutup pembayaran */
+  /** jumlah bulan jatuh tempo yang masih belum tertutup pembayaran */
   count: number
   /** total nominal wajib yang belum tertutup pembayaran */
   amount: number
@@ -13,11 +13,12 @@ export type MemberArrears = {
  * sebelumnya (tertua dulu). Contoh: tidak bayar Sep (wajib 5rb) lalu bayar
  * 10rb di Okt (wajib 5rb) => kelebihan 5rb menutup Sep => tidak nunggak.
  *
- * Defisit hanya dihitung untuk bulan yang SUDAH SELESAI (lewat dari hari
- * ini, dan sebelum `beforeMonth` bila diberikan). Kredit (settlement) diambil
+ * Defisit dihitung untuk bulan yang sudah lewat, atau bulan berjalan yang
+ * sudah memiliki kocokan aktif, dan sebelum `beforeMonth` bila diberikan.
+ * Kredit (settlement) diambil
  * dari SEMUA pembayaran tercatat — kelebihan bayar di bulan apa pun, termasuk
  * bulan berjalan atau prabayar, tetap bisa menutup nunggakan lama. Bulan
- * berjalan & depan tidak pernah dianggap nunggak.
+ * depan tidak pernah dianggap nunggak.
  */
 export function computeArrears(
   matrix: ArisanPaymentMatrix,
@@ -26,45 +27,12 @@ export function computeArrears(
   /** Injeksi waktu untuk test — default waktu sekarang. */
   now: Date = new Date()
 ): Map<string, MemberArrears> {
-  const nowKey = now.getFullYear() * 12 + now.getMonth() // bulan berjalan (0-based)
-  const limitKey = year * 12 + (beforeMonth - 1) // bulan periode aktif (0-based)
-
   const result = new Map<string, MemberArrears>()
-
-  const sortedMonths = [...matrix.months].sort((a, b) => a.month - b.month)
-
-  for (const member of matrix.members) {
-    // antrean kekurangan: [sisa nominal, ...] dari bulan tertua
-    const deficits: number[] = []
-
-    for (const month of sortedMonths) {
-      const key = year * 12 + (month.month - 1)
-      const isDeficitSource =
-        key < nowKey && (beforeMonth === 0 || key < limitKey)
-
-      const credit = (month.paidBy[member.id] ?? 0) - month.expected
-
-      if (credit >= 0) {
-        // cukup/lebih: kelebihan menutup defisit tertua dulu
-        let surplus = credit
-        while (surplus > 0 && deficits.length > 0) {
-          const oldest = deficits[0]
-          const applied = Math.min(oldest, surplus)
-          deficits[0] = oldest - applied
-          surplus -= applied
-          if (deficits[0] === 0) deficits.shift()
-        }
-      } else if (isDeficitSource) {
-        deficits.push(-credit)
-      }
-    }
-
-    if (deficits.length > 0) {
-      result.set(member.id, {
-        count: deficits.length,
-        amount: deficits.reduce((sum, d) => sum + d, 0),
-      })
-    }
+  for (const [memberId, deficits] of computeMonthlyDeficits(matrix, year, beforeMonth, now)) {
+    result.set(memberId, {
+      count: deficits.size,
+      amount: [...deficits.values()].reduce((sum, amount) => sum + amount, 0),
+    })
   }
 
   return result
@@ -79,9 +47,9 @@ export function computeArrears(
 export function computeMonthlyDeficits(
   matrix: ArisanPaymentMatrix,
   year: number,
-  beforeMonth: number
+  beforeMonth: number,
+  now: Date = new Date()
 ): Map<string, Map<number, number>> {
-  const now = new Date()
   const nowKey = now.getFullYear() * 12 + now.getMonth()
   const limitKey = year * 12 + (beforeMonth - 1)
 
@@ -93,8 +61,9 @@ export function computeMonthlyDeficits(
 
     for (const month of sortedMonths) {
       const key = year * 12 + (month.month - 1)
+      const isDue = key < nowKey || (key === nowKey && month.hasActiveDraw === true)
       const isDeficitSource =
-        key < nowKey && (beforeMonth === 0 || key < limitKey)
+        isDue && (beforeMonth === 0 || key < limitKey)
 
       const credit = (month.paidBy[member.id] ?? 0) - month.expected
 

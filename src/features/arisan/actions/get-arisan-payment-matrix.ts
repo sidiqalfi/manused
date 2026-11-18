@@ -17,6 +17,8 @@ export interface ArisanPaymentMatrixMonth {
   paidBy: Record<string, number>
   /** Nominal iuran wajib bulan itu (untuk hitung tunggakan) */
   expected: number
+  /** Kocokan yang belum dibatalkan membuat iuran bulan berjalan jatuh tempo. */
+  hasActiveDraw?: boolean
 }
 
 export interface ArisanPaymentMatrix {
@@ -50,7 +52,12 @@ export async function getArisanPaymentMatrix(
     const [periods, members] = await Promise.all([
       prisma.arisanPeriod.findMany({
         where: { year: validation.data },
-        select: { id: true, month: true, contributionAmount: true },
+        select: {
+          id: true,
+          month: true,
+          contributionAmount: true,
+          draws: { where: { voided: false }, select: { id: true }, take: 1 },
+        },
         orderBy: { month: "asc" },
       }),
       prisma.member.findMany({
@@ -95,18 +102,19 @@ export async function getArisanPaymentMatrix(
       )
     }
 
-    const months: ArisanPaymentMatrixMonth[] = Array.from(
-      byMonth.keys()
-    )
-      .sort((a, b) => a - b)
-      .map((month) => {
+    const months: ArisanPaymentMatrixMonth[] = periods
+      .filter((period) => byMonth.has(period.month) || period.draws.length > 0)
+      .map((period) => {
         const paidBy: Record<string, number> = {}
-        for (const [memberId, amount] of byMonth.get(month)!) {
+        for (const [memberId, amount] of byMonth.get(period.month) ?? []) {
           paidBy[memberId] = amount
         }
-        const expected =
-          periods.find((p) => p.month === month)?.contributionAmount ?? 0
-        return { month, paidBy, expected }
+        return {
+          month: period.month,
+          paidBy,
+          expected: period.contributionAmount,
+          hasActiveDraw: period.draws.length > 0,
+        }
       })
 
     return {

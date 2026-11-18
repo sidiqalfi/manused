@@ -1,11 +1,11 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { computeArrears } from "./arrears"
+import { computeArrears, computeMonthlyDeficits } from "./arrears"
 import type { ArisanPaymentMatrix } from "@/features/arisan/actions/get-arisan-payment-matrix"
 
 // Skenario matrix dengan anggota adit & budi
 function matrixFrom(
-  months: { month: number; expected: number; paidBy: Record<string, number> }[]
+  months: ArisanPaymentMatrix["months"]
 ): ArisanPaymentMatrix {
   return {
     members: [
@@ -101,4 +101,50 @@ test("returns a Map even when everything is paid", () => {
   const result = computeArrears(matrix, 2026, 0)
   assert.ok(result instanceof Map)
   assert.equal(result.size, 0)
+})
+
+test("current-month shortfalls become arrears only after an active draw", () => {
+  const now = new Date(2026, 10, 19)
+  const matrix = matrixFrom([{ month: 11, expected: 5000, paidBy: { adit: 2000 } }])
+  assert.equal(computeArrears(matrix, 2026, 0, now).size, 0)
+  assert.equal(computeMonthlyDeficits(matrix, 2026, 0, now).size, 0)
+
+  matrix.months[0].hasActiveDraw = true
+  assert.deepEqual(computeArrears(matrix, 2026, 0, now).get("adit"), { count: 1, amount: 3000 })
+  assert.equal(computeMonthlyDeficits(matrix, 2026, 0, now).get("adit")?.get(11), 3000)
+  assert.deepEqual(computeArrears(matrix, 2026, 0, now).get("budi"), { count: 1, amount: 5000 })
+})
+
+test("voiding the current draw removes its early due date but past months remain due", () => {
+  const now = new Date(2026, 10, 19)
+  const matrix = matrixFrom([
+    { month: 10, expected: 5000, paidBy: {}, hasActiveDraw: false },
+    { month: 11, expected: 5000, paidBy: {}, hasActiveDraw: true },
+  ])
+  assert.deepEqual(computeArrears(matrix, 2026, 0, now).get("adit"), { count: 2, amount: 10000 })
+  matrix.months[1].hasActiveDraw = false
+  assert.deepEqual(computeArrears(matrix, 2026, 0, now).get("adit"), { count: 1, amount: 5000 })
+  assert.deepEqual([...computeMonthlyDeficits(matrix, 2026, 0, now).get("adit")!.keys()], [10])
+})
+
+test("payments still settle oldest deficits when the current month is drawn", () => {
+  const matrix = matrixFrom([
+    { month: 10, expected: 5000, paidBy: {} },
+    { month: 11, expected: 5000, paidBy: { adit: 12000 }, hasActiveDraw: true },
+    { month: 12, expected: 5000, paidBy: { budi: 13000 } },
+  ])
+  const now = new Date(2026, 10, 19)
+  assert.equal(computeArrears(matrix, 2026, 0, now).has("adit"), false)
+  assert.deepEqual(computeArrears(matrix, 2026, 0, now).get("budi"), { count: 1, amount: 2000 })
+  assert.equal(computeMonthlyDeficits(matrix, 2026, 0, now).get("budi")?.get(11), 2000)
+})
+
+test("future draws do not create arrears and period forms still exclude the opened period", () => {
+  const matrix = matrixFrom([
+    { month: 11, expected: 5000, paidBy: {}, hasActiveDraw: true },
+    { month: 12, expected: 5000, paidBy: {}, hasActiveDraw: true },
+  ])
+  const now = new Date(2026, 10, 19)
+  assert.deepEqual(computeArrears(matrix, 2026, 0, now).get("adit"), { count: 1, amount: 5000 })
+  assert.equal(computeArrears(matrix, 2026, 11, now).size, 0)
 })
