@@ -1,5 +1,6 @@
 "use client"
 
+import type { ReactNode } from "react"
 import {
   Table,
   TableBody,
@@ -20,6 +21,7 @@ type Props = {
   matrix: ArisanPaymentMatrix | null
   loading: boolean
   year: number
+  actions?: ReactNode
 }
 
 function shortFormat(amount: number): string {
@@ -36,7 +38,7 @@ function shortFormat(amount: number): string {
   return String(amount)
 }
 
-export function PaymentMatrixTable({ title, matrix, loading, year }: Props) {
+export function PaymentMatrixTable({ title, matrix, loading, year, actions }: Props) {
   if (loading) {
     return (
       <p className="text-center py-6 text-sm text-muted-foreground">
@@ -59,7 +61,10 @@ export function PaymentMatrixTable({ title, matrix, loading, year }: Props) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">{title ?? `Iuran ${year}`}</h3>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="text-lg font-semibold">{title ?? `Iuran ${year}`}</h3>
+        {actions}
+      </div>
       <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>

@@ -12,6 +12,7 @@ import { CreateArisanPeriodDialog } from "@/features/arisan/components/create-ar
 import { ArisanIncomeTable } from "@/features/arisan/components/arisan-income-table"
 import { ArisanDrawHistory } from "@/features/arisan/components/arisan-draw-history"
 import { ExportArisanButton } from "@/features/arisan/components/export-arisan-button"
+import { ExportArisanArrearsButton } from "@/features/arisan/components/export-arisan-arrears-button"
 import { ArisanYearDrawHistory } from "@/features/arisan/components/arisan-year-draw-history"
 import { PaymentMatrixTable } from "@/components/payment-matrix-table"
 import { DrawDialog } from "@/features/arisan/components/draw-dialog"
@@ -262,6 +263,7 @@ export default function ArisanPage() {
             matrix={paymentMatrix}
             loading={paymentMatrixResult.isPending}
             year={activeYear}
+            actions={<ExportArisanArrearsButton matrix={paymentMatrix} year={activeYear} />}
           />
           <ArisanYearDrawHistory
             draws={yearDraws}
